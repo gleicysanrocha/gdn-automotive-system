@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDN Serviços Automotivos</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="GDN OS">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="assets/img/logo.png" alt="GDN Serviços" style="width: 100%; max-width: 140px; height: auto;">
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" data-target="dashboard">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#clients" class="nav-item" data-target="clients">
+                    <i class="fa-solid fa-users"></i> Clientes
+                </a>
+                <a href="#technicians" class="nav-item" data-target="technicians">
+                    <i class="fa-solid fa-user-gear"></i> Técnicos
+                </a>
+                <a href="#os" class="nav-item" data-target="os">
+                    <i class="fa-solid fa-file-invoice"></i> Ordens de Serviço
+                </a>
+                <a href="#financial" class="nav-item" data-target="financial">
+                    <i class="fa-solid fa-sack-dollar"></i> Financeiro
+                </a>
+                <a href="#settings" class="nav-item" data-target="settings">
+                    <i class="fa-solid fa-gears"></i> Configurações
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 GDN Automotive</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-profile">
+                    <span>Admin</span>
+                    <div class="avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div id="content-area" class="content-area">
+                <!-- Dynamic Content Will Be Loaded Here -->
+                <div class="dashboard-placeholder">
+                    <div class="card">
+                        <h3>Bem-vindo ao Sistema GDN</h3>
+                        <p>Selecione uma opção no menu lateral para começar.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/modules/clients.js"></script>
+    <script src="js/modules/technicians.js"></script>
+    <script src="js/modules/os.js"></script>
+    <script src="js/modules/financial.js"></script>
+    <script src="js/modules/settings.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
