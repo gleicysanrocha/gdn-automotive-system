@@ -5,7 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GDN Serviços Automotivos</title>
-    <link rel="stylesheet" href="./css/main.css?v=2">
+    <link rel="stylesheet" href="css/main.css">
+    <script>
+        // Automatic Path Fix for GitHub Pages
+        (function () {
+            const path = window.location.pathname;
+            const repo = path.split('/')[1];
+            if (repo && window.location.hostname.includes('github.io')) {
+                const base = document.createElement('base');
+                base.href = '/' + repo + '/';
+                document.head.prepend(base);
+            }
+        })();
+    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap"
         rel="stylesheet">
@@ -13,7 +25,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- PWA Meta Tags -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -77,22 +89,21 @@
     </div>
 
     <!-- Scripts -->
-    <script src="./js/storage.js"></script>
-    <script src="./js/modules/clients.js"></script>
-    <script src="./js/modules/technicians.js"></script>
-    <script src="./js/modules/os.js"></script>
-    <script src="./js/modules/financial.js"></script>
-    <script src="./js/modules/settings.js"></script>
-    <script src="./js/app.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/modules/clients.js"></script>
+    <script src="js/modules/technicians.js"></script>
+    <script src="js/modules/os.js"></script>
+    <script src="js/modules/financial.js"></script>
+    <script src="js/modules/settings.js"></script>
+    <script src="js/app.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('SW Registered', reg);
-                    if (reg.active) reg.update();
-                })
-                .catch(err => console.log('SW Error', err));
-        }
+        window.addEventListener('load', () => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => { console.log('SW Registered'); reg.update(); })
+                    .catch(err => console.log('SW Error', err));
+            }
+        });
     </script>
 </body>
 

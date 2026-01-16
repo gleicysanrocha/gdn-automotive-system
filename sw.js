@@ -16,7 +16,11 @@ const ASSETS = [
 
 self.addEventListener('install', (e) => {
     e.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS).catch(err => {
+                console.warn('Alguns arquivos não puderam ser cacheados:', err);
+            });
+        })
     );
 });
 
