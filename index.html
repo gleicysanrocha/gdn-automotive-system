@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GDN Serviços Automotivos</title>
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="./css/main.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap"
         rel="stylesheet">
@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#007bff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -25,7 +25,8 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
-                <img src="assets/img/logo.png" alt="GDN Serviços" style="width: 100%; max-width: 140px; height: auto;">
+                <img src="./assets/img/logo.png" alt="GDN Serviços"
+                    style="width: 100%; max-width: 140px; height: auto;">
             </div>
             <nav class="nav-menu">
                 <a href="#dashboard" class="nav-item active" data-target="dashboard">
@@ -77,13 +78,20 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/storage.js"></script>
-    <script src="js/modules/clients.js"></script>
-    <script src="js/modules/technicians.js"></script>
-    <script src="js/modules/os.js"></script>
-    <script src="js/modules/financial.js"></script>
-    <script src="js/modules/settings.js"></script>
-    <script src="js/app.js"></script>
+    <script src="./js/storage.js"></script>
+    <script src="./js/modules/clients.js"></script>
+    <script src="./js/modules/technicians.js"></script>
+    <script src="./js/modules/os.js"></script>
+    <script src="./js/modules/financial.js"></script>
+    <script src="./js/modules/settings.js"></script>
+    <script src="./js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW Registered', reg))
+                .catch(err => console.log('SW Error', err));
+        }
+    </script>
 </body>
 
 </html>
