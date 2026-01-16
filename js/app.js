@@ -223,6 +223,11 @@ const App = {
 
 // Start App
 window.addEventListener('DOMContentLoaded', () => {
+    // Initialize Auth first
+    if (window.AuthModule) {
+        AuthModule.init();
+    }
+
     try {
         App.init();
     } catch (e) {

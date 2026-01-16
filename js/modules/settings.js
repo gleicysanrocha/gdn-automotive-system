@@ -57,6 +57,34 @@ const SettingsModule = {
                         </div>
                     </form>
                 </div>
+
+                <div class="card mt-4">
+                    <h2><i class="fa-solid fa-cloud-arrow-up"></i> Segurança e Backup</h2>
+                    <p class="text-muted">Gerencie a sincronização em nuvem e backups manuais.</p>
+                    
+                    <div class="backup-actions mt-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="backup-box" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
+                            <h4>Backup Manual</h4>
+                            <p style="font-size: 0.85rem; margin-bottom: 15px;">Baixe todos os seus dados em um arquivo JSON para segurança extra.</p>
+                            <button type="button" id="btn-export-backup" class="btn btn-secondary w-100">
+                                <i class="fa-solid fa-download"></i> Exportar JSON
+                            </button>
+                            <button type="button" id="btn-trigger-import" class="btn btn-outline-secondary w-100 mt-2">
+                                <i class="fa-solid fa-upload"></i> Importar JSON
+                            </button>
+                            <input type="file" id="import-backup-file" accept=".json" style="display: none;">
+                        </div>
+
+                        <div class="sync-box" style="background: #e7f3ff; padding: 20px; border-radius: 8px; border: 1px solid #b3d7ff;">
+                            <h4>Sincronização em Nuvem</h4>
+                            <p style="font-size: 0.85rem; margin-bottom: 15px;">Forçar sincronização com o banco de dados da nuvem (Firebase).</p>
+                            <button type="button" id="btn-sync-cloud" class="btn btn-primary w-100">
+                                <i class="fa-solid fa-rotate"></i> Sincronizar Agora
+                            </button>
+                            <p id="sync-status" class="mt-2" style="font-size: 0.75rem; text-align: center; color: var(--primary-color); font-weight: 600;"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -93,11 +121,77 @@ const SettingsModule = {
             };
 
             window.StorageApp.save('storeSettings', updatedSettings);
-            
+
             // Apply changes immediately to layout
             SettingsModule.applySettings(updatedSettings);
 
             alert('Configurações salvas com sucesso!');
+        });
+
+        // Export Backup
+        document.getElementById('btn-export-backup').addEventListener('click', () => {
+            const allData = {};
+            Object.keys(localStorage).forEach(key => {
+                if (key.includes('GDN_AUTO_')) {
+                    allData[key] = localStorage.getItem(key);
+                }
+            });
+
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_gdn_os_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        });
+
+        // Import Backup
+        const importInput = document.getElementById('import-backup-file');
+        document.getElementById('btn-trigger-import').addEventListener('click', () => importInput.click());
+        importInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (confirm('Isso irá substituir os dados atuais. Deseja continuar?')) {
+                        Object.keys(data).forEach(key => {
+                            localStorage.setItem(key, data[key]);
+                        });
+                        alert('Backup restaurado com sucesso! O sistema irá reiniciar.');
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    alert('Erro ao importar arquivo. Verifique se o formato está correto.');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Force Cloud Sync
+        document.getElementById('btn-sync-cloud').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-sync-cloud');
+            const status = document.getElementById('sync-status');
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando...';
+                status.textContent = 'Baixando dados da nuvem...';
+
+                await window.StorageApp.syncCloudToLocal();
+
+                status.textContent = 'Sincronização concluída!';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } catch (err) {
+                alert('Erro na sincronização: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sincronizar Agora';
+                status.textContent = '';
+            }
         });
     },
 
