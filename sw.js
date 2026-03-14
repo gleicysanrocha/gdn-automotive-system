@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gdn-os-v4';
+const CACHE_NAME = 'gdn-os-v5';
 const ASSETS = [
     './',
     './index.html',
@@ -21,6 +21,18 @@ self.addEventListener('install', (e) => {
             return cache.addAll(ASSETS).catch(err => {
                 console.warn('Alguns arquivos não puderam ser cacheados:', err);
             });
+        })
+    );
+});
+
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keyList) => {
+            return Promise.all(keyList.map((key) => {
+                if (key !== CACHE_NAME) {
+                    return caches.delete(key);
+                }
+            }));
         })
     );
 });
