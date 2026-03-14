@@ -59,12 +59,37 @@ const SettingsModule = {
                 </div>
 
                 <div class="card mt-4">
-                    <h2><i class="fa-solid fa-cloud-arrow-up"></i> Segurança e Backup</h2>
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Backups na Nuvem</h2>
+                    <p class="text-muted">Restaure o sistema para um ponto anterior caso algo dê errado. O sistema mantém os últimos 20 backups automáticos.</p>
+                    
+                    <div id="loading-backups" class="mt-4" style="text-align: center;">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                        <p class="mt-2">Buscando backups...</p>
+                    </div>
+
+                    <div id="backup-history-container" class="table-responsive mt-4 hidden">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Data e Hora</th>
+                                    <th>Motivo/Ação</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backup-list">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <h2><i class="fa-solid fa-cloud-arrow-up"></i> Segurança e Exportação</h2>
                     <p class="text-muted">Gerencie a sincronização em nuvem e backups manuais.</p>
                     
                     <div class="backup-actions mt-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="backup-box" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
-                            <h4>Backup Manual</h4>
+                            <h4>Exportar para Arquivo</h4>
                             <p style="font-size: 0.85rem; margin-bottom: 15px;">Baixe todos os seus dados em um arquivo JSON para segurança extra.</p>
                             <button type="button" id="btn-export-backup" class="btn btn-secondary w-100">
                                 <i class="fa-solid fa-download"></i> Exportar JSON
@@ -76,10 +101,10 @@ const SettingsModule = {
                         </div>
 
                         <div class="sync-box" style="background: #e7f3ff; padding: 20px; border-radius: 8px; border: 1px solid #b3d7ff;">
-                            <h4>Sincronização em Nuvem</h4>
-                            <p style="font-size: 0.85rem; margin-bottom: 15px;">Forçar sincronização com o banco de dados da nuvem (Firebase).</p>
+                            <h4>Sincronização Manual</h4>
+                            <p style="font-size: 0.85rem; margin-bottom: 15px;">Baixe todos os dados salvos na nuvem (útil após trocar de dispositivo).</p>
                             <button type="button" id="btn-sync-cloud" class="btn btn-primary w-100">
-                                <i class="fa-solid fa-rotate"></i> Sincronizar Agora
+                                <i class="fa-solid fa-rotate"></i> Baixar da Nuvem Agora
                             </button>
                             <p id="sync-status" class="mt-2" style="font-size: 0.75rem; text-align: center; color: var(--primary-color); font-weight: 600;"></p>
                         </div>
@@ -88,7 +113,78 @@ const SettingsModule = {
             </div>
         `;
 
+        SettingsModule.loadBackupHistory();
         SettingsModule.bindEvents();
+    },
+
+    loadBackupHistory: async () => {
+        const list = document.getElementById('backup-list');
+        const loader = document.getElementById('loading-backups');
+        const container = document.getElementById('backup-history-container');
+
+        if (!list) return;
+
+        try {
+            const backups = await window.StorageApp.getBackupHistory();
+
+            if (loader) loader.classList.add('hidden');
+            if (container) container.classList.remove('hidden');
+
+            if (backups.length === 0) {
+                list.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum backup automático disponível.</td></tr>';
+                return;
+            }
+
+            list.innerHTML = '';
+            backups.forEach(backup => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${backup.dateLabel}</td>
+                    <td style="font-size: 0.85rem;">${backup.reason || 'Sincronização Automática'}</td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm restore-cloud-btn" data-id="${backup.id}" style="padding: 4px 10px; font-size: 0.75rem;">
+                            <i class="fa-solid fa-rotate-left"></i> Restaurar
+                        </button>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+
+            // Bind restore buttons
+            list.querySelectorAll('.restore-cloud-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    if (confirm('Tem certeza que deseja restaurar este backup? Os dados atuais serão substituídos.')) {
+                        await SettingsModule.performCloudRestore(id);
+                    }
+                });
+            });
+
+        } catch (e) {
+            console.error('Error loading backup list:', e);
+            if (loader) loader.innerHTML = '<p class="text-danger">Erro ao carregar histórico de backups.</p>';
+        }
+    },
+
+    performCloudRestore: async (id) => {
+        try {
+            const btn = document.querySelector(`.restore-cloud-btn[data-id="${id}"]`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            }
+
+            const success = await window.StorageApp.restoreBackup(id);
+            if (success) {
+                alert('Backup restaurado com sucesso! O sistema irá reiniciar.');
+                window.location.reload();
+            } else {
+                throw new Error('Falha na restauração.');
+            }
+        } catch (e) {
+            alert('Erro ao restaurar: ' + e.message);
+            window.location.reload();
+        }
     },
 
     bindEvents: () => {
@@ -109,7 +205,7 @@ const SettingsModule = {
         });
 
         // Form Submit
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const updatedSettings = {
@@ -120,12 +216,14 @@ const SettingsModule = {
                 logo: logoPreview.src // Base64 if changed
             };
 
-            window.StorageApp.save('storeSettings', updatedSettings);
+            const success = await window.StorageApp.save('storeSettings', updatedSettings);
 
-            // Apply changes immediately to layout
-            SettingsModule.applySettings(updatedSettings);
-
-            alert('Configurações salvas com sucesso!');
+            if (success) {
+                // Apply changes immediately to layout
+                SettingsModule.applySettings(updatedSettings);
+                alert('Configurações salvas com sucesso! Um backup foi criado na nuvem.');
+                SettingsModule.loadBackupHistory(); // Refresh history
+            }
         });
 
         // Export Backup

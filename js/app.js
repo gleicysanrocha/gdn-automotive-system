@@ -68,10 +68,27 @@ const App = {
                 }
                 break;
             case 'technicians':
+                console.log('Navegando para Técnicos...');
                 if (window.TechnicianModule) {
-                    window.TechnicianModule.render(contentArea);
+                    try {
+                        window.TechnicianModule.render(contentArea);
+                    } catch (e) {
+                        console.error('Erro crítico na renderização de Técnicos:', e);
+                        contentArea.innerHTML = `<div class="card"><p class="text-danger">Erro ao renderizar técnicos: ${e.message}</p><button onclick="location.reload()" class="btn btn-secondary">Recarregar Página</button></div>`;
+                    }
                 } else {
-                    contentArea.innerHTML = '<p class="text-danger">Erro ao carregar módulo de Técnicos.</p>';
+                    console.error('Objeto window.TechnicianModule não encontrado.');
+                    contentArea.innerHTML = `
+                        <div class="card" style="text-align: center; padding: 40px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: #ffc107; margin-bottom: 20px;"></i>
+                            <h3 class="text-danger">Módulo de Técnicos não carregado</h3>
+                            <p>O navegador não conseguiu carregar o arquivo de técnicos. Isso pode ser cache antigo.</p>
+                            <div style="margin-top: 20px;">
+                                <button onclick="location.reload()" class="btn btn-primary" style="margin-right: 10px;">Tentar Recarregar</button>
+                                <button onclick="alert('Pressione Ctrl+F5 no teclado')" class="btn btn-outline-info">Como Limpar Cache?</button>
+                            </div>
+                        </div>
+                    `;
                 }
                 break;
             case 'os':
@@ -163,9 +180,23 @@ const App = {
                     </div>
                 </div>
             </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; margin-top: 20px;">
+                <div class="card">
+                    <h3><i class="fa-regular fa-note-sticky"></i> Minhas Notas</h3>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <input type="text" id="dashboard-note-input" class="form-control" placeholder="Digite uma nova nota aqui...">
+                        <button id="btn-add-note" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                    </div>
+                    <div id="dashboard-notes-list" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                        <!-- JS Populated -->
+                    </div>
+                </div>
+            </div>
         `;
 
         App.renderMainChart(osRecords);
+        App.initNotes();
     },
 
     renderMainChart: (osRecords) => {
@@ -218,6 +249,105 @@ const App = {
                 }
             }
         });
+    },
+
+    initNotes: () => {
+        App.renderNotes();
+        const btnAdd = document.getElementById('btn-add-note');
+        if (btnAdd) {
+            btnAdd.addEventListener('click', App.addNote);
+        }
+        const inputNote = document.getElementById('dashboard-note-input');
+        if (inputNote) {
+            inputNote.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') App.addNote();
+            });
+        }
+    },
+
+    renderNotes: () => {
+        const notes = (window.StorageApp && window.StorageApp.get('user_notes')) || [];
+        const container = document.getElementById('dashboard-notes-list');
+        if (!container) return;
+
+        container.innerHTML = '';
+        if (notes.length === 0) {
+            container.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1;">Nenhuma nota adicionada ainda.</p>';
+            return;
+        }
+
+        notes.sort((a, b) => b.timestamp - a.timestamp); // newest first
+
+        notes.forEach(note => {
+            const noteEl = document.createElement('div');
+            noteEl.style.padding = '15px';
+            noteEl.style.background = 'rgba(255, 255, 255, 0.05)';
+            noteEl.style.borderLeft = '4px solid var(--primary-color)';
+            noteEl.style.borderRadius = '8px';
+            noteEl.style.display = 'flex';
+            noteEl.style.flexDirection = 'column';
+            noteEl.style.justifyContent = 'space-between';
+
+            const dateStr = new Date(note.timestamp).toLocaleString('pt-BR');
+
+            noteEl.innerHTML = `
+                <p style="margin: 0 0 10px 0; white-space: pre-wrap; font-size: 0.95rem;">${note.text}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                    <small class="text-muted" style="font-size: 0.75rem;">${dateStr}</small>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-sm btn-secondary edit-note" data-id="${note.id}" style="padding: 2px 8px; font-size: 0.75rem;" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-sm btn-danger delete-note" data-id="${note.id}" style="padding: 2px 8px; font-size: 0.75rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(noteEl);
+        });
+
+        document.querySelectorAll('.delete-note').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (confirm('Excluir esta nota?')) App.deleteNote(id);
+            });
+        });
+
+        document.querySelectorAll('.edit-note').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                const note = notes.find(n => n.id === id);
+                if (note) {
+                    const newText = prompt('Editar nota:', note.text);
+                    if (newText !== null && newText.trim() !== '') {
+                        note.text = newText;
+                        window.StorageApp.save('user_notes', notes);
+                        App.renderNotes();
+                    }
+                }
+            });
+        });
+    },
+
+    addNote: () => {
+        const input = document.getElementById('dashboard-note-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        let notes = (window.StorageApp && window.StorageApp.get('user_notes')) || [];
+        notes.push({
+            id: Date.now().toString(),
+            text: text,
+            timestamp: Date.now()
+        });
+
+        window.StorageApp.save('user_notes', notes);
+        input.value = '';
+        App.renderNotes();
+    },
+
+    deleteNote: (id) => {
+        let notes = (window.StorageApp && window.StorageApp.get('user_notes')) || [];
+        notes = notes.filter(n => n.id !== id);
+        window.StorageApp.save('user_notes', notes);
+        App.renderNotes();
     }
 };
 

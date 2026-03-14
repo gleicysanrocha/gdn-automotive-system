@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gdn-os-v2';
+const CACHE_NAME = 'gdn-os-v4';
 const ASSETS = [
     './',
     './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
     './js/storage.js',
     './js/modules/os.js',
     './js/modules/clients.js',
+    './js/modules/technicians.js',
     './js/modules/financial.js',
     './js/modules/settings.js',
     './assets/img/logo.png',

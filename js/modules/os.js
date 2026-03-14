@@ -256,6 +256,7 @@ window.OSModule = {
                 <td>
                     <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
                     <button class="btn btn-secondary btn-sm print-os-list" data-id="${os.id}" style="background-color: #6f42c1;" title="Imprimir"><i class="fa-solid fa-print"></i></button>
+                    <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="padding: 5px 10px; font-size: 0.8rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -272,6 +273,15 @@ window.OSModule = {
             btn.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
                 OSModule.printOS(target.getAttribute('data-id'));
+            });
+        });
+
+        document.querySelectorAll('.delete-os').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                if (confirm('Tem certeza que deseja excluir esta Ordem de Serviço?')) {
+                    OSModule.deleteOS(target.getAttribute('data-id'));
+                }
             });
         });
     },
@@ -748,6 +758,14 @@ window.OSModule = {
             OSModule.calculateTotal();
             document.getElementById('btn-print-os').classList.remove('hidden');
         }
+    },
+
+    deleteOS: (id) => {
+        let osRecords = window.StorageApp.get('os_records') || [];
+        osRecords = osRecords.filter(o => o.id !== id);
+        window.StorageApp.save('os_records', osRecords);
+        alert('OS excluída com sucesso!');
+        OSModule.loadOSList();
     },
 
     printOS: (id) => {

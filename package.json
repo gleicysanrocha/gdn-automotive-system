@@ -1,0 +1,12 @@
+{
+  "name": "gdn-automotive-system",
+  "version": "2.0.0",
+  "description": "Sistema de Gestão de Ordens de Serviço",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y serve ."
+  },
+  "keywords": [],
+  "author": "GDN",
+  "license": "ISC"
+}

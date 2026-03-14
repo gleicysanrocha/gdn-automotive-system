@@ -118,10 +118,23 @@
                     <label for="login-password">Senha</label>
                     <input type="password" id="login-password" class="form-control" placeholder="Sua senha" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100" style="padding: 12px;">Entrar</button>
+                <button type="submit" class="btn btn-primary w-100" style="padding: 12px; margin-bottom: 15px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema
+                </button>
+
+                <div style="text-align: center; margin: 20px 0; position: relative;">
+                    <hr style="border: none; border-top: 1px solid #444;">
+                    <span
+                        style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--background-light); padding: 0 10px; color: var(--text-muted); font-size: 0.8rem;">OU</span>
+                </div>
+
+                <button type="button" id="guest-login-btn" class="btn btn-outline-info w-100"
+                    style="padding: 10px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color);">
+                    <i class="fa-solid fa-cloud-slash"></i> Acesso Local (Offline)
+                </button>
             </form>
-            <p class="text-muted mt-4" style="font-size: 0.8rem; text-align: center;">GDN Automotive OS v2.0 - Segurança
-                em Nuvem</p>
+            <p class="text-muted mt-4" style="font-size: 0.75rem; text-align: center;">GDN Automotive OS v2.0 <br>
+                Segurança em Nuvem & Backup Local</p>
         </div>
     </div>
 
