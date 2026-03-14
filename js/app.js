@@ -295,8 +295,8 @@ const App = {
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                     <small class="text-muted" style="font-size: 0.75rem;">${dateStr}</small>
                     <div style="display: flex; gap: 5px;">
-                        <button class="btn btn-sm btn-secondary edit-note" data-id="${note.id}" style="padding: 2px 8px; font-size: 0.75rem;" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-danger delete-note" data-id="${note.id}" style="padding: 2px 8px; font-size: 0.75rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-sm btn-secondary edit-note" data-id="${note.id}" style="padding: 4px 10px; font-size: 0.8rem;" title="Editar"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <button class="btn btn-sm btn-danger delete-note" data-id="${note.id}" style="padding: 4px 10px; font-size: 0.8rem;" title="Excluir"><i class="fa-solid fa-trash"></i> Excluir</button>
                     </div>
                 </div>
             `;
