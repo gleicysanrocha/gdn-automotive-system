@@ -6,6 +6,13 @@
 
 const AuthModule = {
     init: () => {
+        // Tentativa de carregamento com pequeno atraso para mobile
+        setTimeout(() => {
+            AuthModule.startAuth();
+        }, 300);
+    },
+
+    startAuth: () => {
         // Verifica se o Firebase carregou corretamente
         const isFirebaseAvailable = typeof firebase !== 'undefined' && window.auth;
 

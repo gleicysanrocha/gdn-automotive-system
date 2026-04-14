@@ -146,6 +146,42 @@ window.StorageApp = {
     },
 
     /**
+     * Upload all LocalStorage data to Cloud (Sync Up)
+     */
+    syncLocalToCloud: async () => {
+        if (!window.auth || !window.auth.currentUser) throw new Error("Você precisa estar logado para enviar dados.");
+        const userId = window.auth.currentUser.uid;
+        let count = 0;
+        
+        const batch = window.db.batch();
+        const dataRef = window.db.collection('users').doc(userId).collection('data');
+
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(DB_PREFIX)) {
+                    const cleanKey = key.replace(DB_PREFIX, '');
+                    const data = JSON.parse(localStorage.getItem(key));
+                    
+                    batch.set(dataRef.doc(cleanKey), {
+                        content: data,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    count++;
+                }
+            }
+            if (count > 0) {
+                await batch.commit();
+                await window.StorageApp.createCloudSnapshot(`Forçou Upload Local para Nuvem (${count})`);
+            }
+            return true;
+        } catch (e) {
+            console.error('Upload Sync Error:', e);
+            throw e;
+        }
+    },
+
+    /**
      * Load all data from Cloud to LocalStorage (Sync Down)
      */
     syncCloudToLocal: async () => {

@@ -46,8 +46,8 @@ const App = {
         const titleEl = document.getElementById('page-title');
         if (titleEl) titleEl.textContent = titles[route] || 'GDN Automotive';
 
-        // Sync Sidebar
-        document.querySelectorAll('.nav-item').forEach(el => {
+        // Sync Sidebar & Mobile Nav
+        document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(el => {
             el.classList.remove('active');
             if (el.getAttribute('href') === `#${route}`) {
                 el.classList.add('active');

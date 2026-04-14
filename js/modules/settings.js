@@ -104,7 +104,10 @@ const SettingsModule = {
                             <h4>Sincronização Manual</h4>
                             <p style="font-size: 0.85rem; margin-bottom: 15px;">Baixe todos os dados salvos na nuvem (útil após trocar de dispositivo).</p>
                             <button type="button" id="btn-sync-cloud" class="btn btn-primary w-100">
-                                <i class="fa-solid fa-rotate"></i> Baixar da Nuvem Agora
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Baixar da Nuvem Agora
+                            </button>
+                            <button type="button" id="btn-upload-cloud" class="btn btn-warning w-100 mt-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Forçar Envio para Nuvem
                             </button>
                             <p id="sync-status" class="mt-2" style="font-size: 0.75rem; text-align: center; color: var(--primary-color); font-weight: 600;"></p>
                         </div>
@@ -287,10 +290,37 @@ const SettingsModule = {
             } catch (err) {
                 alert('Erro na sincronização: ' + err.message);
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sincronizar Agora';
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Baixar da Nuvem Agora';
                 status.textContent = '';
             }
         });
+
+        // Force Upload to Cloud
+        const btnUpload = document.getElementById('btn-upload-cloud');
+        if (btnUpload) {
+            btnUpload.addEventListener('click', async () => {
+                const btn = document.getElementById('btn-upload-cloud');
+                const status = document.getElementById('sync-status');
+
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+                    status.textContent = 'Enviando todos os dados locais para a nuvem...';
+
+                    await window.StorageApp.syncLocalToCloud();
+
+                    status.textContent = 'Envio concluído com sucesso!';
+                    alert('Seus dados foram enviados para a nuvem e agora podem ser acessados em qualquer dispositivo!');
+                    SettingsModule.loadBackupHistory();
+                } catch (err) {
+                    alert('Erro ao enviar para a nuvem. Certifique-se de estar com a internet funcionando e o Firebase configurado corretamente. Detalhe do Erro: ' + err.message);
+                    status.textContent = 'Erro no envio.';
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Forçar Envio para Nuvem';
+                }
+            });
+        }
     },
 
     applySettings: (settings) => {
