@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gdn-os-v5';
+const CACHE_NAME = 'gdn-os-v6';
 const ASSETS = [
     './',
     './index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+    self.skipWaiting(); // Força a atualização imediata do Service Worker
     e.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll(ASSETS).catch(err => {
@@ -30,15 +31,25 @@ self.addEventListener('activate', (e) => {
         caches.keys().then((keyList) => {
             return Promise.all(keyList.map((key) => {
                 if (key !== CACHE_NAME) {
-                    return caches.delete(key);
+                    return caches.delete(key); // Remove caches antigos
                 }
             }));
         })
     );
+    return self.clients.claim(); // Assume o controle das abas abertas imediatamente
 });
 
 self.addEventListener('fetch', (e) => {
+    // Modo "Network First" - Tenta buscar da rede primeiro, se falhar (offline), usa o cache
     e.respondWith(
-        caches.match(e.request).then((res) => res || fetch(e.request))
+        fetch(e.request).then((response) => {
+            return caches.open(CACHE_NAME).then((cache) => {
+                // Atualiza o cache com a versão mais recente
+                cache.put(e.request, response.clone());
+                return response;
+            });
+        }).catch(() => {
+            return caches.match(e.request);
+        })
     );
 });
