@@ -200,6 +200,9 @@ window.OSModule = {
                         <button type="button" id="btn-nfse-form" class="btn btn-info hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #17a2b8; color: #fff;">
                             <i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e
                         </button>
+                        <button type="button" id="btn-delete-os" class="btn btn-danger hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #dc3545; color: #fff;">
+                            <i class="fa-solid fa-trash"></i> Excluir OS
+                        </button>
                     </div>
                 </form>
             </div>
@@ -276,6 +279,7 @@ window.OSModule = {
                     ` : `
                         <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Emitir NFS-e"><i class="fa-solid fa-file-invoice-dollar"></i></button>
                     `}
+                    <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="background-color: #dc3545; color: #fff;" title="Excluir OS"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -312,6 +316,14 @@ window.OSModule = {
                 if (window.NFSeModule) {
                     window.NFSeModule.showNFSeModal(osId);
                 }
+            });
+        });
+
+        document.querySelectorAll('.delete-os').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                const osId = target.getAttribute('data-id');
+                OSModule.deleteOS(osId);
             });
         });
     },
@@ -423,6 +435,12 @@ window.OSModule = {
                         }
                     }
                 }
+        // Delete Form Button
+        const btnDeleteForm = document.getElementById('btn-delete-os');
+        if (btnDeleteForm) {
+            btnDeleteForm.addEventListener('click', () => {
+                const id = document.getElementById('os-id').value;
+                if (id) OSModule.deleteOS(id);
             });
         }
     },
@@ -529,6 +547,8 @@ window.OSModule = {
         document.getElementById('btn-print-os').classList.add('hidden'); // Hide print until saved
         const btnNFSe = document.getElementById('btn-nfse-form');
         if (btnNFSe) btnNFSe.classList.add('hidden');
+        const btnDelete = document.getElementById('btn-delete-os');
+        if (btnDelete) btnDelete.classList.add('hidden');
 
         OSModule.loadSelectOptions();
 
@@ -779,6 +799,9 @@ window.OSModule = {
                 btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e';
             }
         }
+
+        const btnDelete = document.getElementById('btn-delete-os');
+        if (btnDelete) btnDelete.classList.remove('hidden');
     },
 
     editOS: (id) => {
@@ -843,6 +866,28 @@ window.OSModule = {
                     btnNFSe.style.backgroundColor = '#17a2b8';
                     btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e';
                 }
+            }
+
+            const btnDelete = document.getElementById('btn-delete-os');
+            if (btnDelete) btnDelete.classList.remove('hidden');
+        }
+    },
+
+    deleteOS: async (id) => {
+        let osRecords = window.StorageApp.get('os_records') || [];
+        const os = osRecords.find(o => o.id === id);
+        if (!os) return;
+
+        if (confirm(`Tem certeza que deseja EXCLUIR a Ordem de Serviço #${os.number}? Esta ação não poderá ser desfeita.`)) {
+            osRecords = osRecords.filter(o => o.id !== id);
+            await window.StorageApp.save('os_records', osRecords);
+            alert(`OS #${os.number} excluída com sucesso.`);
+            
+            const currentFormId = document.getElementById('os-id') ? document.getElementById('os-id').value : '';
+            if (currentFormId === id) {
+                OSModule.hideForm();
+            } else {
+                OSModule.loadOSList();
             }
         }
     },
