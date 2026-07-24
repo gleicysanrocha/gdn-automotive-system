@@ -435,6 +435,9 @@ window.OSModule = {
                         }
                     }
                 }
+            });
+        }
+
         // Delete Form Button
         const btnDeleteForm = document.getElementById('btn-delete-os');
         if (btnDeleteForm) {
