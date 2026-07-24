@@ -2,11 +2,35 @@
   "name": "gdn-automotive-system",
   "version": "2.0.0",
   "description": "Sistema de Gestão de Ordens de Serviço",
-  "main": "index.html",
+  "main": "main.js",
   "scripts": {
-    "start": "npx -y serve ."
+    "start": "npx -y serve .",
+    "electron": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "deploy": "firebase deploy"
+  },
+  "build": {
+    "appId": "com.gdn.os",
+    "productName": "GDN Automotive OS",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GDN Automotive OS"
+    }
   },
   "keywords": [],
   "author": "GDN",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^40.6.1",
+    "electron-builder": "^26.8.1"
+  }
 }

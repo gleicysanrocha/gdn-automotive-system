@@ -7,33 +7,80 @@ const SettingsModule = {
             cnpj: '',
             address: '',
             phone: '',
-            logo: 'assets/img/logo.png'
+            logo: 'assets/img/logo.png',
+            aiApiKey: '',
+            inscricaoMunicipal: '',
+            codigoServico: '14.01',
+            aliquotaIss: '5.0',
+            nfseEnvironment: 'homologation',
+            nfseApiToken: '',
+            nfseApiUrl: ''
         };
 
         container.innerHTML = `
             <div class="settings-container animate-fade-in">
                 <div class="card">
-                    <h2><i class="fa-solid fa-gears"></i> Configurações da Loja</h2>
-                    <p class="text-muted">Gerencie as informações básicas da sua oficina e o logotipo do sistema.</p>
+                    <h2><i class="fa-solid fa-gears"></i> Configurações da Loja & NFS-e</h2>
+                    <p class="text-muted">Gerencie as informações básicas da sua oficina, logotipo e dados para emissão de Nota Fiscal de Serviço (NFS-e).</p>
                     
                     <form id="settings-form" class="mt-4">
                         <div class="settings-layout" style="display: grid; grid-template-columns: 1fr 300px; gap: 30px;">
                             <div class="settings-fields">
                                 <div class="form-group">
-                                    <label for="store-name">Nome da Oficina</label>
-                                    <input type="text" id="store-name" class="form-control" value="${settings.name}" required>
+                                    <label for="store-name">Nome da Oficina / Razão Social</label>
+                                    <input type="text" id="store-name" class="form-control" value="${settings.name || ''}" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="store-cnpj">CNPJ</label>
-                                    <input type="text" id="store-cnpj" class="form-control" value="${settings.cnpj}" placeholder="00.000.000/0000-00">
+                                    <input type="text" id="store-cnpj" class="form-control" value="${settings.cnpj || ''}" placeholder="00.000.000/0000-00">
                                 </div>
                                 <div class="form-group">
                                     <label for="store-address">Endereço Completo</label>
-                                    <input type="text" id="store-address" class="form-control" value="${settings.address}">
+                                    <input type="text" id="store-address" class="form-control" value="${settings.address || ''}">
                                 </div>
                                 <div class="form-group">
                                     <label for="store-phone">Telefone / WhatsApp</label>
-                                    <input type="text" id="store-phone" class="form-control" value="${settings.phone}">
+                                    <input type="text" id="store-phone" class="form-control" value="${settings.phone || ''}">
+                                </div>
+
+                                <!-- Dados Fiscais para NFS-e -->
+                                <h4 class="mt-4" style="color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> Configurações Fiscais (NFS-e)
+                                </h4>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                    <div class="form-group">
+                                        <label for="store-im">Inscrição Municipal</label>
+                                        <input type="text" id="store-im" class="form-control" value="${settings.inscricaoMunicipal || ''}" placeholder="Ex: 123456">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="store-codigo-servico">Item LC 116 / Serviço</label>
+                                        <input type="text" id="store-codigo-servico" class="form-control" value="${settings.codigoServico || '14.01'}" placeholder="Ex: 14.01">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="store-aliquota-iss">Alíquota ISS (%)</label>
+                                        <input type="number" step="0.1" id="store-aliquota-iss" class="form-control" value="${settings.aliquotaIss || '5.0'}" placeholder="5.0">
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                                    <div class="form-group">
+                                        <label for="store-nfse-env">Ambiente de Emissão</label>
+                                        <select id="store-nfse-env" class="form-control">
+                                            <option value="homologation" ${settings.nfseEnvironment === 'homologation' ? 'selected' : ''}>Homologação / Simulação (Testes)</option>
+                                            <option value="production" ${settings.nfseEnvironment === 'production' ? 'selected' : ''}>Produção (Notas Reais na Prefeitura)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="store-nfse-token">Token da API de NFS-e (Opcional)</label>
+                                        <input type="password" id="store-nfse-token" class="form-control" value="${settings.nfseApiToken || ''}" placeholder="Token do provedor (Focus NFe, etc)">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top: 10px;">
+                                    <label for="store-nfse-url">URL do Backend / Cloud Function de NFS-e (Opcional)</label>
+                                    <input type="text" id="store-nfse-url" class="form-control" value="${settings.nfseApiUrl || ''}" placeholder="https://sua-cloud-function.cloudfunctions.net/emitirNFSe">
+                                    <small class="text-muted">Se deixado em branco, o sistema utilizará o emissor integrado de homologação/simulação em lote.</small>
                                 </div>
                             </div>
 
@@ -111,6 +158,16 @@ const SettingsModule = {
                             </button>
                             <p id="sync-status" class="mt-2" style="font-size: 0.75rem; text-align: center; color: var(--primary-color); font-weight: 600;"></p>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <h2><i class="fa-solid fa-brain"></i> Inteligência Artificial (Assistente IA)</h2>
+                    <p class="text-muted">Configure sua integração com a Inteligência Artificial do Google Gemini para ajudar no diagnóstico automotivo.</p>
+                    <div class="form-group mt-3">
+                        <label for="ai-api-key">Chave de API do Google Gemini (AI Studio)</label>
+                        <input type="password" id="ai-api-key" class="form-control" value="${settings.aiApiKey || ''}" placeholder="Insira sua API Key (Ex: AIzaSy...)">
+                        <small class="text-muted"><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary-color);">Clique aqui para criar sua CHAVE DE API gratuitamente</a>.</small>
                     </div>
                 </div>
             </div>
@@ -216,6 +273,13 @@ const SettingsModule = {
                 cnpj: document.getElementById('store-cnpj').value,
                 address: document.getElementById('store-address').value,
                 phone: document.getElementById('store-phone').value,
+                aiApiKey: document.getElementById('ai-api-key').value,
+                inscricaoMunicipal: document.getElementById('store-im').value,
+                codigoServico: document.getElementById('store-codigo-servico').value,
+                aliquotaIss: document.getElementById('store-aliquota-iss').value,
+                nfseEnvironment: document.getElementById('store-nfse-env').value,
+                nfseApiToken: document.getElementById('store-nfse-token').value,
+                nfseApiUrl: document.getElementById('store-nfse-url').value,
                 logo: logoPreview.src // Base64 if changed
             };
 

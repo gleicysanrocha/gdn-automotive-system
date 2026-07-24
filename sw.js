@@ -2,21 +2,25 @@ const CACHE_NAME = 'gdn-os-v6';
 const ASSETS = [
     './',
     './index.html',
-    './css/main.css',
-    './js/app.js',
-    './js/storage.js',
-    './js/modules/os.js',
-    './js/modules/clients.js',
-    './js/modules/technicians.js',
-    './js/modules/financial.js',
-    './js/modules/settings.js',
+    './css/main.css?v=2.1',
+    './js/app.js?v=2.1',
+    './js/storage.js?v=2.1',
+    './js/firebase-config.js?v=2.1',
+    './js/modules/auth.js?v=2.1',
+    './js/modules/os.js?v=2.1',
+    './js/modules/clients.js?v=2.1',
+    './js/modules/technicians.js?v=2.1',
+    './js/modules/financial.js?v=2.1',
+    './js/modules/settings.js?v=2.1',
     './assets/img/logo.png',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/chart.js'
+    'https://cdn.jsdelivr.net/npm/chart.js',
+    'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js',
+    'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js'
 ];
 
 self.addEventListener('install', (e) => {
-    self.skipWaiting(); // Força a atualização imediata do Service Worker
     e.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll(ASSETS).catch(err => {
@@ -28,28 +32,17 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
     e.waitUntil(
-        caches.keys().then((keyList) => {
-            return Promise.all(keyList.map((key) => {
-                if (key !== CACHE_NAME) {
-                    return caches.delete(key); // Remove caches antigos
-                }
+        caches.keys().then((keys) => {
+            return Promise.all(keys.map((key) => {
+                if (key !== CACHE_NAME) return caches.delete(key);
             }));
         })
     );
-    return self.clients.claim(); // Assume o controle das abas abertas imediatamente
 });
 
 self.addEventListener('fetch', (e) => {
-    // Modo "Network First" - Tenta buscar da rede primeiro, se falhar (offline), usa o cache
+    // Strategy: Network First, falling back to Cache
     e.respondWith(
-        fetch(e.request).then((response) => {
-            return caches.open(CACHE_NAME).then((cache) => {
-                // Atualiza o cache com a versão mais recente
-                cache.put(e.request, response.clone());
-                return response;
-            });
-        }).catch(() => {
-            return caches.match(e.request);
-        })
+        fetch(e.request).catch(() => caches.match(e.request))
     );
 });

@@ -25,6 +25,7 @@ window.OSModule = {
                                 <th>Veículo</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th>NFS-e</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -62,6 +63,14 @@ window.OSModule = {
                          <div class="form-group">
                             <label class="form-label">Data do Serviço</label>
                             <input type="date" id="os-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hora Início</label>
+                            <input type="time" id="os-start-time" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Previsão Fim</label>
+                            <input type="time" id="os-end-time" class="form-control">
                         </div>
                          <!-- Client Select Wrapper -->
                         <div class="form-group" id="group-client-select">
@@ -230,7 +239,7 @@ window.OSModule = {
         tbody.innerHTML = '';
 
         if (osList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhuma OS registrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Nenhuma OS registrada.</td></tr>';
             return;
         }
 
@@ -246,6 +255,8 @@ window.OSModule = {
             if (os.status === 'Em Andamento') badgeColor = '#007bff';
             if (os.status === 'Aberta') badgeColor = '#ffc107';
 
+            const nfseBadgeHtml = window.NFSeModule ? window.NFSeModule.renderBadge(os) : '';
+
             tr.innerHTML = `
                 <td><strong>#${os.number}</strong></td>
                 <td>${new Date(os.date).toLocaleDateString('pt-BR')}</td>
@@ -253,10 +264,15 @@ window.OSModule = {
                 <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
                 <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
                 <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status}</span></td>
+                <td>${nfseBadgeHtml}</td>
                 <td>
                     <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
                     <button class="btn btn-secondary btn-sm print-os-list" data-id="${os.id}" style="background-color: #6f42c1;" title="Imprimir"><i class="fa-solid fa-print"></i></button>
-                    <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="padding: 5px 10px; font-size: 0.8rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    ${os.nfseStatus === 'emitida' ? `
+                        <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver DANFSE / Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
+                    ` : `
+                        <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Emitir NFS-e"><i class="fa-solid fa-file-invoice-dollar"></i></button>
+                    `}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -276,11 +292,22 @@ window.OSModule = {
             });
         });
 
-        document.querySelectorAll('.delete-os').forEach(btn => {
+        document.querySelectorAll('.emit-nfse').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const target = e.target.closest('button');
+                const osId = target.getAttribute('data-id');
+                if (window.NFSeModule) {
+                    await window.NFSeModule.emitirNFSe(osId);
+                }
+            });
+        });
+
+        document.querySelectorAll('.view-nfse').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
-                if (confirm('Tem certeza que deseja excluir esta Ordem de Serviço?')) {
-                    OSModule.deleteOS(target.getAttribute('data-id'));
+                const osId = target.getAttribute('data-id');
+                if (window.NFSeModule) {
+                    window.NFSeModule.showNFSeModal(osId);
                 }
             });
         });
@@ -509,6 +536,8 @@ window.OSModule = {
 
             document.getElementById('os-number').value = nextNum;
             document.getElementById('os-date').valueAsDate = new Date();
+            document.getElementById('os-start-time').value = '';
+            document.getElementById('os-end-time').value = '';
             document.getElementById('os-total-display').textContent = '0.00';
         }
     },
@@ -628,6 +657,8 @@ window.OSModule = {
         const id = document.getElementById('os-id').value;
         const number = document.getElementById('os-number').value;
         const date = document.getElementById('os-date').value;
+        const startTime = document.getElementById('os-start-time').value;
+        const endTime = document.getElementById('os-end-time').value;
 
         const isManual = document.getElementById('os-manual-client').checked;
 
@@ -672,6 +703,7 @@ window.OSModule = {
         const osData = {
             id: id || Date.now().toString(),
             number, date,
+            startTime, endTime,
             clientId, clientName, clientDoc, clientPhone, clientAddress, isManual,
             vehicleModel, vehicleYear, vehiclePlate, vehicleKm, vehicleWarranty,
             description,
@@ -720,6 +752,8 @@ window.OSModule = {
             document.getElementById('os-id').value = os.id;
             document.getElementById('os-number').value = os.number;
             document.getElementById('os-date').value = os.date;
+            document.getElementById('os-start-time').value = os.startTime || '';
+            document.getElementById('os-end-time').value = os.endTime || '';
 
             // Handle Manual vs Select
             const manualCheck = document.getElementById('os-manual-client');
@@ -758,14 +792,6 @@ window.OSModule = {
             OSModule.calculateTotal();
             document.getElementById('btn-print-os').classList.remove('hidden');
         }
-    },
-
-    deleteOS: (id) => {
-        let osRecords = window.StorageApp.get('os_records') || [];
-        osRecords = osRecords.filter(o => o.id !== id);
-        window.StorageApp.save('os_records', osRecords);
-        alert('OS excluída com sucesso!');
-        OSModule.loadOSList();
     },
 
     printOS: (id) => {
@@ -826,9 +852,14 @@ window.OSModule = {
                         </div>
                         <div class="col">
                             <div class="field-box">
-                                <label>DATA DO SERVIÇO</label>
-                                <span>${new Date(os.date).toLocaleDateString('pt-BR')}</span>
-                            </div>
+                                 <label>DATA DO SERVIÇO</label>
+                                 <span>${new Date(os.date).toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                             </div>
+                             ${os.endTime ? `
+                             <div class="field-box">
+                                 <label>PREVISÃO ENTREGA</label>
+                                 <span>${os.endTime}</span>
+                             </div>` : ''}
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
                                 <span>${os.techName || '-'}</span>
