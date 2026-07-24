@@ -197,6 +197,9 @@ window.OSModule = {
                         <button type="button" id="btn-print-os" class="btn btn-secondary hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #6f42c1;">
                             <i class="fa-solid fa-print"></i> Salvar PDF / Imprimir
                         </button>
+                        <button type="button" id="btn-nfse-form" class="btn btn-info hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #17a2b8; color: #fff;">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e
+                        </button>
                     </div>
                 </form>
             </div>
@@ -398,6 +401,30 @@ window.OSModule = {
                 if (id) OSModule.printOS(id);
             });
         }
+
+        // NFS-e Form Button
+        const btnNFSeForm = document.getElementById('btn-nfse-form');
+        if (btnNFSeForm) {
+            btnNFSeForm.addEventListener('click', async () => {
+                const id = document.getElementById('os-id').value;
+                if (!id) {
+                    alert('Por favor, salve a Ordem de Serviço primeiro antes de emitir a nota fiscal.');
+                    return;
+                }
+                const osRecords = window.StorageApp.get('os_records') || [];
+                const os = osRecords.find(o => o.id === id);
+                if (os && os.nfseStatus === 'emitida') {
+                    if (window.NFSeModule) window.NFSeModule.showNFSeModal(id);
+                } else {
+                    if (window.NFSeModule) {
+                        const ok = await window.NFSeModule.emitirNFSe(id);
+                        if (ok) {
+                            OSModule.editOS(id);
+                        }
+                    }
+                }
+            });
+        }
     },
 
     toggleManualClient: (isManual) => {
@@ -500,6 +527,8 @@ window.OSModule = {
         document.getElementById('os-list-view').classList.add('hidden');
         document.getElementById('os-form-view').classList.remove('hidden');
         document.getElementById('btn-print-os').classList.add('hidden'); // Hide print until saved
+        const btnNFSe = document.getElementById('btn-nfse-form');
+        if (btnNFSe) btnNFSe.classList.add('hidden');
 
         OSModule.loadSelectOptions();
 
@@ -738,6 +767,18 @@ window.OSModule = {
             document.getElementById('os-id').value = osData.id;
         }
         document.getElementById('btn-print-os').classList.remove('hidden');
+
+        const btnNFSe = document.getElementById('btn-nfse-form');
+        if (btnNFSe) {
+            btnNFSe.classList.remove('hidden');
+            if (osData.nfseStatus === 'emitida') {
+                btnNFSe.style.backgroundColor = '#28a745';
+                btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Ver DANFSE (PDF)';
+            } else {
+                btnNFSe.style.backgroundColor = '#17a2b8';
+                btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e';
+            }
+        }
     },
 
     editOS: (id) => {
@@ -791,6 +832,18 @@ window.OSModule = {
 
             OSModule.calculateTotal();
             document.getElementById('btn-print-os').classList.remove('hidden');
+
+            const btnNFSe = document.getElementById('btn-nfse-form');
+            if (btnNFSe) {
+                btnNFSe.classList.remove('hidden');
+                if (os.nfseStatus === 'emitida') {
+                    btnNFSe.style.backgroundColor = '#28a745';
+                    btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Ver DANFSE (PDF)';
+                } else {
+                    btnNFSe.style.backgroundColor = '#17a2b8';
+                    btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e';
+                }
+            }
         }
     },
 
