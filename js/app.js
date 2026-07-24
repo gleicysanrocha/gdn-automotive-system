@@ -1,16 +1,29 @@
-
 // Main Application Logic
 const App = {
     init: () => {
+        // Check if login overlay is visible
+        const loginOverlay = document.getElementById('login-overlay');
+        if (loginOverlay && loginOverlay.style.display !== 'none') {
+             console.log('App initiation halted: Login layer is visible.');
+             return; 
+        }
+
+        console.log('App initialized.');
+
         App.bindEvents();
         App.handleLocation();
+
+        if (window.ClientsModule && typeof window.ClientsModule.init === 'function') window.ClientsModule.init();
+        if (window.TechniciansModule && typeof window.TechniciansModule.init === 'function') window.TechniciansModule.init();
+        if (window.FinancialModule && typeof window.FinancialModule.init === 'function') window.FinancialModule.init();
+        if (window.AIModule && typeof window.AIModule.init === 'function') window.AIModule.init();
+        if (window.SettingsModule && typeof window.SettingsModule.applySettings === 'function') window.SettingsModule.applySettings();
     },
 
     bindEvents: () => {
         // Navigation clicks
         document.querySelectorAll('.nav-item').forEach(link => {
             link.addEventListener('click', (e) => {
-                // Update UI immediately for responsiveness
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 e.currentTarget.classList.add('active');
             });
@@ -22,7 +35,6 @@ const App = {
     },
 
     handleLocation: () => {
-        // If no hash, default to dashboard
         if (!window.location.hash) {
             window.location.hash = '#dashboard';
             return;
@@ -57,6 +69,7 @@ const App = {
 
     renderContent: (route) => {
         const contentArea = document.getElementById('content-area');
+        if (!contentArea) return;
         contentArea.innerHTML = ''; // Clear current content
 
         switch (route) {
@@ -68,7 +81,6 @@ const App = {
                 }
                 break;
             case 'technicians':
-                console.log('Navegando para Técnicos...');
                 if (window.TechnicianModule) {
                     try {
                         window.TechnicianModule.render(contentArea);
@@ -77,15 +89,13 @@ const App = {
                         contentArea.innerHTML = `<div class="card"><p class="text-danger">Erro ao renderizar técnicos: ${e.message}</p><button onclick="location.reload()" class="btn btn-secondary">Recarregar Página</button></div>`;
                     }
                 } else {
-                    console.error('Objeto window.TechnicianModule não encontrado.');
                     contentArea.innerHTML = `
                         <div class="card" style="text-align: center; padding: 40px;">
                             <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: #ffc107; margin-bottom: 20px;"></i>
                             <h3 class="text-danger">Módulo de Técnicos não carregado</h3>
-                            <p>O navegador não conseguiu carregar o arquivo de técnicos. Isso pode ser cache antigo.</p>
+                            <p>O navegador não conseguiu carregar o arquivo de técnicos.</p>
                             <div style="margin-top: 20px;">
-                                <button onclick="location.reload()" class="btn btn-primary" style="margin-right: 10px;">Tentar Recarregar</button>
-                                <button onclick="alert('Pressione Ctrl+F5 no teclado')" class="btn btn-outline-info">Como Limpar Cache?</button>
+                                <button onclick="location.reload()" class="btn btn-primary">Tentar Recarregar</button>
                             </div>
                         </div>
                     `;
@@ -131,7 +141,7 @@ const App = {
             return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });
 
-        const revenue = thisMonthOS.reduce((acc, os) => acc + (parseFloat(os.values.total) || 0), 0);
+        const revenue = thisMonthOS.reduce((acc, os) => acc + (parseFloat(os.values ? os.values.total : 0) || 0), 0);
 
         container.innerHTML = `
             <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
@@ -235,35 +245,6 @@ const App = {
                 }
             }
         });
-    },
-
-    init: () => {
-        console.log('App init check');
-        
-        // Verifica se a tela de login tá ativa antes de rodar o app principal
-        const loginOverlay = document.getElementById('login-overlay');
-        if (loginOverlay && loginOverlay.style.display !== 'none') {
-             console.log('App initiation halted: Login layer is visible.');
-             return; 
-        }
-
-        console.log('App initialized.');
-        
-        // Load default content
-        App.loadContent('dashboard');
-
-        // Bind events
-        App.bindNavigation();
-        
-        if (window.ClientsModule) window.ClientsModule.init();
-        if (window.TechniciansModule) window.TechniciansModule.init();
-        if (window.FinancialModule) window.FinancialModule.init();
-        
-        // Initialize AI Bot
-        if (window.AIModule) window.AIModule.init();
-
-        // Apply settings changes
-        if (window.SettingsModule) window.SettingsModule.applySettings();
     }
 };
 
