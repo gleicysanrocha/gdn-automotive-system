@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gdn-os-v9';
+const CACHE_NAME = 'gdn-os-v10';
 const ASSETS = [
     './',
     './index.html',

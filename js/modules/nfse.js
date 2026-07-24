@@ -25,22 +25,22 @@ window.NFSeModule = {
     validateOSForNFSe: (os, client) => {
         const errors = [];
 
-        const valLabor = parseFloat(os.valLabor || 0);
+        const valLabor = parseFloat((os.values ? os.values.labor : os.valLabor) || 0);
         if (valLabor <= 0) {
             errors.push('A OS não possui valor de Mão de Obra / Serviço tributável (valor R$ 0,00).');
         }
 
-        const doc = client ? (client.document || client.cpf || client.cnpj) : os.clientDoc;
+        const doc = (client ? (client.document || client.cpf || client.cnpj) : os.clientDoc) || '';
         if (!doc || doc.trim().length < 11) {
-            errors.push('O cliente selecionado não possui CPF/CNPJ válido cadastrado.');
+            errors.push('O cliente não possui CPF/CNPJ válido cadastrado (mínimo 11 dígitos).');
         }
 
-        const clientName = client ? client.name : os.clientNameManual;
+        const clientName = (client ? client.name : (os.clientName || os.clientNameManual)) || '';
         if (!clientName || clientName.trim() === '') {
             errors.push('Nome do cliente é obrigatório para emissão de nota fiscal.');
         }
 
-        const address = client ? client.address : os.clientAddress;
+        const address = (client ? client.address : os.clientAddress) || '';
         if (!address || address.trim() === '') {
             errors.push('Endereço do cliente é obrigatório para a NFS-e.');
         }
@@ -53,12 +53,12 @@ window.NFSeModule = {
 
     // Gera a estrutura do Payload JSON para envio à API da NFS-e
     buildPayload: (os, client, fiscalSettings) => {
-        const valLabor = parseFloat(os.valLabor || 0);
+        const valLabor = parseFloat((os.values ? os.values.labor : os.valLabor) || 0);
         const aliquota = fiscalSettings.aliquotaIss / 100;
         const valorIss = valLabor * aliquota;
 
-        const doc = (client ? (client.document || client.cpf || client.cnpj) : os.clientDoc || '').replace(/\D/g, '');
-        const clientName = client ? client.name : (os.clientNameManual || 'Cliente Avulso');
+        const doc = (client ? (client.document || client.cpf || client.cnpj) : (os.clientDoc || '')).replace(/\D/g, '');
+        const clientName = client ? client.name : (os.clientName || os.clientNameManual || 'Cliente Avulso');
         const clientAddress = client ? client.address : (os.clientAddress || '');
         const clientEmail = client ? client.email : '';
         const clientPhone = client ? client.phone : (os.clientPhone || '');
@@ -66,7 +66,7 @@ window.NFSeModule = {
         return {
             ambiente: fiscalSettings.nfseEnvironment,
             prestador: {
-                cnpj: fiscalSettings.cnpj.replace(/\D/g, ''),
+                cnpj: (fiscalSettings.cnpj || '').replace(/\D/g, ''),
                 inscricao_municipal: fiscalSettings.inscricaoMunicipal,
                 razao_social: fiscalSettings.name
             },
@@ -78,13 +78,13 @@ window.NFSeModule = {
                 telefone: clientPhone,
                 endereco: {
                     logradouro: clientAddress,
-                    cidade: 'São Paulo', // Padrão
+                    cidade: 'São Paulo',
                     uf: 'SP'
                 }
             },
             servico: {
                 item_lista_servico: fiscalSettings.codigoServico,
-                discriminacao: `Serviços automotivos referentes à O.S. Nº ${os.number || os.id}.\nVeículo: ${os.model || ''} - Placa: ${os.plate || ''}\nDescrição: ${os.description || 'Manutenção e reparação mecânica.'}`,
+                discriminacao: `Serviços automotivos referentes à O.S. Nº ${os.number || os.id}.\nVeículo: ${os.vehicleModel || os.model || ''} - Placa: ${os.vehiclePlate || os.plate || ''}\nDescrição: ${os.description || 'Manutenção e reparação mecânica.'}`,
                 valor_servicos: valLabor,
                 aliquota_iss: fiscalSettings.aliquotaIss,
                 valor_iss: parseFloat(valorIss.toFixed(2)),
@@ -96,16 +96,16 @@ window.NFSeModule = {
 
     // Executa a emissão da NFS-e
     emitirNFSe: async (osId) => {
-        const orders = window.StorageApp.get('orders') || [];
+        const osRecords = window.StorageApp.get('os_records') || [];
         const clients = window.StorageApp.get('clients') || [];
         
-        const osIndex = orders.findIndex(o => o.id == osId);
+        const osIndex = osRecords.findIndex(o => o.id == osId);
         if (osIndex === -1) {
             alert('Ordem de Serviço não encontrada.');
             return false;
         }
 
-        const os = orders[osIndex];
+        const os = osRecords[osIndex];
         const client = clients.find(c => c.id == os.clientId);
 
         const fiscalSettings = window.NFSeModule.getFiscalSettings();
@@ -137,39 +137,39 @@ window.NFSeModule = {
                 }
 
                 const result = await response.json();
-                orders[osIndex].nfseStatus = 'emitida';
-                orders[osIndex].nfseNumero = result.numero_nfse || result.numero || Math.floor(1000 + Math.random() * 9000).toString();
-                orders[osIndex].nfseCodigoVerificacao = result.codigo_verificacao || Math.random().toString(36).substring(2, 10).toUpperCase();
-                orders[osIndex].nfseDataEmissao = new Date().toISOString();
-                orders[osIndex].nfsePdfUrl = result.pdf_url || '';
-                orders[osIndex].nfseXmlUrl = result.xml_url || '';
+                osRecords[osIndex].nfseStatus = 'emitida';
+                osRecords[osIndex].nfseNumero = result.numero_nfse || result.numero || Math.floor(1000 + Math.random() * 9000).toString();
+                osRecords[osIndex].nfseCodigoVerificacao = result.codigo_verificacao || Math.random().toString(36).substring(2, 10).toUpperCase();
+                osRecords[osIndex].nfseDataEmissao = new Date().toISOString();
+                osRecords[osIndex].nfsePdfUrl = result.pdf_url || '';
+                osRecords[osIndex].nfseXmlUrl = result.xml_url || '';
             } else {
                 // Modo Simulado (Homologação / Demonstração sem backend próprio configurado)
                 const mockNumero = Math.floor(20260000 + Math.random() * 9000).toString();
                 const mockCodVerificacao = Math.random().toString(36).substring(2, 10).toUpperCase();
 
-                orders[osIndex].nfseStatus = 'emitida';
-                orders[osIndex].nfseNumero = mockNumero;
-                orders[osIndex].nfseCodigoVerificacao = mockCodVerificacao;
-                orders[osIndex].nfseDataEmissao = new Date().toISOString();
-                orders[osIndex].nfseAmbiente = fiscalSettings.nfseEnvironment;
-                orders[osIndex].nfsePayload = payload;
+                osRecords[osIndex].nfseStatus = 'emitida';
+                osRecords[osIndex].nfseNumero = mockNumero;
+                osRecords[osIndex].nfseCodigoVerificacao = mockCodVerificacao;
+                osRecords[osIndex].nfseDataEmissao = new Date().toISOString();
+                osRecords[osIndex].nfseAmbiente = fiscalSettings.nfseEnvironment;
+                osRecords[osIndex].nfsePayload = payload;
             }
 
-            await window.StorageApp.save('orders', orders);
-            alert(`NFS-e emitida com sucesso!\n\nNúmero: ${orders[osIndex].nfseNumero}\nCódigo de Verificação: ${orders[osIndex].nfseCodigoVerificacao}`);
+            await window.StorageApp.save('os_records', osRecords);
+            alert(`NFS-e emitida com sucesso!\n\nNúmero: ${osRecords[osIndex].nfseNumero}\nCódigo de Verificação: ${osRecords[osIndex].nfseCodigoVerificacao}`);
             
             // Atualiza tela
-            if (window.OSModule && typeof window.OSModule.loadOrders === 'function') {
-                window.OSModule.loadOrders();
+            if (window.OSModule && typeof window.OSModule.loadOSList === 'function') {
+                window.OSModule.loadOSList();
             }
 
             return true;
         } catch (err) {
             console.error('Erro na emissão de NFS-e:', err);
-            orders[osIndex].nfseStatus = 'erro';
-            orders[osIndex].nfseErroMsg = err.message;
-            await window.StorageApp.save('orders', orders);
+            osRecords[osIndex].nfseStatus = 'erro';
+            osRecords[osIndex].nfseErroMsg = err.message;
+            await window.StorageApp.save('os_records', osRecords);
             alert('Falha ao emitir NFS-e: ' + err.message);
             return false;
         }
@@ -181,18 +181,18 @@ window.NFSeModule = {
             return false;
         }
 
-        const orders = window.StorageApp.get('orders') || [];
-        const osIndex = orders.findIndex(o => o.id == osId);
+        const osRecords = window.StorageApp.get('os_records') || [];
+        const osIndex = osRecords.findIndex(o => o.id == osId);
         if (osIndex === -1) return false;
 
-        orders[osIndex].nfseStatus = 'cancelada';
-        orders[osIndex].nfseDataCancelamento = new Date().toISOString();
+        osRecords[osIndex].nfseStatus = 'cancelada';
+        osRecords[osIndex].nfseDataCancelamento = new Date().toISOString();
 
-        await window.StorageApp.save('orders', orders);
+        await window.StorageApp.save('os_records', osRecords);
         alert('NFS-e cancelada com sucesso.');
 
-        if (window.OSModule && typeof window.OSModule.loadOrders === 'function') {
-            window.OSModule.loadOrders();
+        if (window.OSModule && typeof window.OSModule.loadOSList === 'function') {
+            window.OSModule.loadOSList();
         }
         return true;
     },
@@ -203,15 +203,15 @@ window.NFSeModule = {
         switch (status) {
             case 'emitida':
                 return `<span class="badge" style="background-color: #28a745; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;" title="NFS-e Nº ${os.nfseNumero || ''}">
-                    <i class="fa-solid fa-file-invoice"></i> NFS-e Nº ${os.nfseNumero || 'OK'}
+                    <i class="fa-solid fa-file-invoice"></i> Nº ${os.nfseNumero || 'OK'}
                 </span>`;
             case 'cancelada':
                 return `<span class="badge" style="background-color: #6c757d; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;" title="NFS-e Cancelada">
-                    <i class="fa-solid fa-ban"></i> NFS-e Cancelada
+                    <i class="fa-solid fa-ban"></i> Cancelada
                 </span>`;
             case 'erro':
                 return `<span class="badge" style="background-color: #dc3545; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;" title="${os.nfseErroMsg || 'Erro na emissão'}">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Erro NFS-e
+                    <i class="fa-solid fa-triangle-exclamation"></i> Erro
                 </span>`;
             default:
                 return `<span class="badge" style="background-color: #f8f9fa; color: #6c757d; border: 1px dashed #ccc; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem;">
@@ -222,14 +222,14 @@ window.NFSeModule = {
 
     // Exibe Modal de Visualização da DANFSE (PDF / Espelho de Nota Fiscal)
     showNFSeModal: (osId) => {
-        const orders = window.StorageApp.get('orders') || [];
+        const osRecords = window.StorageApp.get('os_records') || [];
         const clients = window.StorageApp.get('clients') || [];
-        const os = orders.find(o => o.id == osId);
+        const os = osRecords.find(o => o.id == osId);
         if (!os) return;
 
         const client = clients.find(c => c.id == os.clientId);
         const fiscal = window.NFSeModule.getFiscalSettings();
-        const valLabor = parseFloat(os.valLabor || 0);
+        const valLabor = parseFloat((os.values ? os.values.labor : os.valLabor) || 0);
         const aliquota = fiscal.aliquotaIss;
         const valorIss = (valLabor * (aliquota / 100)).toFixed(2);
 
@@ -275,7 +275,7 @@ window.NFSeModule = {
                         <div style="border: 1px solid #cbd5e1; padding: 12px; margin-bottom: 15px; border-radius: 4px;">
                             <h5 style="margin: 0 0 8px 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; text-transform: uppercase; font-size: 0.85rem;">Tomador dos Serviços (Cliente)</h5>
                             <div style="font-size: 0.9rem; line-height: 1.5;">
-                                <strong>Nome / Razão Social:</strong> ${client ? client.name : (os.clientNameManual || 'Cliente Avulso')}<br>
+                                <strong>Nome / Razão Social:</strong> ${client ? client.name : (os.clientName || os.clientNameManual || 'Cliente Avulso')}<br>
                                 <strong>CPF / CNPJ:</strong> ${client ? (client.document || client.cpf || client.cnpj) : (os.clientDoc || 'Não informado')}<br>
                                 <strong>Endereço:</strong> ${client ? client.address : (os.clientAddress || 'Não informado')}<br>
                                 <strong>Telefone:</strong> ${client ? client.phone : (os.clientPhone || '-')}
@@ -288,7 +288,7 @@ window.NFSeModule = {
                             <div style="font-size: 0.88rem; background: #f8fafc; padding: 10px; border-radius: 4px; min-height: 80px; white-space: pre-wrap;">Item da LC 116: ${fiscal.codigoServico} - Manutenção e reparação de veículos automotores.
 
 Ref. Ordem de Serviço Nº: ${os.number || os.id}
-Veículo: ${os.model || ''} - Placa: ${os.plate || ''}
+Veículo: ${os.vehicleModel || os.model || ''} - Placa: ${os.vehiclePlate || os.plate || ''}
 Serviços Prestados: ${os.description || 'Mão de obra automotiva efetuada.'}</div>
                         </div>
 
