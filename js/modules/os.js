@@ -3,9 +3,15 @@ window.OSModule = {
     render: (container) => {
         container.innerHTML = `
             <div class="card" id="os-list-view">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                     <h3>Ordens de Serviço</h3>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="btn-delete-selected-os" class="btn btn-warning hidden" style="background-color: #ffc107; color: #000; font-weight: bold;">
+                            <i class="fa-solid fa-trash"></i> Excluir Selecionadas (<span id="selected-os-count">0</span>)
+                        </button>
+                        <button id="btn-delete-all-os" class="btn btn-outline-danger" style="color: #dc3545; border: 1px solid #dc3545; background: transparent;" title="Excluir todas as Ordens de Serviço do banco">
+                            <i class="fa-solid fa-trash-can"></i> Excluir Todas
+                        </button>
                         <button id="btn-import-whatsapp" class="btn btn-secondary" style="background-color: #25d366; border-color: #128c7e;">
                             <i class="fa-brands fa-whatsapp"></i> Importar WhatsApp
                         </button>
@@ -22,6 +28,7 @@ window.OSModule = {
                     <table class="table">
                         <thead>
                             <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-os" title="Selecionar Todas"></th>
                                 <th>Nº OS</th>
                                 <th>Data</th>
                                 <th>Cliente</th>
@@ -282,6 +289,7 @@ window.OSModule = {
                                         <th>Serviço</th>
                                         <th>Total</th>
                                         <th>Status</th>
+                                        <th style="width: 60px; text-align: center;">Remover</th>
                                     </tr>
                                 </thead>
                                 <tbody id="excel-preview-body">
@@ -312,7 +320,10 @@ window.OSModule = {
         tbody.innerHTML = '';
 
         if (osList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Nenhuma OS registrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Nenhuma OS registrada.</td></tr>';
+            const selectAllHeader = document.getElementById('select-all-os');
+            if (selectAllHeader) selectAllHeader.checked = false;
+            OSModule.updateSelectedCount();
             return;
         }
 
@@ -344,6 +355,7 @@ window.OSModule = {
             }
 
             tr.innerHTML = `
+                <td style="text-align: center;"><input type="checkbox" class="os-checkbox" data-id="${os.id}"></td>
                 <td><strong>#${os.number}</strong></td>
                 <td>${formattedDate}</td>
                 <td>${os.clientName}</td>
@@ -364,6 +376,25 @@ window.OSModule = {
             `;
             tbody.appendChild(tr);
         });
+
+        // Checkbox events
+        const selectAll = document.getElementById('select-all-os');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.onchange = (e) => {
+                const checked = e.target.checked;
+                document.querySelectorAll('.os-checkbox').forEach(cb => cb.checked = checked);
+                OSModule.updateSelectedCount();
+            };
+        }
+
+        document.querySelectorAll('.os-checkbox').forEach(cb => {
+            cb.onchange = () => {
+                OSModule.updateSelectedCount();
+            };
+        });
+
+        OSModule.updateSelectedCount();
 
         document.querySelectorAll('.edit-os').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -409,6 +440,21 @@ window.OSModule = {
     },
 
     bindEvents: () => {
+        // Delete Actions
+        const btnDeleteSelected = document.getElementById('btn-delete-selected-os');
+        if (btnDeleteSelected) {
+            btnDeleteSelected.addEventListener('click', () => {
+                OSModule.deleteSelectedOS();
+            });
+        }
+
+        const btnDeleteAll = document.getElementById('btn-delete-all-os');
+        if (btnDeleteAll) {
+            btnDeleteAll.addEventListener('click', () => {
+                OSModule.deleteAllOS();
+            });
+        }
+
         // Toggle New OS
         const btnNew = document.getElementById('btn-new-os');
         if (btnNew) {
@@ -1322,8 +1368,16 @@ window.OSModule = {
                     const rowText = row.map(c => String(c).trim()).join('');
                     if (!rowText) return;
 
-                    const rawNum = findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id']);
-                    
+                    const rawNum = String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
+                    const rawClient = String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
+
+                    // Filter out header title rows
+                    const numClean = rawNum.toLowerCase().replace(/[^a-z]/g, '');
+                    const clientLower = rawClient.toLowerCase();
+                    if (clientLower === 'cliente' || numClean === 'idos' || numClean === 'os' || numClean === 'nos' || clientLower.includes('nome do cliente') || rawNum.toLowerCase().includes('id o.s')) {
+                        return; // SKIP HEADER TITLE ROW!
+                    }
+
                     // Date preference
                     let rawDate = '';
                     if (dateMode === 'saida') {
@@ -1334,7 +1388,6 @@ window.OSModule = {
 
                     const parsedDate = parseDateVal(rawDate);
 
-                    const rawClient = findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario']);
                     const rawPhone = findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone']);
                     const rawAddress = findValInRow(row, ['endereco', 'logradouro']);
                     const rawDoc = findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpf', 'cnpj', 'documento']);
@@ -1354,7 +1407,7 @@ window.OSModule = {
 
                     const calculatedTotal = rawTotalVal > 0 ? rawTotalVal : (rawPartsVal + rawMachineVal + rawLaborVal);
 
-                    let numStr = String(rawNum).trim();
+                    let numStr = rawNum;
                     if (!numStr) {
                         numStr = `${currentYear}.${String(osRecords.length + parsedList.length + 1).padStart(3, '0')}`;
                     }
@@ -1362,7 +1415,7 @@ window.OSModule = {
                     parsedList.push({
                         number: numStr,
                         date: parsedDate, // Empty string if no date!
-                        clientName: String(rawClient).trim() || 'Cliente Avulso',
+                        clientName: rawClient || 'Cliente Avulso',
                         clientPhone: String(rawPhone).trim(),
                         clientAddress: String(rawAddress).trim(),
                         clientDoc: String(rawDoc).trim(),
@@ -1383,29 +1436,7 @@ window.OSModule = {
                 });
 
                 OSModule.pendingExcelData = parsedList;
-
-                // Render Preview Table
-                const tbody = document.getElementById('excel-preview-body');
-                document.getElementById('excel-count').textContent = parsedList.length;
-                tbody.innerHTML = '';
-
-                parsedList.forEach((item) => {
-                    const tr = document.createElement('tr');
-                    let dateDisplay = item.date ? item.date.split('-').reverse().join('/') : '<em style="color:#aaa;">Sem Data</em>';
-                    tr.innerHTML = `
-                        <td><strong>#${item.number}</strong></td>
-                        <td>${dateDisplay}</td>
-                        <td>${item.clientName}</td>
-                        <td>${item.vehicleModel} ${item.vehiclePlate ? `(${item.vehiclePlate})` : ''}</td>
-                        <td><small>${item.description.substring(0, 35)}${item.description.length > 35 ? '...' : ''}</small></td>
-                        <td>R$ ${item.totalVal.toFixed(2)}</td>
-                        <td><span style="background: #28a74520; color: #28a745; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.status}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                document.getElementById('excel-preview-container').classList.remove('hidden');
-                document.getElementById('btn-confirm-excel').classList.remove('hidden');
+                OSModule.renderExcelPreview();
 
             } catch (err) {
                 console.error('Erro ao ler planilha:', err);
@@ -1414,6 +1445,54 @@ window.OSModule = {
         };
 
         reader.readAsArrayBuffer(file);
+    },
+
+    renderExcelPreview: () => {
+        const tbody = document.getElementById('excel-preview-body');
+        const countSpan = document.getElementById('excel-count');
+        if (countSpan) countSpan.textContent = OSModule.pendingExcelData.length;
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        if (OSModule.pendingExcelData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Nenhum item pendente para importar.</td></tr>';
+            const btnConfirm = document.getElementById('btn-confirm-excel');
+            if (btnConfirm) btnConfirm.classList.add('hidden');
+            return;
+        }
+
+        OSModule.pendingExcelData.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            let dateDisplay = item.date ? item.date.split('-').reverse().join('/') : '<em style="color:#aaa;">Sem Data</em>';
+            tr.innerHTML = `
+                <td><strong>#${item.number}</strong></td>
+                <td>${dateDisplay}</td>
+                <td>${item.clientName}</td>
+                <td>${item.vehicleModel} ${item.vehiclePlate ? `(${item.vehiclePlate})` : ''}</td>
+                <td><small>${item.description.substring(0, 35)}${item.description.length > 35 ? '...' : ''}</small></td>
+                <td>R$ ${item.totalVal.toFixed(2)}</td>
+                <td><span style="background: #28a74520; color: #28a745; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.status}</span></td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-danger remove-preview-item" data-idx="${idx}" style="padding: 2px 7px;" title="Remover este item da prévia">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll('.remove-preview-item').forEach(btn => {
+            btn.onclick = (e) => {
+                const targetBtn = e.target.closest('button');
+                const idx = parseInt(targetBtn.getAttribute('data-idx'));
+                OSModule.pendingExcelData.splice(idx, 1);
+                OSModule.renderExcelPreview();
+            };
+        });
+
+        document.getElementById('excel-preview-container').classList.remove('hidden');
+        document.getElementById('btn-confirm-excel').classList.remove('hidden');
     },
 
     confirmExcelImport: async () => {
@@ -1498,6 +1577,57 @@ window.OSModule = {
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de Serviço';
+        }
+    },
+
+    updateSelectedCount: () => {
+        const checked = document.querySelectorAll('.os-checkbox:checked');
+        const countSpan = document.getElementById('selected-os-count');
+        const btnDeleteSelected = document.getElementById('btn-delete-selected-os');
+
+        if (countSpan) countSpan.textContent = checked.length;
+
+        if (btnDeleteSelected) {
+            if (checked.length > 0) {
+                btnDeleteSelected.classList.remove('hidden');
+            } else {
+                btnDeleteSelected.classList.add('hidden');
+            }
+        }
+    },
+
+    deleteSelectedOS: async () => {
+        const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
+        if (checkedInputs.length === 0) return;
+
+        const idsToDelete = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
+
+        if (confirm(`Tem certeza que deseja excluir as ${idsToDelete.length} Ordens de Serviço selecionadas?`)) {
+            let osRecords = window.StorageApp.get('os_records') || [];
+            osRecords = osRecords.filter(o => !idsToDelete.includes(o.id));
+            await window.StorageApp.save('os_records', osRecords);
+            alert(`${idsToDelete.length} Ordem(ns) de Serviço excluída(s) com sucesso!`);
+            OSModule.loadOSList();
+        }
+    },
+
+    deleteAllOS: async () => {
+        const osRecords = window.StorageApp.get('os_records') || [];
+        if (osRecords.length === 0) {
+            alert('Não há Nenhuma Ordem de Serviço cadastrada para excluir.');
+            return;
+        }
+
+        const confirm1 = confirm(`ATENÇÃO!\n\nVocê está prestes a EXCLUIR TODAS as ${osRecords.length} Ordens de Serviço do sistema!\n\nEsta ação é permanente e irreversível. Deseja continuar?`);
+        if (confirm1) {
+            const confirm2 = prompt('Para confirmar a exclusão de TODAS as Ordens de Serviço, digite a palavra "EXCLUIR":');
+            if (confirm2 && confirm2.trim().toUpperCase() === 'EXCLUIR') {
+                await window.StorageApp.save('os_records', []);
+                alert('Todas as Ordens de Serviço foram excluídas com sucesso!');
+                OSModule.loadOSList();
+            } else {
+                alert('Ação cancelada. A palavra de confirmação digitada foi incorreta.');
+            }
         }
     }
 };
