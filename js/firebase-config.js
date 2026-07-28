@@ -3,12 +3,12 @@
 // https://console.firebase.google.com/
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCf74C299CZej2-UvDesC8iNV9vr77vJqk",
-  authDomain: "viver-bem-bfbe8.firebaseapp.com",
-  projectId: "viver-bem-bfbe8",
-  storageBucket: "viver-bem-bfbe8.firebasestorage.app",
-  messagingSenderId: "667806663588",
-  appId: "1:667806663588:web:21bbc673b36ba2082eb731"
+  apiKey: "AIzaSyArEotcuBoizOMT0s3nR1E9-xVMnoWcSRw",
+  authDomain: "gdn-automotive.firebaseapp.com",
+  projectId: "gdn-automotive",
+  storageBucket: "gdn-automotive.firebasestorage.app",
+  messagingSenderId: "574291485994",
+  appId: "1:574291485994:web:e6ab6567bf22724b5b2a53"
 };
 
 // Initialize Firebase
