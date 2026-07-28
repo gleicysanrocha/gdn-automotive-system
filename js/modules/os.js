@@ -1311,11 +1311,24 @@ window.OSModule = {
                 }
 
                 // Helper to search column value by keyword in header row
+                // Tries EXACT match first (e.g., "an" for year won't accidentally match "garantia")
                 const findValInRow = (rowArray, keys) => {
-                    const colIndex = rawHeaders.findIndex(h => {
+                    const cleanKeys = keys.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
+
+                    // 1st pass: exact match
+                    let colIndex = rawHeaders.findIndex(h => {
                         const cleanH = h.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        return keys.some(target => cleanH.includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
+                        return cleanKeys.some(ck => cleanH === ck);
                     });
+
+                    // 2nd pass: includes match
+                    if (colIndex === -1) {
+                        colIndex = rawHeaders.findIndex(h => {
+                            const cleanH = h.toLowerCase().replace(/[^a-z0-9]/g, '');
+                            return cleanKeys.some(ck => cleanH.includes(ck) || ck.includes(cleanH));
+                        });
+                    }
+
                     if (colIndex !== -1 && rowArray[colIndex] !== undefined) {
                         return rowArray[colIndex];
                     }
@@ -1379,31 +1392,50 @@ window.OSModule = {
                     }
 
                     // Date preference
+                    // Supports full names AND GDN abbreviations: "Data Entr.", "Data Saíd."
                     let rawDate = '';
                     if (dateMode === 'saida') {
-                        rawDate = findValInRow(row, ['data saida', 'saida']) || findValInRow(row, ['data entrada', 'entrada', 'data os', 'data']);
+                        rawDate = findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said']) ||
+                                  findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr', 'data os', 'data']);
                     } else {
-                        rawDate = findValInRow(row, ['data entrada', 'entrada']) || findValInRow(row, ['data saida', 'saida', 'data os', 'data']);
+                        rawDate = findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr']) ||
+                                  findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said', 'data os', 'data']);
                     }
 
                     const parsedDate = parseDateVal(rawDate);
 
-                    const rawPhone = findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone']);
-                    const rawAddress = findValInRow(row, ['endereco', 'logradouro']);
-                    const rawDoc = findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpf', 'cnpj', 'documento']);
-                    const rawTech = findValInRow(row, ['tecnico responsavel', 'tecnico', 'responsavel']);
-                    const rawVehicle = findValInRow(row, ['modelo', 'veiculo', 'carro', 'automovel']);
-                    const rawPlate = findValInRow(row, ['placa', 'identificacao']);
+                    // Supports "Telefone", "Fone", "Cel", "Contato"
+                    const rawPhone = findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone', 'tel', 'cel']);
+                    // Supports "Endereço", "Enderec."
+                    const rawAddress = findValInRow(row, ['endereco', 'enderec', 'logradouro', 'end']);
+                    // Supports "CPF/CNPJ Cliente", "CPF/CNPJ", "CPF", "CNPJ"
+                    const rawDoc = findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpfcnpj', 'cpf', 'cnpj', 'documento', 'doc']);
+                    // Supports "Técnico Responsável", "Tecnico Resp.", "Resp.", "Tecnico"
+                    const rawTech = findValInRow(row, ['tecnico responsavel', 'tecnicoresp', 'responsavel', 'tecnico', 'resp', 'tech']);
+                    // Supports "Modelo", "Model" (GDN abbreviation), "Veiculo", "Carro"
+                    const rawVehicle = findValInRow(row, ['modelo', 'model', 'veiculo', 'carro', 'automovel', 'vei']);
+                    // Supports "Placa", "Plac."
+                    const rawPlate = findValInRow(row, ['placa', 'plac', 'identificacao']);
+                    // Supports "Cor Carro", "Cor"
                     const rawColor = findValInRow(row, ['cor carro', 'cor']);
-                    const rawWarranty = findValInRow(row, ['garantia']);
-                    const rawYear = findValInRow(row, ['ano']);
-                    const rawKm = findValInRow(row, ['km entrada', 'km', 'quilometragem']);
-                    const rawService = findValInRow(row, ['servico', 'descricao', 'detalhes', 'servicos', 'obs']);
-                    const rawPartsVal = parseNumVal(findValInRow(row, ['valor das pecas', 'valor pecas', 'pecas']));
-                    const rawMachineVal = parseNumVal(findValInRow(row, ['valor da retifica', 'valor retifica', 'retifica']));
-                    const rawLaborVal = parseNumVal(findValInRow(row, ['valor mao de obra', 'mao de obra', 'mo']));
-                    const rawTotalVal = parseNumVal(findValInRow(row, ['total', 'valor total', 'valor', 'preco']));
-                    const rawStatus = findValInRow(row, ['status', 'situacao', 'estado']);
+                    // Supports "Garantia", "Garan."
+                    const rawWarranty = findValInRow(row, ['garantia', 'garan', 'garant']);
+                    // Supports "Ano", "An" (GDN abbreviation) — exact match prevents collision with "garantia"
+                    const rawYear = findValInRow(row, ['ano', 'an']);
+                    // Supports "KM Entrada", "KM Entra.", "KM", "Quilometragem"
+                    const rawKm = findValInRow(row, ['km entrada', 'kmentra', 'km entra', 'km', 'quilometragem', 'odometro']);
+                    // Supports "Serviço", "Servico", "Descricao", "Obs"
+                    const rawService = findValInRow(row, ['servico', 'servicos', 'servico realizado', 'descricao', 'detalhes', 'observacao', 'obs']);
+                    // Supports "Valor das Peças", "Valor Peças", "Peças"
+                    const rawPartsVal = parseNumVal(findValInRow(row, ['valor das pecas', 'valor pecas', 'vl pecas', 'pecas']));
+                    // Supports "Valor da Retífica", "Valor Retifica", "Retifica"
+                    const rawMachineVal = parseNumVal(findValInRow(row, ['valor da retifica', 'valor retifica', 'vl retifica', 'retifica']));
+                    // Supports "Valor Mão de Obra", "Mão de Obra", "M.O.", "MO"
+                    const rawLaborVal = parseNumVal(findValInRow(row, ['valor mao de obra', 'mao de obra', 'vl mao de obra', 'mo', 'mao obra']));
+                    // Supports "Valor Total", "Total", "Valor"
+                    const rawTotalVal = parseNumVal(findValInRow(row, ['valor total', 'total', 'vlr total', 'preco']));
+                    // Supports "Status", "Situacao", "Estado"
+                    const rawStatus = findValInRow(row, ['status', 'situacao', 'estado', 'sit']);
 
                     const calculatedTotal = rawTotalVal > 0 ? rawTotalVal : (rawPartsVal + rawMachineVal + rawLaborVal);
 
