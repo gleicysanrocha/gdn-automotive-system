@@ -5,9 +5,14 @@ window.ClientModule = {
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3>Lista de Clientes</h3>
-                    <button id="btn-add-client" class="btn btn-primary">
-                        <i class="fa-solid fa-plus"></i> Adicionar Cliente
-                    </button>
+                    <div style="display:flex; gap:8px;">
+                        <button id="btn-delete-selected-clients" class="btn btn-danger hidden">
+                            <i class="fa-solid fa-trash"></i> Excluir selecionados (<span id="selected-client-count">0</span>)
+                        </button>
+                        <button id="btn-add-client" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> Adicionar Cliente
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Search -->
@@ -19,6 +24,7 @@ window.ClientModule = {
                     <table class="table" id="clients-table">
                         <thead>
                             <tr>
+                                <th style="width:36px;"><input id="select-all-clients" type="checkbox" title="Selecionar todos"></th>
                                 <th>Nome</th>
                                 <th>CPF/CNPJ</th>
                                 <th>Telefone</th>
@@ -89,13 +95,14 @@ window.ClientModule = {
         tbody.innerHTML = '';
 
         if (clients.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Nenhum cliente cadastrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum cliente cadastrado.</td></tr>';
             return;
         }
 
         clients.forEach(client => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td><input class="client-checkbox" type="checkbox" data-id="${client.id}" aria-label="Selecionar ${client.name}"></td>
                 <td>${client.name}</td>
                 <td>${client.document || '-'}</td>
                 <td>${client.phone}</td>
@@ -128,6 +135,17 @@ window.ClientModule = {
                 }
             });
         });
+
+        document.querySelectorAll('.client-checkbox').forEach(box => {
+            box.addEventListener('change', ClientModule.updateSelectedCount);
+        });
+        const selectAll = document.getElementById('select-all-clients');
+        if (selectAll) {
+            selectAll.addEventListener('change', (event) => {
+                document.querySelectorAll('.client-checkbox').forEach(box => { box.checked = event.target.checked; });
+                ClientModule.updateSelectedCount();
+            });
+        }
     },
 
     bindEvents: () => {
@@ -167,6 +185,9 @@ window.ClientModule = {
                 ClientModule.saveClient();
             });
         }
+
+        const deleteSelected = document.getElementById('btn-delete-selected-clients');
+        if (deleteSelected) deleteSelected.addEventListener('click', ClientModule.deleteSelectedClients);
     },
 
     showForm: (isEdit = false) => {
@@ -241,6 +262,25 @@ window.ClientModule = {
         let clients = window.StorageApp.get('clients') || [];
         clients = clients.filter(c => c.id !== id);
         window.StorageApp.save('clients', clients);
+        ClientModule.loadClients();
+    },
+
+    updateSelectedCount: () => {
+        const selected = document.querySelectorAll('.client-checkbox:checked');
+        const count = document.getElementById('selected-client-count');
+        const button = document.getElementById('btn-delete-selected-clients');
+        if (count) count.textContent = selected.length;
+        if (button) button.classList.toggle('hidden', selected.length === 0);
+        const selectAll = document.getElementById('select-all-clients');
+        if (selectAll) selectAll.checked = selected.length > 0 && selected.length === document.querySelectorAll('.client-checkbox').length;
+    },
+
+    deleteSelectedClients: async () => {
+        const ids = Array.from(document.querySelectorAll('.client-checkbox:checked')).map(box => box.dataset.id);
+        if (!ids.length) return;
+        if (!confirm(`Excluir os ${ids.length} clientes selecionados? Esta ação não remove as OS já cadastradas.`)) return;
+        const clients = (window.StorageApp.get('clients') || []).filter(client => !ids.includes(client.id));
+        await window.StorageApp.save('clients', clients);
         ClientModule.loadClients();
     }
 };
