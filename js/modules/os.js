@@ -245,8 +245,27 @@ window.OSModule = {
                     <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #107c41;">
                         <label class="form-label" style="font-weight: bold; color: #fff;">1. Escolha o arquivo da planilha:</label>
                         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="form-control" style="margin-top: 5px; background: var(--background-dark); color: #fff;">
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 12px;">
+                            <div>
+                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Data a utilizar na OS:</label>
+                                <select id="excel-date-mode" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem;">
+                                    <option value="entrada">Usar Data de Entrada (Se vazia, fica sem data)</option>
+                                    <option value="saida">Usar Data de Saída (Se vazia, fica sem data)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do Cabeçalho:</label>
+                                <select id="excel-header-row" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem;">
+                                    <option value="auto">Auto-detectar (Ignora títulos agrupados)</option>
+                                    <option value="2">Linha 2 (Títulos das Colunas)</option>
+                                    <option value="1">Linha 1 (Padrão)</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <small style="color: var(--text-muted); display: block; margin-top: 8px;">
-                            Colunas aceitas automaticamente: <strong>Data, Nº OS/Nota, Cliente, Telefone, Veículo, Placa, Serviço/Descrição, Valor Total, Status</strong>.
+                            <i class="fa-solid fa-circle-info"></i> O sistema ignora automaticamente a 1ª linha de títulos agrupados e importa: <strong>Data Entrada/Saída, ID O.S, Cliente, Telefone, Veículo, Placa, KM, Garantia, Técnico, Serviço, Peças, Retífica e Mão de Obra</strong>.
                         </small>
                     </div>
 
@@ -297,8 +316,12 @@ window.OSModule = {
             return;
         }
 
-        // Sort by newest first
-        osList.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Sort by newest first (handle empty dates safely)
+        osList.sort((a, b) => {
+            const da = a.date ? new Date(a.date).getTime() : 0;
+            const db = b.date ? new Date(b.date).getTime() : 0;
+            return db - da;
+        });
 
         osList.forEach(os => {
             const tr = document.createElement('tr');
@@ -311,9 +334,18 @@ window.OSModule = {
 
             const nfseBadgeHtml = window.NFSeModule ? window.NFSeModule.renderBadge(os) : '';
 
+            // Format date safely
+            let formattedDate = '<span style="color: var(--text-muted); font-style: italic;">Sem Data</span>';
+            if (os.date) {
+                const d = new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00');
+                if (!isNaN(d.getTime())) {
+                    formattedDate = d.toLocaleDateString('pt-BR');
+                }
+            }
+
             tr.innerHTML = `
                 <td><strong>#${os.number}</strong></td>
-                <td>${new Date(os.date).toLocaleDateString('pt-BR')}</td>
+                <td>${formattedDate}</td>
                 <td>${os.clientName}</td>
                 <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
                 <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
@@ -1188,6 +1220,9 @@ window.OSModule = {
             return;
         }
 
+        const dateMode = document.getElementById('excel-date-mode')?.value || 'entrada';
+        const headerMode = document.getElementById('excel-header-row')?.value || 'auto';
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
@@ -1195,90 +1230,156 @@ window.OSModule = {
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
-                const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                
+                // Read as 2D matrix (array of arrays)
+                const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
-                if (!jsonRows || jsonRows.length === 0) {
+                if (!matrix || matrix.length === 0) {
                     alert('Nenhum registro encontrado na planilha enviada.');
                     return;
                 }
 
-                // Helper to search keys flexibly
-                const findVal = (row, keys) => {
-                    const foundKey = Object.keys(row).find(k => {
-                        const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        return keys.some(target => cleanK.includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
+                // 1. Determine header row index
+                let headerRowIdx = 0;
+                if (headerMode === 'auto') {
+                    // Inspect first 10 rows for real column headers
+                    for (let r = 0; r < Math.min(matrix.length, 10); r++) {
+                        const rowStr = matrix[r].map(c => String(c).toLowerCase()).join(' ');
+                        if (rowStr.includes('cliente') || rowStr.includes('modelo') || rowStr.includes('data entrada') || rowStr.includes('id o.s') || rowStr.includes('serviço')) {
+                            headerRowIdx = r;
+                            break;
+                        }
+                    }
+                } else if (headerMode === '2') {
+                    headerRowIdx = 1;
+                } else if (headerMode === '1') {
+                    headerRowIdx = 0;
+                }
+
+                const rawHeaders = matrix[headerRowIdx].map(c => String(c).trim());
+                const dataRows = matrix.slice(headerRowIdx + 1);
+
+                if (!dataRows || dataRows.length === 0) {
+                    alert('Nenhuma linha de dados encontrada abaixo do cabeçalho.');
+                    return;
+                }
+
+                // Helper to search column value by keyword in header row
+                const findValInRow = (rowArray, keys) => {
+                    const colIndex = rawHeaders.findIndex(h => {
+                        const cleanH = h.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return keys.some(target => cleanH.includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
                     });
-                    return foundKey ? row[foundKey] : '';
+                    if (colIndex !== -1 && rowArray[colIndex] !== undefined) {
+                        return rowArray[colIndex];
+                    }
+                    return '';
+                };
+
+                // Helper to parse dates (returns "" if missing/invalid)
+                const parseDateVal = (val) => {
+                    if (val === undefined || val === null || val === '') return '';
+                    if (typeof val === 'number') {
+                        const dateObj = XLSX.SSF.parse_date_code(val);
+                        if (dateObj) {
+                            const y = dateObj.y;
+                            const m = String(dateObj.m).padStart(2, '0');
+                            const d = String(dateObj.d).padStart(2, '0');
+                            return `${y}-${m}-${d}`;
+                        }
+                        return '';
+                    }
+                    const str = String(val).trim();
+                    if (!str || str.toLowerCase() === 'null' || str.toLowerCase() === 'undefined') return '';
+                    const parts = str.split(/[\/\-\.]/);
+                    if (parts.length === 3) {
+                        if (parts[0].length === 4) {
+                            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                        } else {
+                            let y = parts[2];
+                            if (y.length === 2) y = '20' + y;
+                            return `${y}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                        }
+                    }
+                    return '';
+                };
+
+                // Parse currency/number values
+                const parseNumVal = (val) => {
+                    if (typeof val === 'number') return val;
+                    if (!val) return 0;
+                    const cleanStr = String(val).replace('R$', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+                    return parseFloat(cleanStr) || 0;
                 };
 
                 const currentYear = new Date().getFullYear();
                 const osRecords = window.StorageApp.get('os_records') || [];
 
-                const parsedList = jsonRows.map((row, idx) => {
-                    const rawNum = findVal(row, ['n os', 'numero os', 'os', 'nota', 'n nota', 'numero', 'id']);
-                    const rawDate = findVal(row, ['data os', 'data nota', 'data do servico', 'data']);
-                    const rawClient = findVal(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario']);
-                    const rawPhone = findVal(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone']);
-                    const rawDoc = findVal(row, ['cpf', 'cnpj', 'cpf/cnpj', 'documento']);
-                    const rawVehicle = findVal(row, ['veiculo', 'modelo', 'carro', 'automovel']);
-                    const rawPlate = findVal(row, ['placa', 'identificacao']);
-                    const rawService = findVal(row, ['servico', 'descricao', 'detalhes', 'servicos', 'obs']);
-                    const rawTotal = findVal(row, ['total', 'valor total', 'valor', 'preco', 'val']);
-                    const rawStatus = findVal(row, ['status', 'situacao', 'estado']);
+                const parsedList = [];
 
-                    // Date parsing
-                    let parsedDate = new Date().toISOString().split('T')[0];
-                    if (rawDate) {
-                        if (typeof rawDate === 'number') {
-                            const dateObj = XLSX.SSF.parse_date_code(rawDate);
-                            if (dateObj) {
-                                const y = dateObj.y;
-                                const m = String(dateObj.m).padStart(2, '0');
-                                const d = String(dateObj.d).padStart(2, '0');
-                                parsedDate = `${y}-${m}-${d}`;
-                            }
-                        } else {
-                            const str = String(rawDate).trim();
-                            const parts = str.split(/[\/\-\.]/);
-                            if (parts.length === 3) {
-                                if (parts[0].length === 4) {
-                                    parsedDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-                                } else {
-                                    let y = parts[2];
-                                    if (y.length === 2) y = '20' + y;
-                                    parsedDate = `${y}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                                }
-                            }
-                        }
+                dataRows.forEach((row) => {
+                    // Check if row is empty
+                    const rowText = row.map(c => String(c).trim()).join('');
+                    if (!rowText) return;
+
+                    const rawNum = findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id']);
+                    
+                    // Date preference
+                    let rawDate = '';
+                    if (dateMode === 'saida') {
+                        rawDate = findValInRow(row, ['data saida', 'saida']) || findValInRow(row, ['data entrada', 'entrada', 'data os', 'data']);
+                    } else {
+                        rawDate = findValInRow(row, ['data entrada', 'entrada']) || findValInRow(row, ['data saida', 'saida', 'data os', 'data']);
                     }
 
-                    // Value parsing
-                    let numericTotal = 0;
-                    if (typeof rawTotal === 'number') {
-                        numericTotal = rawTotal;
-                    } else if (rawTotal) {
-                        const cleanStr = String(rawTotal).replace('R$', '').replace(/\s/g, '').replace('.', '').replace(',', '.');
-                        numericTotal = parseFloat(cleanStr) || 0;
-                    }
+                    const parsedDate = parseDateVal(rawDate);
 
-                    // Number fallback
+                    const rawClient = findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario']);
+                    const rawPhone = findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone']);
+                    const rawAddress = findValInRow(row, ['endereco', 'logradouro']);
+                    const rawDoc = findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpf', 'cnpj', 'documento']);
+                    const rawTech = findValInRow(row, ['tecnico responsavel', 'tecnico', 'responsavel']);
+                    const rawVehicle = findValInRow(row, ['modelo', 'veiculo', 'carro', 'automovel']);
+                    const rawPlate = findValInRow(row, ['placa', 'identificacao']);
+                    const rawColor = findValInRow(row, ['cor carro', 'cor']);
+                    const rawWarranty = findValInRow(row, ['garantia']);
+                    const rawYear = findValInRow(row, ['ano']);
+                    const rawKm = findValInRow(row, ['km entrada', 'km', 'quilometragem']);
+                    const rawService = findValInRow(row, ['servico', 'descricao', 'detalhes', 'servicos', 'obs']);
+                    const rawPartsVal = parseNumVal(findValInRow(row, ['valor das pecas', 'valor pecas', 'pecas']));
+                    const rawMachineVal = parseNumVal(findValInRow(row, ['valor da retifica', 'valor retifica', 'retifica']));
+                    const rawLaborVal = parseNumVal(findValInRow(row, ['valor mao de obra', 'mao de obra', 'mo']));
+                    const rawTotalVal = parseNumVal(findValInRow(row, ['total', 'valor total', 'valor', 'preco']));
+                    const rawStatus = findValInRow(row, ['status', 'situacao', 'estado']);
+
+                    const calculatedTotal = rawTotalVal > 0 ? rawTotalVal : (rawPartsVal + rawMachineVal + rawLaborVal);
+
                     let numStr = String(rawNum).trim();
                     if (!numStr) {
-                        numStr = `${currentYear}.${String(osRecords.length + idx + 1).padStart(3, '0')}`;
+                        numStr = `${currentYear}.${String(osRecords.length + parsedList.length + 1).padStart(3, '0')}`;
                     }
 
-                    return {
+                    parsedList.push({
                         number: numStr,
-                        date: parsedDate,
+                        date: parsedDate, // Empty string if no date!
                         clientName: String(rawClient).trim() || 'Cliente Avulso',
                         clientPhone: String(rawPhone).trim(),
+                        clientAddress: String(rawAddress).trim(),
                         clientDoc: String(rawDoc).trim(),
+                        techName: String(rawTech).trim(),
                         vehicleModel: String(rawVehicle).trim() || 'Veículo Não Informado',
                         vehiclePlate: String(rawPlate).trim().toUpperCase(),
-                        description: String(rawService).trim() || 'Serviço/Nota Importado via Planilha',
-                        totalVal: numericTotal,
+                        vehicleColor: String(rawColor).trim(),
+                        vehicleWarranty: String(rawWarranty).trim() || '3 meses',
+                        vehicleYear: String(rawYear).trim(),
+                        vehicleKm: String(rawKm).trim(),
+                        description: String(rawService).trim() || 'Serviço Importado via Planilha',
+                        valParts: rawPartsVal,
+                        valMachine: rawMachineVal,
+                        valLabor: rawLaborVal,
+                        totalVal: calculatedTotal,
                         status: String(rawStatus).trim() || 'Concluída'
-                    };
+                    });
                 });
 
                 OSModule.pendingExcelData = parsedList;
@@ -1290,12 +1391,13 @@ window.OSModule = {
 
                 parsedList.forEach((item) => {
                     const tr = document.createElement('tr');
+                    let dateDisplay = item.date ? item.date.split('-').reverse().join('/') : '<em style="color:#aaa;">Sem Data</em>';
                     tr.innerHTML = `
                         <td><strong>#${item.number}</strong></td>
-                        <td>${item.date.split('-').reverse().join('/')}</td>
+                        <td>${dateDisplay}</td>
                         <td>${item.clientName}</td>
                         <td>${item.vehicleModel} ${item.vehiclePlate ? `(${item.vehiclePlate})` : ''}</td>
-                        <td><small>${item.description.substring(0, 40)}${item.description.length > 40 ? '...' : ''}</small></td>
+                        <td><small>${item.description.substring(0, 35)}${item.description.length > 35 ? '...' : ''}</small></td>
                         <td>R$ ${item.totalVal.toFixed(2)}</td>
                         <td><span style="background: #28a74520; color: #28a745; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.status}</span></td>
                     `;
@@ -1338,7 +1440,7 @@ window.OSModule = {
                         name: row.clientName,
                         phone: row.clientPhone,
                         document: row.clientDoc,
-                        address: '',
+                        address: row.clientAddress || '',
                         carModel: row.vehicleModel,
                         carPlate: row.vehiclePlate,
                         createdAt: new Date().toISOString()
@@ -1350,31 +1452,31 @@ window.OSModule = {
                 const osData = {
                     id: Date.now().toString() + '_imp_' + idx,
                     number: row.number,
-                    date: row.date,
+                    date: row.date, // "" if no date
                     startTime: '08:00',
                     endTime: '18:00',
                     clientId: clientObj ? clientObj.id : '',
                     clientName: row.clientName,
                     clientDoc: row.clientDoc || (clientObj ? clientObj.document : ''),
                     clientPhone: row.clientPhone || (clientObj ? clientObj.phone : ''),
-                    clientAddress: '',
+                    clientAddress: row.clientAddress || (clientObj ? clientObj.address : ''),
                     isManual: !clientObj,
                     vehicleModel: row.vehicleModel,
-                    vehicleYear: '',
+                    vehicleYear: row.vehicleYear,
                     vehiclePlate: row.vehiclePlate,
-                    vehicleKm: '',
-                    vehicleWarranty: '3 meses',
+                    vehicleKm: row.vehicleKm,
+                    vehicleWarranty: row.vehicleWarranty || '3 meses',
                     description: row.description,
                     values: {
-                        parts: 0,
-                        machine: 0,
-                        labor: row.totalVal,
+                        parts: row.valParts || 0,
+                        machine: row.valMachine || 0,
+                        labor: row.valLabor || 0,
                         misc: 0,
                         discount: 0,
                         miscDesc: '',
                         total: row.totalVal
                     },
-                    techName: '',
+                    techName: row.techName || '',
                     status: row.status || 'Concluída'
                 };
 
