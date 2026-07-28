@@ -1422,8 +1422,11 @@ window.OSModule = {
                     // Always use positional mapping if row has enough columns (GDN format uses 15+ cols)
                     const isPositionalGDN = row.length >= 10 || (matrix[headerRowIdx] && matrix[headerRowIdx].length >= 10);
 
-                    const rawNum = isPositionalGDN && getCol(0) ? getText(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
-                    const rawClient = isPositionalGDN && getCol(3) ? getText(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
+                    // No layout padrão GDN a coluna A é o identificador. Não fazemos
+                    // fallback para outra coluna, pois linhas de formatação/fórmulas sem
+                    // ID poderiam ser confundidas com OS e inflar a importação.
+                    const rawNum = isPositionalGDN ? getText(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
+                    const rawClient = isPositionalGDN ? getText(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
 
                     // Filter out header title rows
                     const numClean = rawNum.toLowerCase().replace(/[^a-z]/g, '');
@@ -1431,6 +1434,11 @@ window.OSModule = {
                     if (clientLower === 'cliente' || numClean === 'idos' || numClean === 'os' || numClean === 'nos' || clientLower.includes('nome do cliente') || rawNum.toLowerCase().includes('id o.s')) {
                         return; // SKIP HEADER TITLE ROW!
                     }
+
+                    // A planilha possui área formatada além dos 94 registros. Para o
+                    // layout GDN, apenas linhas com ID numérico são ordens de serviço.
+                    // Exemplos aceitos: 064, 64, 2026.064 e OS-064.
+                    if (isPositionalGDN && !/(\d)/.test(rawNum)) return;
 
                     // Date detection: AUTO PRIORITY
                     // 1st: Data de Entrada   2nd: Data de Saída   3rd: leave blank
