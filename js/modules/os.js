@@ -253,26 +253,18 @@ window.OSModule = {
                         <label class="form-label" style="font-weight: bold; color: #fff;">1. Escolha o arquivo da planilha:</label>
                         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="form-control" style="margin-top: 5px; background: var(--background-dark); color: #fff;">
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 12px;">
-                            <div>
-                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Data a utilizar na OS:</label>
-                                <select id="excel-date-mode" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem;">
-                                    <option value="entrada">Usar Data de Entrada (Se vazia, fica sem data)</option>
-                                    <option value="saida">Usar Data de Saída (Se vazia, fica sem data)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do Cabeçalho:</label>
-                                <select id="excel-header-row" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem;">
-                                    <option value="auto">Auto-detectar (Ignora títulos agrupados)</option>
-                                    <option value="2">Linha 2 (Títulos das Colunas)</option>
-                                    <option value="1">Linha 1 (Padrão)</option>
-                                </select>
-                            </div>
+                        <div style="margin-top: 12px;">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do Cabeçalho:</label>
+                            <select id="excel-header-row" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem; max-width: 320px;">
+                                <option value="auto">Auto-detectar (Ignora títulos agrupados)</option>
+                                <option value="2">Linha 2 (Títulos das Colunas)</option>
+                                <option value="1">Linha 1 (Padrão)</option>
+                            </select>
                         </div>
 
                         <small style="color: var(--text-muted); display: block; margin-top: 8px;">
-                            <i class="fa-solid fa-circle-info"></i> O sistema ignora automaticamente a 1ª linha de títulos agrupados e importa: <strong>Data Entrada/Saída, ID O.S, Cliente, Telefone, Veículo, Placa, KM, Garantia, Técnico, Serviço, Peças, Retífica e Mão de Obra</strong>.
+                            <i class="fa-solid fa-circle-info"></i>
+                            A data é detectada <strong>automaticamente</strong>: usa <em>Data de Entrada</em> quando disponível; se não houver, usa <em>Data de Saída</em>; se nenhuma existir, fica <em>sem data</em>.
                         </small>
                     </div>
 
@@ -1266,7 +1258,6 @@ window.OSModule = {
             return;
         }
 
-        const dateMode = document.getElementById('excel-date-mode')?.value || 'entrada';
         const headerMode = document.getElementById('excel-header-row')?.value || 'auto';
 
         const reader = new FileReader();
@@ -1391,16 +1382,17 @@ window.OSModule = {
                         return; // SKIP HEADER TITLE ROW!
                     }
 
-                    // Date preference
-                    // Supports full names AND GDN abbreviations: "Data Entr.", "Data Saíd."
+                    // Date detection: AUTO PRIORITY
+                    // 1st: Data de Entrada   2nd: Data de Saída   3rd: leave blank
+                    const rawDateEntrada = findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr']);
+                    const rawDateSaida   = findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said']);
+
                     let rawDate = '';
-                    if (dateMode === 'saida') {
-                        rawDate = findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said']) ||
-                                  findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr', 'data os', 'data']);
-                    } else {
-                        rawDate = findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr']) ||
-                                  findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said', 'data os', 'data']);
-                    }
+                    if (rawDateEntrada) {
+                        rawDate = rawDateEntrada;          // Prefer entrada
+                    } else if (rawDateSaida) {
+                        rawDate = rawDateSaida;            // Fallback to saída
+                    }                                      // Otherwise stays ''
 
                     const parsedDate = parseDateVal(rawDate);
 
