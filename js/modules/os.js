@@ -1394,8 +1394,14 @@ window.OSModule = {
                     const rowText = row.map(c => String(c).trim()).join('');
                     if (!rowText) return;
 
-                    const rawNum = String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
-                    const rawClient = String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
+                    // Helper to get cell value safely by column index (0 = A, 1 = B, etc)
+                    const getCol = (idx) => (row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
+
+                    // Try positional mapping first if GDN layout detected (e.g. Row has 15+ cols and Col A looks like ID/Num or Col D looks like Client)
+                    const isPositionalGDN = matrix[headerRowIdx] && matrix[headerRowIdx].length >= 15;
+
+                    const rawNum = isPositionalGDN && getCol(0) ? getCol(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
+                    const rawClient = isPositionalGDN && getCol(3) ? getCol(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
 
                     // Filter out header title rows
                     const numClean = rawNum.toLowerCase().replace(/[^a-z]/g, '');
@@ -1406,50 +1412,34 @@ window.OSModule = {
 
                     // Date detection: AUTO PRIORITY
                     // 1st: Data de Entrada   2nd: Data de Saída   3rd: leave blank
-                    const rawDateEntrada = findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr']);
-                    const rawDateSaida   = findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said']);
+                    const rawDateEntrada = isPositionalGDN ? getCol(1) : findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr']);
+                    const rawDateSaida   = isPositionalGDN ? getCol(2) : findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said']);
 
                     let rawDate = '';
                     if (rawDateEntrada) {
                         rawDate = rawDateEntrada;          // Prefer entrada
                     } else if (rawDateSaida) {
                         rawDate = rawDateSaida;            // Fallback to saída
-                    }                                      // Otherwise stays ''
+                    }
 
                     const parsedDate = parseDateVal(rawDate);
 
-                    // Supports "Telefone", "Fone", "Cel", "Contato"
-                    const rawPhone = findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone', 'tel', 'cel']);
-                    // Supports "Endereço", "Enderec."
-                    const rawAddress = findValInRow(row, ['endereco', 'enderec', 'logradouro', 'end']);
-                    // Supports "CPF/CNPJ Cliente", "CPF/CNPJ", "CPF", "CNPJ"
-                    const rawDoc = findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpfcnpj', 'cpf', 'cnpj', 'documento', 'doc']);
-                    // Supports "Técnico Responsável", "Tecnico Resp.", "Resp.", "Tecnico"
-                    const rawTech = findValInRow(row, ['tecnico responsavel', 'tecnicoresp', 'responsavel', 'tecnico', 'resp', 'tech']);
-                    // Supports "Modelo", "Model" (GDN abbreviation), "Veiculo", "Carro"
-                    const rawVehicle = findValInRow(row, ['modelo', 'model', 'veiculo', 'carro', 'automovel', 'vei']);
-                    // Supports "Placa", "Plac."
-                    const rawPlate = findValInRow(row, ['placa', 'plac', 'identificacao']);
-                    // Supports "Cor Carro", "Cor"
-                    const rawColor = findValInRow(row, ['cor carro', 'cor']);
-                    // Supports "Garantia", "Garan."
-                    const rawWarranty = findValInRow(row, ['garantia', 'garan', 'garant']);
-                    // Supports "Ano", "An" (GDN abbreviation) — exact match prevents collision with "garantia"
-                    const rawYear = findValInRow(row, ['ano', 'an']);
-                    // Supports "KM Entrada", "KM Entra.", "KM", "Quilometragem"
-                    const rawKm = findValInRow(row, ['km entrada', 'kmentra', 'km entra', 'km', 'quilometragem', 'odometro']);
-                    // Supports "Serviço", "Servico", "Descricao", "Obs"
-                    const rawService = findValInRow(row, ['servico', 'servicos', 'servico realizado', 'descricao', 'detalhes', 'observacao', 'obs']);
-                    // Supports "Valor das Peças", "Valor Peças", "Peças"
-                    const rawPartsVal = parseNumVal(findValInRow(row, ['valor das pecas', 'valor pecas', 'vl pecas', 'pecas']));
-                    // Supports "Valor da Retífica", "Valor Retifica", "Retifica"
-                    const rawMachineVal = parseNumVal(findValInRow(row, ['valor da retifica', 'valor retifica', 'vl retifica', 'retifica']));
-                    // Supports "Valor Mão de Obra", "Mão de Obra", "M.O.", "MO"
-                    const rawLaborVal = parseNumVal(findValInRow(row, ['valor mao de obra', 'mao de obra', 'vl mao de obra', 'mo', 'mao obra']));
-                    // Supports "Valor Total", "Total", "Valor"
-                    const rawTotalVal = parseNumVal(findValInRow(row, ['valor total', 'total', 'vlr total', 'preco']));
-                    // Supports "Status", "Situacao", "Estado" — normalized to system values
-                    const rawStatus = findValInRow(row, ['status', 'situacao', 'estado']);
+                    const rawPhone = isPositionalGDN ? getCol(4) : findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone', 'tel', 'cel']);
+                    const rawAddress = isPositionalGDN ? getCol(5) : findValInRow(row, ['endereco', 'enderec', 'logradouro', 'end']);
+                    const rawDoc = isPositionalGDN ? getCol(7) : findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpfcnpj', 'cpf', 'cnpj', 'documento', 'doc']);
+                    const rawTech = isPositionalGDN ? getCol(6) : findValInRow(row, ['tecnico responsavel', 'tecnicoresp', 'responsavel', 'tecnico', 'resp', 'tech']);
+                    const rawVehicle = isPositionalGDN ? getCol(8) : findValInRow(row, ['modelo', 'model', 'veiculo', 'carro', 'automovel', 'vei']);
+                    const rawPlate = isPositionalGDN ? getCol(9) : findValInRow(row, ['placa', 'plac', 'identificacao']);
+                    const rawColor = isPositionalGDN ? getCol(10) : findValInRow(row, ['cor carro', 'cor']);
+                    const rawWarranty = isPositionalGDN ? getCol(11) : findValInRow(row, ['garantia', 'garan', 'garant']);
+                    const rawYear = isPositionalGDN ? getCol(12) : findValInRow(row, ['ano', 'an']);
+                    const rawKm = isPositionalGDN ? getCol(13) : findValInRow(row, ['km entrada', 'kmentra', 'km entra', 'km', 'quilometragem', 'odometro']);
+                    const rawService = isPositionalGDN ? getCol(14) : findValInRow(row, ['servico', 'servicos', 'servico realizado', 'descricao', 'detalhes', 'observacao', 'obs']);
+                    const rawPartsVal = parseNumVal(isPositionalGDN ? getCol(15) : findValInRow(row, ['valor das pecas', 'valor pecas', 'vl pecas', 'pecas']));
+                    const rawMachineVal = parseNumVal(isPositionalGDN ? getCol(16) : findValInRow(row, ['valor da retifica', 'valor retifica', 'vl retifica', 'retifica']));
+                    const rawLaborVal = parseNumVal(isPositionalGDN ? getCol(17) : findValInRow(row, ['valor mao de obra', 'mao de obra', 'vl mao de obra', 'mo', 'mao obra']));
+                    const rawStatus = isPositionalGDN ? getCol(18) : findValInRow(row, ['status', 'situacao', 'estado']);
+                    const rawTotalVal = parseNumVal(isPositionalGDN ? (getCol(20) || getCol(19)) : findValInRow(row, ['valor total', 'total', 'vlr total', 'preco']));
 
                     const calculatedTotal = rawTotalVal > 0 ? rawTotalVal : (rawPartsVal + rawMachineVal + rawLaborVal);
 
