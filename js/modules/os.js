@@ -1352,6 +1352,9 @@ window.OSModule = {
                 // Helper to parse dates (returns "" if missing/invalid)
                 const parseDateVal = (val) => {
                     if (val === undefined || val === null || val === '') return '';
+                    if (val instanceof Date && !isNaN(val)) {
+                        return `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, '0')}-${String(val.getDate()).padStart(2, '0')}`;
+                    }
                     if (typeof val === 'number') {
                         const dateObj = XLSX.SSF.parse_date_code(val);
                         if (dateObj) {
@@ -1364,6 +1367,15 @@ window.OSModule = {
                     }
                     const str = String(val).trim();
                     if (!str || str.toLowerCase() === 'null' || str.toLowerCase() === 'undefined') return '';
+
+                    // Algumas planilhas devolvem o serial do Excel como texto. Trata-o
+                    // como data antes de tentar os formatos DD/MM/AAAA e AAAA-MM-DD.
+                    if (/^\d{4,6}(\.\d+)?$/.test(str)) {
+                        const dateObj = XLSX.SSF.parse_date_code(Number(str));
+                        if (dateObj && dateObj.y >= 1900 && dateObj.y <= 2100) {
+                            return `${dateObj.y}-${String(dateObj.m).padStart(2, '0')}-${String(dateObj.d).padStart(2, '0')}`;
+                        }
+                    }
                     
                     // Match DD/MM/YYYY or YYYY-MM-DD
                     const parts = str.split(/[\/\-\.]/);
@@ -1402,14 +1414,16 @@ window.OSModule = {
                     const rowText = row.map(c => String(c).trim()).join('');
                     if (!rowText) return;
 
-                    // Helper to get cell value safely by column index (0 = A, 1 = B, etc)
-                    const getCol = (idx) => (row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
+                    // Mantém o tipo original da célula: datas do Excel chegam como número
+                    // serial e precisam ser entregues assim ao parseDateVal.
+                    const getCol = (idx) => (row[idx] !== undefined && row[idx] !== null) ? row[idx] : '';
+                    const getText = (idx) => String(getCol(idx)).trim();
 
                     // Always use positional mapping if row has enough columns (GDN format uses 15+ cols)
                     const isPositionalGDN = row.length >= 10 || (matrix[headerRowIdx] && matrix[headerRowIdx].length >= 10);
 
-                    const rawNum = isPositionalGDN && getCol(0) ? getCol(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
-                    const rawClient = isPositionalGDN && getCol(3) ? getCol(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
+                    const rawNum = isPositionalGDN && getCol(0) ? getText(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
+                    const rawClient = isPositionalGDN && getCol(3) ? getText(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
 
                     // Filter out header title rows
                     const numClean = rawNum.toLowerCase().replace(/[^a-z]/g, '');
@@ -1432,17 +1446,17 @@ window.OSModule = {
 
                     const parsedDate = parseDateVal(rawDate);
 
-                    const rawPhone = isPositionalGDN ? getCol(4) : findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone', 'tel', 'cel']);
-                    const rawAddress = isPositionalGDN ? getCol(5) : findValInRow(row, ['endereco', 'enderec', 'logradouro', 'end']);
-                    const rawDoc = isPositionalGDN ? getCol(7) : findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpfcnpj', 'cpf', 'cnpj', 'documento', 'doc']);
-                    const rawTech = isPositionalGDN ? getCol(6) : findValInRow(row, ['tecnico responsavel', 'tecnicoresp', 'responsavel', 'tecnico', 'resp', 'tech']);
-                    const rawVehicle = isPositionalGDN ? getCol(8) : findValInRow(row, ['modelo', 'model', 'veiculo', 'carro', 'automovel', 'vei']);
-                    const rawPlate = isPositionalGDN ? getCol(9) : findValInRow(row, ['placa', 'plac', 'identificacao']);
-                    const rawColor = isPositionalGDN ? getCol(10) : findValInRow(row, ['cor carro', 'cor']);
-                    const rawWarranty = isPositionalGDN ? getCol(11) : findValInRow(row, ['garantia', 'garan', 'garant']);
-                    const rawYear = isPositionalGDN ? getCol(12) : findValInRow(row, ['ano', 'an']);
-                    const rawKm = isPositionalGDN ? getCol(13) : findValInRow(row, ['km entrada', 'kmentra', 'km entra', 'km', 'quilometragem', 'odometro']);
-                    const rawService = isPositionalGDN ? getCol(14) : findValInRow(row, ['servico', 'servicos', 'servico realizado', 'descricao', 'detalhes', 'observacao', 'obs']);
+                    const rawPhone = isPositionalGDN ? getText(4) : findValInRow(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone', 'tel', 'cel']);
+                    const rawAddress = isPositionalGDN ? getText(5) : findValInRow(row, ['endereco', 'enderec', 'logradouro', 'end']);
+                    const rawDoc = isPositionalGDN ? getText(7) : findValInRow(row, ['cpf/cnpj cliente', 'cpf/cnpj', 'cpfcnpj', 'cpf', 'cnpj', 'documento', 'doc']);
+                    const rawTech = isPositionalGDN ? getText(6) : findValInRow(row, ['tecnico responsavel', 'tecnicoresp', 'responsavel', 'tecnico', 'resp', 'tech']);
+                    const rawVehicle = isPositionalGDN ? getText(8) : findValInRow(row, ['modelo', 'model', 'veiculo', 'carro', 'automovel', 'vei']);
+                    const rawPlate = isPositionalGDN ? getText(9) : findValInRow(row, ['placa', 'plac', 'identificacao']);
+                    const rawColor = isPositionalGDN ? getText(10) : findValInRow(row, ['cor carro', 'cor']);
+                    const rawWarranty = isPositionalGDN ? getText(11) : findValInRow(row, ['garantia', 'garan', 'garant']);
+                    const rawYear = isPositionalGDN ? getText(12) : findValInRow(row, ['ano', 'an']);
+                    const rawKm = isPositionalGDN ? getText(13) : findValInRow(row, ['km entrada', 'kmentra', 'km entra', 'km', 'quilometragem', 'odometro']);
+                    const rawService = isPositionalGDN ? getText(14) : findValInRow(row, ['servico', 'servicos', 'servico realizado', 'descricao', 'detalhes', 'observacao', 'obs']);
                     const rawPartsVal = parseNumVal(isPositionalGDN ? getCol(15) : findValInRow(row, ['valor das pecas', 'valor pecas', 'vl pecas', 'pecas']));
                     const rawMachineVal = parseNumVal(isPositionalGDN ? getCol(16) : findValInRow(row, ['valor da retifica', 'valor retifica', 'vl retifica', 'retifica']));
                     const rawLaborVal = parseNumVal(isPositionalGDN ? getCol(17) : findValInRow(row, ['valor mao de obra', 'mao de obra', 'vl mao de obra', 'mo', 'mao obra']));
