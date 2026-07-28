@@ -253,13 +253,21 @@ window.OSModule = {
                         <label class="form-label" style="font-weight: bold; color: #fff;">1. Escolha o arquivo da planilha:</label>
                         <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="form-control" style="margin-top: 5px; background: var(--background-dark); color: #fff;">
                         
-                        <div style="margin-top: 12px;">
-                            <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do Cabeçalho:</label>
-                            <select id="excel-header-row" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem; max-width: 320px;">
-                                <option value="auto">Auto-detectar (Ignora títulos agrupados)</option>
-                                <option value="2">Linha 2 (Títulos das Colunas)</option>
-                                <option value="1">Linha 1 (Padrão)</option>
-                            </select>
+                        <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                            <div>
+                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do Cabeçalho:</label>
+                                <select id="excel-header-row" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem; max-width: 250px;">
+                                    <option value="auto">Auto-detectar (Ignora títulos agrupados)</option>
+                                    <option value="2">Linha 2 (Títulos das Colunas)</option>
+                                    <option value="1">Linha 1 (Padrão)</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+                                <input type="checkbox" id="excel-clear-existing" style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="excel-clear-existing" style="font-size: 0.85rem; color: #ffc107; font-weight: bold; cursor: pointer;">
+                                    Substituir todas as OS existentes (Limpar banco antes de importar)
+                                </label>
+                            </div>
                         </div>
 
                         <small style="color: var(--text-muted); display: block; margin-top: 8px;">
@@ -1544,7 +1552,8 @@ window.OSModule = {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando importação...';
 
         try {
-            let osRecords = window.StorageApp.get('os_records') || [];
+            const clearExisting = document.getElementById('excel-clear-existing')?.checked;
+            let osRecords = clearExisting ? [] : (window.StorageApp.get('os_records') || []);
             let clients = window.StorageApp.get('clients') || [];
             let newClientsCount = 0;
             let newOSCount = 0;
