@@ -945,12 +945,16 @@ window.OSModule = {
 
         if (id) {
             const index = osRecords.findIndex(o => o.id === id);
-            if (index !== -1) osRecords[index] = osData;
+            // Preserva dados fiscais e financeiros que não fazem parte do formulário da OS.
+            if (index !== -1) osRecords[index] = { ...osRecords[index], ...osData };
         } else {
             osRecords.push(osData);
         }
 
         window.StorageApp.save('os_records', osRecords);
+        // Cada OS com valor gera/atualiza uma conta a receber; o pagamento fica separado
+        // para não ser perdido ao editar a ordem.
+        if (window.FinancialModule) window.FinancialModule.syncReceivableForOS(osData);
         alert('OS Salva com sucesso!');
 
         // If it was a new OS, update the ID field so subsequent saves updates this record
@@ -1606,6 +1610,9 @@ window.OSModule = {
 
             await window.StorageApp.save('clients', clients);
             await window.StorageApp.save('os_records', osRecords);
+            // Importações antigas não trazem pagamento de forma confiável: entram como
+            // pendentes e podem ser baixadas, inclusive parcialmente, no Financeiro.
+            if (window.FinancialModule) await window.FinancialModule.syncAllOS();
 
             alert(`Importação concluída com sucesso!\n\n- ${newOSCount} Ordens de Serviço geradas.\n- ${newClientsCount} novos clientes cadastrados.`);
 
