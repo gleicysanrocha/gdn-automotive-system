@@ -1285,18 +1285,15 @@ window.OSModule = {
                 }
 
                 // 1. Determine header row index
-                let headerRowIdx = 0;
+                let headerRowIdx = 1; // Default to row 2 (index 1) for GDN double-header structure
                 if (headerMode === 'auto') {
-                    // Inspect first 10 rows for real column headers
                     for (let r = 0; r < Math.min(matrix.length, 10); r++) {
                         const rowStr = matrix[r].map(c => String(c).toLowerCase()).join(' ');
-                        if (rowStr.includes('cliente') || rowStr.includes('modelo') || rowStr.includes('data entrada') || rowStr.includes('id o.s') || rowStr.includes('serviço')) {
+                        if (rowStr.includes('id o.s') || rowStr.includes('data entr') || (rowStr.includes('cliente') && rowStr.includes('model'))) {
                             headerRowIdx = r;
                             break;
                         }
                     }
-                } else if (headerMode === '2') {
-                    headerRowIdx = 1;
                 } else if (headerMode === '1') {
                     headerRowIdx = 0;
                 }
@@ -1363,14 +1360,21 @@ window.OSModule = {
                     }
                     const str = String(val).trim();
                     if (!str || str.toLowerCase() === 'null' || str.toLowerCase() === 'undefined') return '';
+                    
+                    // Match DD/MM/YYYY or YYYY-MM-DD
                     const parts = str.split(/[\/\-\.]/);
-                    if (parts.length === 3) {
+                    if (parts.length >= 3) {
+                        let day, month, year;
                         if (parts[0].length === 4) {
-                            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                            year = parts[0]; month = parts[1]; day = parts[2];
                         } else {
-                            let y = parts[2];
-                            if (y.length === 2) y = '20' + y;
-                            return `${y}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                            day = parts[0]; month = parts[1]; year = parts[2];
+                            if (year.length === 2) year = '20' + year;
+                        }
+                        day = String(day).trim().padStart(2, '0');
+                        month = String(month).trim().padStart(2, '0');
+                        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                            return `${year}-${month}-${day}`;
                         }
                     }
                     return '';
@@ -1397,8 +1401,8 @@ window.OSModule = {
                     // Helper to get cell value safely by column index (0 = A, 1 = B, etc)
                     const getCol = (idx) => (row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
 
-                    // Try positional mapping first if GDN layout detected (e.g. Row has 15+ cols and Col A looks like ID/Num or Col D looks like Client)
-                    const isPositionalGDN = matrix[headerRowIdx] && matrix[headerRowIdx].length >= 15;
+                    // Always use positional mapping if row has enough columns (GDN format uses 15+ cols)
+                    const isPositionalGDN = row.length >= 10 || (matrix[headerRowIdx] && matrix[headerRowIdx].length >= 10);
 
                     const rawNum = isPositionalGDN && getCol(0) ? getCol(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
                     const rawClient = isPositionalGDN && getCol(3) ? getCol(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
