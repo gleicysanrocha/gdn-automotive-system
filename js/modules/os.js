@@ -9,6 +9,9 @@ window.OSModule = {
                         <button id="btn-import-whatsapp" class="btn btn-secondary" style="background-color: #25d366; border-color: #128c7e;">
                             <i class="fa-brands fa-whatsapp"></i> Importar WhatsApp
                         </button>
+                        <button id="btn-import-excel" class="btn btn-secondary" style="background-color: #107c41; border-color: #0b5a2f;">
+                            <i class="fa-solid fa-file-excel"></i> Importar Planilha
+                        </button>
                         <button id="btn-new-os" class="btn btn-primary">
                             <i class="fa-solid fa-plus"></i> Nova OS
                         </button>
@@ -231,6 +234,51 @@ window.OSModule = {
                     </div>
                 </div>
             </div>
+
+            <!-- Excel / CSV Import Modal -->
+            <div id="excel-import-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+                <div class="card" style="width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button id="close-excel-modal" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer;">&times;</button>
+                    <h3><i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Importar Planilha de Notas e Ordens</h3>
+                    <p class="text-muted">Selecione uma planilha (.xlsx, .xls, .csv) contendo o histórico de notas e serviços.</p>
+                    
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #107c41;">
+                        <label class="form-label" style="font-weight: bold; color: #fff;">1. Escolha o arquivo da planilha:</label>
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="form-control" style="margin-top: 5px; background: var(--background-dark); color: #fff;">
+                        <small style="color: var(--text-muted); display: block; margin-top: 8px;">
+                            Colunas aceitas automaticamente: <strong>Data, Nº OS/Nota, Cliente, Telefone, Veículo, Placa, Serviço/Descrição, Valor Total, Status</strong>.
+                        </small>
+                    </div>
+
+                    <div id="excel-preview-container" class="hidden" style="margin-top: 20px;">
+                        <h4 style="color: var(--primary-color);">2. Registros Encontrados (<span id="excel-count">0</span>)</h4>
+                        <div class="table-responsive" style="max-height: 280px; overflow-y: auto; margin-top: 10px; border: 1px solid #444; border-radius: 6px;">
+                            <table class="table" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th># OS/Nota</th>
+                                        <th>Data</th>
+                                        <th>Cliente</th>
+                                        <th>Veículo/Placa</th>
+                                        <th>Serviço</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="excel-preview-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+                        <button type="button" id="btn-cancel-excel" class="btn btn-secondary">Cancelar</button>
+                        <button type="button" id="btn-confirm-excel" class="btn btn-success hidden" style="background-color: #107c41; border-color: #0b5a2f;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de Serviço
+                        </button>
+                    </div>
+                </div>
+            </div>
         `;
 
         OSModule.loadOSList();
@@ -365,6 +413,49 @@ window.OSModule = {
         if (btnProcess) {
             btnProcess.addEventListener('click', () => {
                 OSModule.processWhatsAppImport();
+            });
+        }
+
+        // Excel / CSV Import Events
+        const btnImportExcel = document.getElementById('btn-import-excel');
+        if (btnImportExcel) {
+            btnImportExcel.addEventListener('click', () => {
+                const modal = document.getElementById('excel-import-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    const fileInput = document.getElementById('excel-file-input');
+                    if (fileInput) fileInput.value = '';
+                    document.getElementById('excel-preview-container').classList.add('hidden');
+                    document.getElementById('btn-confirm-excel').classList.add('hidden');
+                    OSModule.pendingExcelData = [];
+                }
+            });
+        }
+
+        const closeExcelModal = () => {
+            const modal = document.getElementById('excel-import-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        const btnCloseExcel = document.getElementById('close-excel-modal');
+        if (btnCloseExcel) btnCloseExcel.addEventListener('click', closeExcelModal);
+
+        const btnCancelExcel = document.getElementById('btn-cancel-excel');
+        if (btnCancelExcel) btnCancelExcel.addEventListener('click', closeExcelModal);
+
+        const excelFileInput = document.getElementById('excel-file-input');
+        if (excelFileInput) {
+            excelFileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    OSModule.processExcelFile(e.target.files[0]);
+                }
+            });
+        }
+
+        const btnConfirmExcel = document.getElementById('btn-confirm-excel');
+        if (btnConfirmExcel) {
+            btnConfirmExcel.addEventListener('click', () => {
+                OSModule.confirmExcelImport();
             });
         }
 
@@ -1087,5 +1178,224 @@ window.OSModule = {
             </html>
         `);
         win.document.close();
+    },
+
+    pendingExcelData: [],
+
+    processExcelFile: (file) => {
+        if (typeof XLSX === 'undefined') {
+            alert('Biblioteca SheetJS (XLSX) não carregada. Verifique sua conexão de internet.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                if (!jsonRows || jsonRows.length === 0) {
+                    alert('Nenhum registro encontrado na planilha enviada.');
+                    return;
+                }
+
+                // Helper to search keys flexibly
+                const findVal = (row, keys) => {
+                    const foundKey = Object.keys(row).find(k => {
+                        const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return keys.some(target => cleanK.includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
+                    });
+                    return foundKey ? row[foundKey] : '';
+                };
+
+                const currentYear = new Date().getFullYear();
+                const osRecords = window.StorageApp.get('os_records') || [];
+
+                const parsedList = jsonRows.map((row, idx) => {
+                    const rawNum = findVal(row, ['n os', 'numero os', 'os', 'nota', 'n nota', 'numero', 'id']);
+                    const rawDate = findVal(row, ['data os', 'data nota', 'data do servico', 'data']);
+                    const rawClient = findVal(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario']);
+                    const rawPhone = findVal(row, ['telefone', 'celular', 'contato', 'whatsapp', 'fone']);
+                    const rawDoc = findVal(row, ['cpf', 'cnpj', 'cpf/cnpj', 'documento']);
+                    const rawVehicle = findVal(row, ['veiculo', 'modelo', 'carro', 'automovel']);
+                    const rawPlate = findVal(row, ['placa', 'identificacao']);
+                    const rawService = findVal(row, ['servico', 'descricao', 'detalhes', 'servicos', 'obs']);
+                    const rawTotal = findVal(row, ['total', 'valor total', 'valor', 'preco', 'val']);
+                    const rawStatus = findVal(row, ['status', 'situacao', 'estado']);
+
+                    // Date parsing
+                    let parsedDate = new Date().toISOString().split('T')[0];
+                    if (rawDate) {
+                        if (typeof rawDate === 'number') {
+                            const dateObj = XLSX.SSF.parse_date_code(rawDate);
+                            if (dateObj) {
+                                const y = dateObj.y;
+                                const m = String(dateObj.m).padStart(2, '0');
+                                const d = String(dateObj.d).padStart(2, '0');
+                                parsedDate = `${y}-${m}-${d}`;
+                            }
+                        } else {
+                            const str = String(rawDate).trim();
+                            const parts = str.split(/[\/\-\.]/);
+                            if (parts.length === 3) {
+                                if (parts[0].length === 4) {
+                                    parsedDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                                } else {
+                                    let y = parts[2];
+                                    if (y.length === 2) y = '20' + y;
+                                    parsedDate = `${y}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                }
+                            }
+                        }
+                    }
+
+                    // Value parsing
+                    let numericTotal = 0;
+                    if (typeof rawTotal === 'number') {
+                        numericTotal = rawTotal;
+                    } else if (rawTotal) {
+                        const cleanStr = String(rawTotal).replace('R$', '').replace(/\s/g, '').replace('.', '').replace(',', '.');
+                        numericTotal = parseFloat(cleanStr) || 0;
+                    }
+
+                    // Number fallback
+                    let numStr = String(rawNum).trim();
+                    if (!numStr) {
+                        numStr = `${currentYear}.${String(osRecords.length + idx + 1).padStart(3, '0')}`;
+                    }
+
+                    return {
+                        number: numStr,
+                        date: parsedDate,
+                        clientName: String(rawClient).trim() || 'Cliente Avulso',
+                        clientPhone: String(rawPhone).trim(),
+                        clientDoc: String(rawDoc).trim(),
+                        vehicleModel: String(rawVehicle).trim() || 'Veículo Não Informado',
+                        vehiclePlate: String(rawPlate).trim().toUpperCase(),
+                        description: String(rawService).trim() || 'Serviço/Nota Importado via Planilha',
+                        totalVal: numericTotal,
+                        status: String(rawStatus).trim() || 'Concluída'
+                    };
+                });
+
+                OSModule.pendingExcelData = parsedList;
+
+                // Render Preview Table
+                const tbody = document.getElementById('excel-preview-body');
+                document.getElementById('excel-count').textContent = parsedList.length;
+                tbody.innerHTML = '';
+
+                parsedList.forEach((item) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>#${item.number}</strong></td>
+                        <td>${item.date.split('-').reverse().join('/')}</td>
+                        <td>${item.clientName}</td>
+                        <td>${item.vehicleModel} ${item.vehiclePlate ? `(${item.vehiclePlate})` : ''}</td>
+                        <td><small>${item.description.substring(0, 40)}${item.description.length > 40 ? '...' : ''}</small></td>
+                        <td>R$ ${item.totalVal.toFixed(2)}</td>
+                        <td><span style="background: #28a74520; color: #28a745; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.status}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('excel-preview-container').classList.remove('hidden');
+                document.getElementById('btn-confirm-excel').classList.remove('hidden');
+
+            } catch (err) {
+                console.error('Erro ao ler planilha:', err);
+                alert('Erro ao processar planilha. Verifique se o arquivo não está corrompido.');
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    },
+
+    confirmExcelImport: async () => {
+        if (!OSModule.pendingExcelData || OSModule.pendingExcelData.length === 0) {
+            alert('Nenhum dado pendente para importação.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-confirm-excel');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando importação...';
+
+        try {
+            let osRecords = window.StorageApp.get('os_records') || [];
+            let clients = window.StorageApp.get('clients') || [];
+            let newClientsCount = 0;
+            let newOSCount = 0;
+
+            OSModule.pendingExcelData.forEach((row, idx) => {
+                let clientObj = clients.find(c => c.name.toLowerCase().trim() === row.clientName.toLowerCase().trim());
+                if (!clientObj && row.clientName !== 'Cliente Avulso') {
+                    clientObj = {
+                        id: Date.now().toString() + '_c_' + idx,
+                        name: row.clientName,
+                        phone: row.clientPhone,
+                        document: row.clientDoc,
+                        address: '',
+                        carModel: row.vehicleModel,
+                        carPlate: row.vehiclePlate,
+                        createdAt: new Date().toISOString()
+                    };
+                    clients.push(clientObj);
+                    newClientsCount++;
+                }
+
+                const osData = {
+                    id: Date.now().toString() + '_imp_' + idx,
+                    number: row.number,
+                    date: row.date,
+                    startTime: '08:00',
+                    endTime: '18:00',
+                    clientId: clientObj ? clientObj.id : '',
+                    clientName: row.clientName,
+                    clientDoc: row.clientDoc || (clientObj ? clientObj.document : ''),
+                    clientPhone: row.clientPhone || (clientObj ? clientObj.phone : ''),
+                    clientAddress: '',
+                    isManual: !clientObj,
+                    vehicleModel: row.vehicleModel,
+                    vehicleYear: '',
+                    vehiclePlate: row.vehiclePlate,
+                    vehicleKm: '',
+                    vehicleWarranty: '3 meses',
+                    description: row.description,
+                    values: {
+                        parts: 0,
+                        machine: 0,
+                        labor: row.totalVal,
+                        misc: 0,
+                        discount: 0,
+                        miscDesc: '',
+                        total: row.totalVal
+                    },
+                    techName: '',
+                    status: row.status || 'Concluída'
+                };
+
+                osRecords.push(osData);
+                newOSCount++;
+            });
+
+            await window.StorageApp.save('clients', clients);
+            await window.StorageApp.save('os_records', osRecords);
+
+            alert(`Importação concluída com sucesso!\n\n- ${newOSCount} Ordens de Serviço geradas.\n- ${newClientsCount} novos clientes cadastrados.`);
+
+            document.getElementById('excel-import-modal').classList.add('hidden');
+            OSModule.pendingExcelData = [];
+            OSModule.loadOSList();
+        } catch (err) {
+            console.error('Erro ao importar ordens:', err);
+            alert('Falha ao concluir importação: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de Serviço';
+        }
     }
 };
