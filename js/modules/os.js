@@ -1302,21 +1302,22 @@ window.OSModule = {
                 }
 
                 // Helper to search column value by keyword in header row
-                // Tries EXACT match first (e.g., "an" for year won't accidentally match "garantia")
+                // Pass 1 (exact): prevents short headers like "an" from matching unrelated columns
+                // Pass 2 (forward-only): header must CONTAIN the keyword (never the reverse)
                 const findValInRow = (rowArray, keys) => {
                     const cleanKeys = keys.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
 
-                    // 1st pass: exact match
+                    // 1st pass: exact match (handles abbreviated headers like "An", "KM")
                     let colIndex = rawHeaders.findIndex(h => {
                         const cleanH = h.toLowerCase().replace(/[^a-z0-9]/g, '');
                         return cleanKeys.some(ck => cleanH === ck);
                     });
 
-                    // 2nd pass: includes match
+                    // 2nd pass: header contains keyword (forward only, avoids false positives)
                     if (colIndex === -1) {
                         colIndex = rawHeaders.findIndex(h => {
                             const cleanH = h.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            return cleanKeys.some(ck => cleanH.includes(ck) || ck.includes(cleanH));
+                            return cleanKeys.some(ck => cleanH.includes(ck));
                         });
                     }
 
@@ -1324,6 +1325,19 @@ window.OSModule = {
                         return rowArray[colIndex];
                     }
                     return '';
+                };
+
+                // Normalize spreadsheet status to system values
+                const normalizeStatus = (raw) => {
+                    const s = String(raw).trim().toLowerCase();
+                    if (!s || s === 'undefined' || s === 'null') return 'Concluída';
+                    // Numeric or clearly non-status value → default
+                    if (/^\d+([.,]\d+)?$/.test(s.trim())) return 'Concluída';
+                    if (s.includes('finaliz') || s.includes('conclu') || s.includes('pronto') || s.includes('entregue')) return 'Concluída';
+                    if (s.includes('andamento') || s.includes('execu') || s.includes('processo') || s.includes('fazendo')) return 'Em Andamento';
+                    if (s.includes('aberto') || s.includes('aberta') || s.includes('aguardando') || s.includes('pendente') || s.includes('novo') || s.includes('nova')) return 'Aberta';
+                    // Unknown but non-empty status: keep as-is so user can see original
+                    return String(raw).trim() || 'Concluída';
                 };
 
                 // Helper to parse dates (returns "" if missing/invalid)
@@ -1426,8 +1440,8 @@ window.OSModule = {
                     const rawLaborVal = parseNumVal(findValInRow(row, ['valor mao de obra', 'mao de obra', 'vl mao de obra', 'mo', 'mao obra']));
                     // Supports "Valor Total", "Total", "Valor"
                     const rawTotalVal = parseNumVal(findValInRow(row, ['valor total', 'total', 'vlr total', 'preco']));
-                    // Supports "Status", "Situacao", "Estado"
-                    const rawStatus = findValInRow(row, ['status', 'situacao', 'estado', 'sit']);
+                    // Supports "Status", "Situacao", "Estado" — normalized to system values
+                    const rawStatus = findValInRow(row, ['status', 'situacao', 'estado']);
 
                     const calculatedTotal = rawTotalVal > 0 ? rawTotalVal : (rawPartsVal + rawMachineVal + rawLaborVal);
 
@@ -1438,7 +1452,7 @@ window.OSModule = {
 
                     parsedList.push({
                         number: numStr,
-                        date: parsedDate, // Empty string if no date!
+                        date: parsedDate,
                         clientName: rawClient || 'Cliente Avulso',
                         clientPhone: String(rawPhone).trim(),
                         clientAddress: String(rawAddress).trim(),
@@ -1455,7 +1469,7 @@ window.OSModule = {
                         valMachine: rawMachineVal,
                         valLabor: rawLaborVal,
                         totalVal: calculatedTotal,
-                        status: String(rawStatus).trim() || 'Concluída'
+                        status: normalizeStatus(rawStatus)
                     });
                 });
 
