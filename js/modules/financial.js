@@ -6,6 +6,8 @@
 window.FinancialModule = {
     sortColumn: 'dueDate',
     sortDirection: 'desc',
+    cashFlowChart: null,
+    categoriesChart: null,
 
     setSort: (col) => {
         if (window.FinancialModule.sortColumn === col) {
@@ -128,20 +130,42 @@ window.FinancialModule = {
         const current = new Date();
         container.innerHTML = `
             <div class="financial-container">
+                <!-- Header Card -->
                 <div class="card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-                    <div><h3><i class="fa-solid fa-money-bill-transfer"></i> Gestão Financeira</h3><p class="text-muted">Recebimentos reais, pendências e despesas.</p></div>
+                    <div>
+                        <h3><i class="fa-solid fa-money-bill-transfer"></i> Gestão Financeira Profissional</h3>
+                        <p class="text-muted">Acompanhe fluxo de caixa, DRE do período e exporte dados para Excel.</p>
+                    </div>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                         <input id="fin-period" class="form-control" type="month" value="${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}" style="width:auto;">
                         <button id="btn-sync-finance" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate"></i> Sincronizar OS</button>
+                        <button id="btn-export-excel" class="btn btn-sm btn-success" style="background-color: #217346; border-color: #1e6b3f; color:white; font-weight:bold;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                        <button id="btn-generate-dre" class="btn btn-sm btn-primary" style="font-weight:bold;"><i class="fa-solid fa-file-invoice-dollar"></i> Gerar DRE</button>
                     </div>
                 </div>
+
+                <!-- KPI Cards -->
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:15px; margin-bottom:20px;">
                     <div class="card" style="border-left:5px solid var(--success-color);"><p class="text-muted">Recebido no período</p><h2 id="fin-received">R$ 0,00</h2><small id="fin-received-count"></small></div>
                     <div class="card" style="border-left:5px solid #f0ad4e;"><p class="text-muted">A receber</p><h2 id="fin-open">R$ 0,00</h2><small id="fin-open-count"></small></div>
                     <div class="card" style="border-left:5px solid var(--danger-color);"><p class="text-muted">Vencido</p><h2 id="fin-overdue">R$ 0,00</h2><small id="fin-overdue-count"></small></div>
                     <div class="card" style="border-left:5px solid var(--primary-color);"><p class="text-muted">Resultado de caixa</p><h2 id="fin-cash-result">R$ 0,00</h2><small id="fin-expense-summary"></small></div>
                 </div>
-                <div style="display:grid; grid-template-columns:minmax(0, 2fr) minmax(280px, 1fr); gap:20px;">
+
+                <!-- Charts Section -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    <div class="card" style="position: relative; min-height: 280px; display:flex; flex-direction:column; justify-content:space-between;">
+                        <h4 style="margin-bottom:10px;"><i class="fa-solid fa-chart-column"></i> Entradas vs Saídas</h4>
+                        <div style="flex-grow:1; position: relative; height: 180px;"><canvas id="fin-chart-cashflow"></canvas></div>
+                    </div>
+                    <div class="card" style="position: relative; min-height: 280px; display:flex; flex-direction:column; justify-content:space-between;">
+                        <h4 style="margin-bottom:10px;"><i class="fa-solid fa-chart-pie"></i> Despesas por Categoria</h4>
+                        <div style="flex-grow:1; position: relative; height: 180px;"><canvas id="fin-chart-categories"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Tables and Expense Form Section -->
+                <div style="display:grid; grid-template-columns:minmax(0, 2fr) minmax(300px, 1fr); gap:20px;">
                     <div class="card" style="border-radius: var(--card-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; background: #ffffff;">
                         <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 20px;">
                             <h4 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
@@ -153,12 +177,40 @@ window.FinancialModule = {
                             <!-- Populado dinamicamente por updateReport -->
                         </div>
                     </div>
-                    <div class="card"><h4><i class="fa-solid fa-plus-circle"></i> Nova despesa</h4>
-                        <form id="expense-form"><div class="form-group"><label class="form-label">Descrição</label><input id="exp-desc" class="form-control" required></div>
-                        <div class="form-group"><label class="form-label">Valor (R$)</label><input id="exp-val" type="number" min="0.01" step="0.01" class="form-control" required></div>
-                        <div class="form-group"><label class="form-label">Data</label><input id="exp-date" type="date" class="form-control" required></div>
-                        <button class="btn btn-danger" style="width:100%;justify-content:center;"><i class="fa-solid fa-plus"></i> Lançar despesa</button></form>
-                        <hr style="margin:20px 0;"><h4>Despesas do período</h4><div id="fin-expenses-list" class="text-muted"></div>
+                    
+                    <div class="card">
+                        <h4><i class="fa-solid fa-plus-circle"></i> Nova despesa</h4>
+                        <form id="expense-form">
+                            <div class="form-group">
+                                <label class="form-label">Descrição</label>
+                                <input id="exp-desc" class="form-control" placeholder="Combustível, Aluguel, etc." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Categoria</label>
+                                <select id="exp-category" class="form-control" required>
+                                    <option value="Peças">Peças</option>
+                                    <option value="Mão de Obra">Mão de Obra</option>
+                                    <option value="Aluguel/Infraestrutura">Aluguel/Infraestrutura</option>
+                                    <option value="Luz/Água/Internet">Luz/Água/Internet</option>
+                                    <option value="Impostos/Taxas">Impostos/Taxas</option>
+                                    <option value="Ferramentas/Equipamentos">Ferramentas/Equipamentos</option>
+                                    <option value="Marketing/Anúncios">Marketing/Anúncios</option>
+                                    <option value="Outros" selected>Outros</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Valor (R$)</label>
+                                <input id="exp-val" type="number" min="0.01" step="0.01" class="form-control" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data</label>
+                                <input id="exp-date" type="date" class="form-control" required>
+                            </div>
+                            <button class="btn btn-danger" style="width:100%;justify-content:center;"><i class="fa-solid fa-plus"></i> Lançar despesa</button>
+                        </form>
+                        <hr style="margin:20px 0;">
+                        <h4>Despesas do período</h4>
+                        <div id="fin-expenses-list" class="text-muted"></div>
                     </div>
                 </div>
             </div>`;
@@ -170,21 +222,166 @@ window.FinancialModule = {
     bindEvents: () => {
         document.getElementById('fin-period').addEventListener('change', window.FinancialModule.updateReport);
         document.getElementById('btn-sync-finance').addEventListener('click', window.FinancialModule.syncAllOS);
+        document.getElementById('btn-export-excel').addEventListener('click', window.FinancialModule.exportToExcel);
+        document.getElementById('btn-generate-dre').addEventListener('click', window.FinancialModule.generateDRE);
         document.getElementById('expense-form').addEventListener('submit', window.FinancialModule.saveExpense);
     },
 
     saveExpense: async (event) => {
         event.preventDefault();
         const expenses = window.StorageApp.get('fin_expenses') || [];
-        expenses.push({ id: `exp_${Date.now()}`, desc: document.getElementById('exp-desc').value.trim(), value: Number(document.getElementById('exp-val').value), date: document.getElementById('exp-date').value, type: 'expense' });
+        expenses.push({ 
+            id: `exp_${Date.now()}`, 
+            desc: document.getElementById('exp-desc').value.trim(), 
+            category: document.getElementById('exp-category').value,
+            value: Number(document.getElementById('exp-val').value), 
+            date: document.getElementById('exp-date').value, 
+            type: 'expense' 
+        });
         await window.StorageApp.save('fin_expenses', expenses);
-        event.target.reset(); document.getElementById('exp-date').value = window.FinancialModule.today(); window.FinancialModule.updateReport();
+        event.target.reset(); 
+        document.getElementById('exp-date').value = window.FinancialModule.today(); 
+        window.FinancialModule.updateReport();
     },
 
     deleteExpense: async (id) => {
         if (!confirm('Excluir esta despesa?')) return;
         await window.StorageApp.save('fin_expenses', (window.StorageApp.get('fin_expenses') || []).filter(item => item.id !== id));
         window.FinancialModule.updateReport();
+    },
+
+    exportToExcel: () => {
+        const period = document.getElementById('fin-period')?.value || 'Relatorio';
+        const receivables = window.FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
+        const expenses = window.StorageApp.get('fin_expenses') || [];
+
+        // Recebiveis data
+        const recData = receivables.map(item => ({
+            "OS": `#${item.osNumber}`,
+            "Cliente": item.clientName,
+            "Data Emissão": window.FinancialModule.dateLabel(item.issueDate),
+            "Vencimento": window.FinancialModule.dateLabel(item.dueDate),
+            "Valor Total": item.amount,
+            "Valor Pago": item.paidAmount,
+            "Saldo Restante": Math.max(0, item.amount - item.paidAmount),
+            "Situação": item.status === 'paid' ? 'Pago' : (item.paidAmount > 0 ? 'Parcial' : 'Pendente')
+        }));
+
+        // Despesas data
+        const expData = expenses.map(item => ({
+            "Descrição": item.desc,
+            "Categoria": item.category || 'Outros',
+            "Data": window.FinancialModule.dateLabel(item.date),
+            "Valor": item.value
+        }));
+
+        if (typeof XLSX === 'undefined') {
+            alert('Aguarde o carregamento do gerador de arquivos XLSX do Excel.');
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const wsRec = XLSX.utils.json_to_sheet(recData);
+        const wsExp = XLSX.utils.json_to_sheet(expData);
+
+        XLSX.utils.book_append_sheet(wb, wsRec, "Contas a Receber");
+        XLSX.utils.book_append_sheet(wb, wsExp, "Despesas");
+
+        XLSX.writeFile(wb, `Relatorio_Financeiro_${period}.xlsx`);
+    },
+
+    generateDRE: () => {
+        const period = document.getElementById('fin-period')?.value || '';
+        const receivables = window.FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
+        const expenses = (window.StorageApp.get('fin_expenses') || []).filter(item => item.date?.startsWith(period));
+        const periodPayments = receivables.flatMap(item => (item.payments || []).map(payment => ({ ...payment, account: item }))).filter(payment => payment.date?.startsWith(period));
+
+        const totalReceived = periodPayments.reduce((sum, p) => sum + p.amount, 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + e.value, 0);
+        const netResult = totalReceived - totalExpenses;
+
+        // Expenses breakdown by category
+        const categoriesMap = {};
+        expenses.forEach(e => {
+            const cat = e.category || 'Outros';
+            categoriesMap[cat] = (categoriesMap[cat] || 0) + e.value;
+        });
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>DRE - Gestão Financeira GDN</title>
+                <style>
+                    body { font-family: 'Exo 2', 'Roboto', sans-serif; padding: 30px; color: #333; }
+                    .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+                    .title { font-size: 24px; font-weight: bold; margin: 0; }
+                    .subtitle { font-size: 14px; color: #666; margin: 5px 0 0 0; }
+                    .table-dre { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    .table-dre th, .table-dre td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+                    .table-dre th { background-color: #f8f9fa; font-weight: bold; }
+                    .section-header { font-weight: bold; background-color: #e9ecef; }
+                    .total-row { font-weight: bold; font-size: 16px; border-top: 2px solid #333; border-bottom: 2px solid #333; }
+                    .positive { color: #28a745; }
+                    .negative { color: #dc3545; }
+                    @media print {
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="margin-bottom:20px; text-align:right;">
+                    <button onclick="window.print()" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Imprimir DRE</button>
+                </div>
+                <div class="header">
+                    <div class="title">Demonstrativo de Resultado (DRE)</div>
+                    <div class="subtitle">Período de Referência: ${period} | Emissor: GDN Serviços Automotivos</div>
+                </div>
+                
+                <table class="table-dre">
+                    <thead>
+                        <tr>
+                            <th>Conta / Categoria</th>
+                            <th style="text-align: right;">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="section-header">
+                            <td colspan="2">1. RECEITAS DE CAIXA (Entradas)</td>
+                        </tr>
+                        <tr>
+                            <td>Recebimentos de Ordens de Serviço</td>
+                            <td style="text-align: right;" class="positive">R$ ${totalReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>RECEITA BRUTA TOTAL</td>
+                            <td style="text-align: right;" class="positive">R$ ${totalReceived.toFixed(2)}</td>
+                        </tr>
+                        
+                        <tr class="section-header" style="margin-top: 15px;">
+                            <td colspan="2">2. DESPESAS E CUSTOS (Saídas)</td>
+                        </tr>
+                        ${Object.keys(categoriesMap).map(cat => `
+                            <tr>
+                                <td>Despesa - ${cat}</td>
+                                <td style="text-align: right;" class="negative">R$ -${categoriesMap[cat].toFixed(2)}</td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="2">Nenhuma despesa lançada</td></tr>'}
+                        <tr class="total-row">
+                            <td>TOTAL DE DESPESAS</td>
+                            <td style="text-align: right;" class="negative">R$ -${totalExpenses.toFixed(2)}</td>
+                        </tr>
+                        
+                        <tr class="total-row" style="background-color: #f8fafc; font-size:18px;">
+                            <td>RESULTADO LÍQUIDO DO PERÍODO</td>
+                            <td style="text-align: right;" class="${netResult >= 0 ? 'positive' : 'negative'}">R$ ${netResult.toFixed(2)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     },
 
     registerPayment: async (id) => {
@@ -223,6 +420,90 @@ window.FinancialModule = {
         window.FinancialModule.updateReport();
     },
 
+    updateCharts: (received, spent, categoryBreakdown) => {
+        if (typeof Chart === 'undefined') return;
+
+        // Destroy previous charts if they exist
+        if (window.FinancialModule.cashFlowChart) {
+            window.FinancialModule.cashFlowChart.destroy();
+        }
+        if (window.FinancialModule.categoriesChart) {
+            window.FinancialModule.categoriesChart.destroy();
+        }
+
+        // Cash Flow chart (Entradas x Saídas)
+        const ctxFlow = document.getElementById('fin-chart-cashflow')?.getContext('2d');
+        if (ctxFlow) {
+            window.FinancialModule.cashFlowChart = new Chart(ctxFlow, {
+                type: 'bar',
+                data: {
+                    labels: ['Entradas (Recebido)', 'Saídas (Despesas)'],
+                    datasets: [{
+                        label: 'Valores do Período',
+                        data: [received, spent],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderRadius: 6,
+                        maxBarThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Categories Doughnut Chart
+        const ctxCats = document.getElementById('fin-chart-categories')?.getContext('2d');
+        if (ctxCats) {
+            const labels = Object.keys(categoryBreakdown);
+            const data = Object.values(categoryBreakdown);
+            
+            if (labels.length === 0) {
+                labels.push('Sem despesas');
+                data.push(0);
+            }
+
+            window.FinancialModule.categoriesChart = new Chart(ctxCats, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#007bff', '#6f42c1', '#fd7e14', '#e83e8c', '#20c997', '#ffc107', '#17a2b8', '#6c757d'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { size: 10 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    },
+
     updateReport: () => {
         const period = document.getElementById('fin-period')?.value;
         if (!period) return;
@@ -243,6 +524,16 @@ window.FinancialModule = {
         document.getElementById('fin-overdue-count').textContent = `${receivables.filter(item => item.status !== 'paid' && item.dueDate && item.dueDate < today).length} conta(s) vencida(s)`;
         document.getElementById('fin-cash-result').textContent = window.FinancialModule.currency(received - totalExpenses);
         document.getElementById('fin-expense-summary').textContent = `${window.FinancialModule.currency(totalExpenses)} em despesas no período`;
+
+        // Calculate Category Breakdown
+        const categoryBreakdown = {};
+        expenses.forEach(e => {
+            const cat = e.category || 'Outros';
+            categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + e.value;
+        });
+
+        // Update Charts
+        window.FinancialModule.updateCharts(received, totalExpenses, categoryBreakdown);
 
         const wrapper = document.getElementById('receivables-table-wrapper');
         if (wrapper) {
@@ -329,6 +620,17 @@ window.FinancialModule = {
                 </table>
             `;
         }
-        document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `<div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;"><span>${item.desc}<br><small>${window.FinancialModule.dateLabel(item.date)}</small></span><span style="white-space:nowrap;color:var(--danger-color)">${window.FinancialModule.currency(item.value)} <button class="btn btn-sm" onclick="window.FinancialModule.deleteExpense('${item.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button></span></div>`).join('') || 'Sem despesas neste período.';
+        document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `
+            <div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+                <span>
+                    <strong>${item.desc}</strong> <small style="background:#e2e8f0;padding:2px 5px;border-radius:4px;font-size:0.75rem;">${item.category || 'Outros'}</small><br>
+                    <small>${window.FinancialModule.dateLabel(item.date)}</small>
+                </span>
+                <span style="white-space:nowrap;color:var(--danger-color);font-weight:bold;">
+                    ${window.FinancialModule.currency(item.value)} 
+                    <button class="btn btn-sm" style="padding:2px 6px;margin-left:5px;background:none;border:none;cursor:pointer;color:var(--text-muted);" onclick="window.FinancialModule.deleteExpense('${item.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </span>
+            </div>
+        `).join('') || 'Sem despesas neste período.';
     }
 };
