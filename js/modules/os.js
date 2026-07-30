@@ -4,12 +4,12 @@ window.OSModule = {
         container.innerHTML = `
             <div class="card" id="os-list-view">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                    <h3>Ordens de Serviço</h3>
+                    <h3>Ordens de ServiÃ§o</h3>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button id="btn-delete-selected-os" class="btn btn-warning hidden" style="background-color: #ffc107; color: #000; font-weight: bold;">
                             <i class="fa-solid fa-trash"></i> Excluir Selecionadas (<span id="selected-os-count">0</span>)
                         </button>
-                        <button id="btn-delete-all-os" class="btn btn-outline-danger" style="color: #dc3545; border: 1px solid #dc3545; background: transparent;" title="Excluir todas as Ordens de Serviço do banco">
+                        <button id="btn-delete-all-os" class="btn btn-outline-danger" style="color: #dc3545; border: 1px solid #dc3545; background: transparent;" title="Excluir todas as Ordens de ServiÃ§o do banco">
                             <i class="fa-solid fa-trash-can"></i> Excluir Todas
                         </button>
                         <button id="btn-import-whatsapp" class="btn btn-secondary" style="background-color: #25d366; border-color: #128c7e;">
@@ -24,19 +24,74 @@ window.OSModule = {
                     </div>
                 </div>
                 
+
+                <!-- Filtros e AÃ§Ãµes em Massa -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Filtros -->
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Todos os Status (ServiÃ§o)</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Aguardando PeÃ§a">Aguardando PeÃ§a</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Entregue">Entregue</option>
+                            </select>
+                            <select id="filter-os-payment" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Todos os Pagamentos</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Pago Parcialmente">Pago Parcialmente</option>
+                            </select>
+                            <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou NÂº..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                        </div>
+                    </div>
+
+                    <!-- AÃ§Ãµes em Massa -->
+                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
+                        <span style="font-weight: 600; color: #ffc107; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i> Alterar Selecionados:</span>
+                        
+                        <!-- Alterar Status ServiÃ§o -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select id="bulk-update-status" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Novo Status ServiÃ§o...</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Aguardando PeÃ§a">Aguardando PeÃ§a</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Entregue">Entregue</option>
+                            </select>
+                            <button id="btn-bulk-update-status" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
+                        </div>
+
+                        <!-- Alterar Status Pagamento -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select id="bulk-update-payment" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Novo Status Pagamento...</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Pago Parcialmente">Pago Parcialmente</option>
+                            </select>
+                            <button id="btn-bulk-update-payment" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
                                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-os" title="Selecionar Todas"></th>
-                                <th>Nº OS</th>
+                                <th>NÂº OS</th>
                                 <th>Data</th>
                                 <th>Cliente</th>
-                                <th>Veículo</th>
+                                <th>VeÃ­culo</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th>Pagamento</th>
                                 <th>NFS-e</th>
-                                <th>Ações</th>
+                                <th>AÃ§Ãµes</th>
                             </tr>
                         </thead>
                         <tbody id="os-list-body">
@@ -49,7 +104,7 @@ window.OSModule = {
             <!-- Form View (Hidden by default) -->
             <div id="os-form-view" class="card hidden">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 id="os-form-title">Nova Ordem de Serviço</h3>
+                    <h3 id="os-form-title">Nova Ordem de ServiÃ§o</h3>
                     <button id="btn-back-os" class="btn btn-secondary">
                         <i class="fa-solid fa-arrow-left"></i> Voltar
                     </button>
@@ -60,26 +115,26 @@ window.OSModule = {
                     
                     <!-- Section 1: Client Info -->
                     <h4 class="section-title" style="margin-top: 0; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">
-                        Informações do Cliente
+                        InformaÃ§Ãµes do Cliente
                          <label style="float: right; font-size: 0.9rem; font-weight: normal; cursor: pointer;">
                             <input type="checkbox" id="os-manual-client"> Cliente Manual / Avulso
                         </label>
                     </h4>
                     <div style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 15px;">
                         <div class="form-group">
-                            <label class="form-label">Nº OS *</label>
+                            <label class="form-label">NÂº OS *</label>
                             <input type="text" id="os-number" class="form-control" style="font-weight: bold;" placeholder="Ex: 2026.001">
                         </div>
                          <div class="form-group">
-                            <label class="form-label">Data do Serviço</label>
+                            <label class="form-label">Data do ServiÃ§o</label>
                             <input type="date" id="os-date" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Hora Início</label>
+                            <label class="form-label">Hora InÃ­cio</label>
                             <input type="time" id="os-start-time" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Previsão Fim</label>
+                            <label class="form-label">PrevisÃ£o Fim</label>
                             <input type="time" id="os-end-time" class="form-control">
                         </div>
                          <!-- Client Select Wrapper -->
@@ -106,13 +161,13 @@ window.OSModule = {
                              <input type="text" id="os-client-phone" class="form-control" readonly>
                         </div>
                          <div class="form-group">
-                             <label class="form-label">Endereço</label>
+                             <label class="form-label">EndereÃ§o</label>
                              <input type="text" id="os-client-address" class="form-control" readonly>
                         </div>
                     </div>
 
                     <!-- Section 2: Vehicle Info -->
-                    <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Informações do Veículo</h4>
+                    <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">InformaÃ§Ãµes do VeÃ­culo</h4>
                     <div style="display: grid; grid-template-columns: 1fr 100px 1fr 1fr 1fr; gap: 15px;">
                         <div class="form-group">
                             <label class="form-label">Modelo *</label>
@@ -137,24 +192,24 @@ window.OSModule = {
                     </div>
 
                     <!-- Section 3: Details -->
-                     <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Descrição Detalhada</h4>
+                     <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">DescriÃ§Ã£o Detalhada</h4>
                      <div class="form-group">
-                         <textarea id="os-description" class="form-control" rows="5" placeholder="Descreva os serviços realizados..."></textarea>
+                         <textarea id="os-description" class="form-control" rows="5" placeholder="Descreva os serviÃ§os realizados..."></textarea>
                      </div>
 
                      <!-- Section 4: Values -->
                     <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Valores (R$)</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
                         <div class="form-group">
-                            <label class="form-label">Peças</label>
+                            <label class="form-label">PeÃ§as</label>
                             <input type="number" step="0.01" id="val-parts" class="form-control calc-input" placeholder="0.00">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Retífica</label>
+                            <label class="form-label">RetÃ­fica</label>
                             <input type="number" step="0.01" id="val-machine" class="form-control calc-input" placeholder="0.00">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Mão de Obra</label>
+                            <label class="form-label">MÃ£o de Obra</label>
                             <input type="number" step="0.01" id="val-labor" class="form-control calc-input" placeholder="0.00">
                         </div>
                         <div class="form-group">
@@ -165,7 +220,7 @@ window.OSModule = {
                     
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
                         <div class="form-group">
-                             <label class="form-label">Descrição Diversos (Opcional)</label>
+                             <label class="form-label">DescriÃ§Ã£o Diversos (Opcional)</label>
                              <input type="text" id="desc-misc" class="form-control" placeholder="Ex: Taxa de lavagem">
                         </div>
                          <div class="form-group">
@@ -179,22 +234,32 @@ window.OSModule = {
                     </div>
 
                     <!-- Section 5: General -->
-                    <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Informações Gerais</h4>
+                    <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">InformaÃ§Ãµes Gerais</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="form-group">
-                             <label class="form-label">Técnico Responsável</label>
+                             <label class="form-label">                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                             <label class="form-label">TÃ©cnico ResponsÃ¡vel</label>
                              <select id="os-tech-select" class="form-control">
                                  <option value="">Selecione...</option>
                              </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Status</label>
+                            <label class="form-label">Status do ServiÃ§o</label>
                             <select id="os-status" class="form-control">
-                                <option value="Aberta">Aberta</option>
+                                <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peças">Aguardando Peças</option>
-                                <option value="Concluída">Concluída</option>
-                                <option value="Cancelada">Cancelada</option>
+                                <option value="Aguardando PeÃ§a">Aguardando PeÃ§a</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Entregue">Entregue</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status do Pagamento</label>
+                            <select id="os-payment-status" class="form-control">
+                                <option value="Pendente">Pendente</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Pago Parcialmente">Pago Parcialmente</option>
                             </select>
                         </div>
                     </div>
@@ -208,7 +273,7 @@ window.OSModule = {
                             <i class="fa-solid fa-print"></i> Salvar PDF / Imprimir
                         </button>
                         <button type="button" id="btn-nfse-form" class="btn btn-info hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #17a2b8; color: #fff;">
-                            <i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e
+                            <i class="fa-solid fa-file-import"></i> Importar Nota Fiscal
                         </button>
                         <button type="button" id="btn-delete-os" class="btn btn-danger hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #dc3545; color: #fff;">
                             <i class="fa-solid fa-trash"></i> Excluir OS
@@ -232,7 +297,7 @@ window.OSModule = {
                             <i class="fa-solid fa-copy"></i> Copiar Modelo
                         </button>
                         <small style="display: block; color: var(--text-muted); font-size: 0.75rem;"><strong>Dica:</strong> Use este modelo para garantir 100% de acerto:</small>
-                        <code id="message-template" style="font-size: 0.75rem; color: #aaa;">Data: ${new Date().toLocaleDateString('pt-BR')}<br>Nome: <br>Veiculo: <br>Ano: <br>Placa: <br>KM: <br>Serviço: <br>Peças: <br>Mão de obra: </code>
+                        <code id="message-template" style="font-size: 0.75rem; color: #aaa;">Data: ${new Date().toLocaleDateString('pt-BR')}<br>Nome: <br>Veiculo: <br>Ano: <br>Placa: <br>KM: <br>ServiÃ§o: <br>PeÃ§as: <br>MÃ£o de obra: </code>
                     </div>
 
                     <textarea id="whatsapp-text" class="form-control" rows="8" placeholder="Cole o texto aqui..." style="margin-top: 15px; font-family: monospace;"></textarea>
@@ -247,7 +312,7 @@ window.OSModule = {
                 <div class="card" style="width: 100%; max-width: 850px; max-height: 90vh; overflow-y: auto; position: relative;">
                     <button id="close-excel-modal" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer;">&times;</button>
                     <h3><i class="fa-solid fa-file-excel" style="color: #107c41;"></i> Importar Planilha de Notas e Ordens</h3>
-                    <p class="text-muted">Selecione uma planilha (.xlsx, .xls, .csv) contendo o histórico de notas e serviços.</p>
+                    <p class="text-muted">Selecione uma planilha (.xlsx, .xls, .csv) contendo o histÃ³rico de notas e serviÃ§os.</p>
                     
                     <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #107c41;">
                         <label class="form-label" style="font-weight: bold; color: #fff;">1. Escolha o arquivo da planilha:</label>
@@ -255,11 +320,11 @@ window.OSModule = {
                         
                         <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
                             <div>
-                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do Cabeçalho:</label>
+                                <label class="form-label" style="font-size: 0.85rem; font-weight: bold; color: #fff;">Linha do CabeÃ§alho:</label>
                                 <select id="excel-header-row" class="form-control" style="background: var(--background-dark); color: #fff; font-size: 0.85rem; max-width: 250px;">
-                                    <option value="auto">Auto-detectar (Ignora títulos agrupados)</option>
-                                    <option value="2">Linha 2 (Títulos das Colunas)</option>
-                                    <option value="1">Linha 1 (Padrão)</option>
+                                    <option value="auto">Auto-detectar (Ignora tÃ­tulos agrupados)</option>
+                                    <option value="2">Linha 2 (TÃ­tulos das Colunas)</option>
+                                    <option value="1">Linha 1 (PadrÃ£o)</option>
                                 </select>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
@@ -272,7 +337,7 @@ window.OSModule = {
 
                         <small style="color: var(--text-muted); display: block; margin-top: 8px;">
                             <i class="fa-solid fa-circle-info"></i>
-                            A data é detectada <strong>automaticamente</strong>: usa <em>Data de Entrada</em> quando disponível; se não houver, usa <em>Data de Saída</em>; se nenhuma existir, fica <em>sem data</em>.
+                            A data Ã© detectada <strong>automaticamente</strong>: usa <em>Data de Entrada</em> quando disponÃ­vel; se nÃ£o houver, usa <em>Data de SaÃ­da</em>; se nenhuma existir, fica <em>sem data</em>.
                         </small>
                     </div>
 
@@ -285,8 +350,8 @@ window.OSModule = {
                                         <th># OS/Nota</th>
                                         <th>Data</th>
                                         <th>Cliente</th>
-                                        <th>Veículo/Placa</th>
-                                        <th>Serviço</th>
+                                        <th>VeÃ­culo/Placa</th>
+                                        <th>ServiÃ§o</th>
                                         <th>Total</th>
                                         <th>Status</th>
                                         <th style="width: 60px; text-align: center;">Remover</th>
@@ -301,7 +366,7 @@ window.OSModule = {
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
                         <button type="button" id="btn-cancel-excel" class="btn btn-secondary">Cancelar</button>
                         <button type="button" id="btn-confirm-excel" class="btn btn-success hidden" style="background-color: #107c41; border-color: #0b5a2f;">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de Serviço
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de ServiÃ§o
                         </button>
                     </div>
                 </div>
@@ -319,7 +384,7 @@ window.OSModule = {
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        if (osList.length === 0) {
+        if (filteredList.length === 0) {
             tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Nenhuma OS registrada.</td></tr>';
             const selectAllHeader = document.getElementById('select-all-os');
             if (selectAllHeader) selectAllHeader.checked = false;
@@ -328,20 +393,29 @@ window.OSModule = {
         }
 
         // Sort by newest first (handle empty dates safely)
-        osList.sort((a, b) => {
+        filteredList.sort((a, b) => {
             const da = a.date ? new Date(a.date).getTime() : 0;
             const db = b.date ? new Date(b.date).getTime() : 0;
             return db - da;
         });
 
-        osList.forEach(os => {
+        filteredList.forEach(os => {
             const tr = document.createElement('tr');
 
-            // Status color badge
+                        // Status do serviÃ§o color badge
             let badgeColor = '#6c757d'; // default
-            if (os.status === 'Concluída') badgeColor = '#28a745';
+            if (os.status === 'Finalizado') badgeColor = '#28a745';
             if (os.status === 'Em Andamento') badgeColor = '#007bff';
-            if (os.status === 'Aberta') badgeColor = '#ffc107';
+            if (os.status === 'Pendente') badgeColor = '#ffc107';
+            if (os.status === 'Aguardando PeÃ§a') badgeColor = '#fd7e14';
+            if (os.status === 'Entregue') badgeColor = '#20c997';
+
+            // Status do pagamento color badge
+            const payStatus = os.paymentStatus || 'Pendente';
+            let payBadgeColor = '#e0a800'; // amarelo escuro
+            if (payStatus === 'Pago') payBadgeColor = '#28a745';
+            if (payStatus === 'Pendente') payBadgeColor = '#dc3545';
+            if (payStatus === 'Pago Parcialmente') payBadgeColor = '#fd7e14';
 
             const nfseBadgeHtml = window.NFSeModule ? window.NFSeModule.renderBadge(os) : '';
 
@@ -361,15 +435,16 @@ window.OSModule = {
                 <td>${os.clientName}</td>
                 <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
                 <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
-                <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status}</span></td>
+                                <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status || 'Pendente'}</span></td>
+                <td><span style="background-color: ${payBadgeColor}20; color: ${payBadgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${payStatus}</span></td>
                 <td>${nfseBadgeHtml}</td>
                 <td>
                     <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
                     <button class="btn btn-secondary btn-sm print-os-list" data-id="${os.id}" style="background-color: #6f42c1;" title="Imprimir"><i class="fa-solid fa-print"></i></button>
                     ${os.nfseStatus === 'emitida' ? `
-                        <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver DANFSE / Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
+                        <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
                     ` : `
-                        <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Emitir NFS-e"><i class="fa-solid fa-file-invoice-dollar"></i></button>
+                        <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Importar Nota Fiscal"><i class="fa-solid fa-file-import"></i></button>
                     `}
                     <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="background-color: #dc3545; color: #fff;" title="Excluir OS"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -480,9 +555,9 @@ window.OSModule = {
         const btnCopyTemplate = document.getElementById('btn-copy-template');
         if (btnCopyTemplate) {
             btnCopyTemplate.addEventListener('click', () => {
-                const template = `Data: ${new Date().toLocaleDateString('pt-BR')}\nNome: \nVeiculo: \nAno: \nPlaca: \nKM: \nServiço: \nPeças: \nMão de obra: `;
+                const template = `Data: ${new Date().toLocaleDateString('pt-BR')}\nNome: \nVeiculo: \nAno: \nPlaca: \nKM: \nServiÃ§o: \nPeÃ§as: \nMÃ£o de obra: `;
                 navigator.clipboard.writeText(template).then(() => {
-                    alert('Modelo copiado! Envie WhatsApp para seu cliente ou técnico.');
+                    alert('Modelo copiado! Envie WhatsApp para seu cliente ou tÃ©cnico.');
                 });
             });
         }
@@ -589,7 +664,7 @@ window.OSModule = {
             btnNFSeForm.addEventListener('click', async () => {
                 const id = document.getElementById('os-id').value;
                 if (!id) {
-                    alert('Por favor, salve a Ordem de Serviço primeiro antes de emitir a nota fiscal.');
+                    alert('Por favor, salve a Ordem de ServiÃ§o primeiro antes de emitir a nota fiscal.');
                     return;
                 }
                 const osRecords = window.StorageApp.get('os_records') || [];
@@ -728,7 +803,7 @@ window.OSModule = {
             // New OS
             document.getElementById('os-form').reset();
             document.getElementById('os-id').value = '';
-            document.getElementById('os-form-title').textContent = 'Nova Ordem de Serviço';
+            document.getElementById('os-form-title').textContent = 'Nova Ordem de ServiÃ§o';
 
             // Default to Select Mode
             document.getElementById('os-manual-client').checked = false;
@@ -775,16 +850,16 @@ window.OSModule = {
 
         // Refined Regex Patterns (Maximum flexibility)
         const patterns = {
-            client: /(?:cliente|nome|propriet[aá]rio)\s*[:\-]?\s*([^\n\r]+)/i,
-            model: /(?:ve[íi]culo|carro|modelo|veiculo)\s*[:\-]?\s*([^\n\r]+)/i,
-            plate: /(?:placa|identifica[çc][ãa]o)\s*[:\-]?\s*([A-Z]{3}[-]?[0-9][A-Z0-9][0-9]{2}|[A-Z]{3}[-]?[0-9]{4})/i,
+            client: /(?:cliente|nome|propriet[aÃ¡]rio)\s*[:\-]?\s*([^\n\r]+)/i,
+            model: /(?:ve[Ã­i]culo|carro|modelo|veiculo)\s*[:\-]?\s*([^\n\r]+)/i,
+            plate: /(?:placa|identifica[Ã§c][Ã£a]o)\s*[:\-]?\s*([A-Z]{3}[-]?[0-9][A-Z0-9][0-9]{2}|[A-Z]{3}[-]?[0-9]{4})/i,
             year: /(?:ano)\s*[:\-]?\s*(\d{4})/i,
             date: /(?:data)\s*[:\-]?\s*(\d{2}[\/\-]\d{2}[\/\-]\d{2,4})/i,
             phone: /(?:telefone|whatsapp|celular|contato)\s*[:\-]?\s*([^\n\r]+)/i,
             km: /(?:km|quilometragem)\s*[:\-]?\s*(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s*(?:km|quilometragem)/i,
-            parts: /(?:pe[çc]as?|materiais|produtos)\s*[:\-]?\s*[R$]*\s*(\d+(?:[.,]\d{2})?)/i,
-            labor: /(?:m[ãa]o de obra|servi[çc]o valor|trabalho|mo)\s*[:\-]?\s*[R$]*\s*(\d+(?:[.,]\d{2})?)/i,
-            service: /(?:servi[çc]o|descri[çc][ãa]o)\s*[:\-]?\s*/i // For line cleanup only
+            parts: /(?:pe[Ã§c]as?|materiais|produtos)\s*[:\-]?\s*[R$]*\s*(\d+(?:[.,]\d{2})?)/i,
+            labor: /(?:m[Ã£a]o de obra|servi[Ã§c]o valor|trabalho|mo)\s*[:\-]?\s*[R$]*\s*(\d+(?:[.,]\d{2})?)/i,
+            service: /(?:servi[Ã§c]o|descri[Ã§c][Ã£a]o)\s*[:\-]?\s*/i // For line cleanup only
         };
 
         const matches = {};
@@ -865,7 +940,7 @@ window.OSModule = {
         document.getElementById('whatsapp-import-modal').classList.add('hidden');
         document.getElementById('whatsapp-text').value = '';
 
-        alert('Dados processados! Verifique e complete as informações.');
+        alert('Dados processados! Verifique e complete as informaÃ§Ãµes.');
     },
 
     hideForm: () => {
@@ -920,6 +995,7 @@ window.OSModule = {
         // General
         const techName = document.getElementById('os-tech-select').value;
         const status = document.getElementById('os-status').value;
+        const paymentStatus = document.getElementById('os-payment-status') ? document.getElementById('os-payment-status').value : 'Pendente';
 
         const osData = {
             id: id || Date.now().toString(),
@@ -945,7 +1021,7 @@ window.OSModule = {
 
         if (id) {
             const index = osRecords.findIndex(o => o.id === id);
-            // Preserva dados fiscais e financeiros que não fazem parte do formulário da OS.
+            // Preserva dados fiscais e financeiros que nÃ£o fazem parte do formulÃ¡rio da OS.
             if (index !== -1) osRecords[index] = { ...osRecords[index], ...osData };
         } else {
             osRecords.push(osData);
@@ -953,7 +1029,7 @@ window.OSModule = {
 
         window.StorageApp.save('os_records', osRecords);
         // Cada OS com valor gera/atualiza uma conta a receber; o pagamento fica separado
-        // para não ser perdido ao editar a ordem.
+        // para nÃ£o ser perdido ao editar a ordem.
         if (window.FinancialModule) window.FinancialModule.syncReceivableForOS(osData);
         alert('OS Salva com sucesso!');
 
@@ -969,10 +1045,10 @@ window.OSModule = {
             btnNFSe.classList.remove('hidden');
             if (osData.nfseStatus === 'emitida') {
                 btnNFSe.style.backgroundColor = '#28a745';
-                btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Ver DANFSE (PDF)';
+                btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Ver Nota Fiscal';
             } else {
                 btnNFSe.style.backgroundColor = '#17a2b8';
-                btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e';
+                btnNFSe.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar Nota Fiscal';
             }
         }
 
@@ -1027,7 +1103,11 @@ window.OSModule = {
             document.getElementById('desc-misc').value = os.values.miscDesc || '';
 
             document.getElementById('os-tech-select').value = os.techName;
-            document.getElementById('os-status').value = os.status;
+            document.getElementById('os-status').value = os.status || 'Pendente';
+            const paySelect = document.getElementById('os-payment-status');
+            if (paySelect) {
+                paySelect.value = os.paymentStatus || 'Pendente';
+            }
 
             OSModule.calculateTotal();
             document.getElementById('btn-print-os').classList.remove('hidden');
@@ -1037,10 +1117,10 @@ window.OSModule = {
                 btnNFSe.classList.remove('hidden');
                 if (os.nfseStatus === 'emitida') {
                     btnNFSe.style.backgroundColor = '#28a745';
-                    btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Ver DANFSE (PDF)';
+                    btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice"></i> Ver Nota Fiscal';
                 } else {
                     btnNFSe.style.backgroundColor = '#17a2b8';
-                    btnNFSe.innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e';
+                    btnNFSe.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar Nota Fiscal';
                 }
             }
 
@@ -1054,10 +1134,10 @@ window.OSModule = {
         const os = osRecords.find(o => o.id === id);
         if (!os) return;
 
-        if (confirm(`Tem certeza que deseja EXCLUIR a Ordem de Serviço #${os.number}? Esta ação não poderá ser desfeita.`)) {
+        if (confirm(`Tem certeza que deseja EXCLUIR a Ordem de ServiÃ§o #${os.number}? Esta aÃ§Ã£o nÃ£o poderÃ¡ ser desfeita.`)) {
             osRecords = osRecords.filter(o => o.id !== id);
             await window.StorageApp.save('os_records', osRecords);
-            alert(`OS #${os.number} excluída com sucesso.`);
+            alert(`OS #${os.number} excluÃ­da com sucesso.`);
             
             const currentFormId = document.getElementById('os-id') ? document.getElementById('os-id').value : '';
             if (currentFormId === id) {
@@ -1090,25 +1170,25 @@ window.OSModule = {
 
                 <header class="header">
                     <div class="logo-area">
-                        <img src="assets/img/logo.png" alt="GDN Serviços Automotivos">
+                        <img src="assets/img/logo.png" alt="GDN ServiÃ§os Automotivos">
                     </div>
                     <div class="header-info">
-                        <h1>GDN SERVIÇOS AUTOMOTIVOS</h1>
+                        <h1>GDN SERVIÃ‡OS AUTOMOTIVOS</h1>
                         <p class="phone">Tel: (11) 94857-9072</p>
                     </div>
                 </header>
 
                 <div class="os-title-bar">
-                    ORDEM DE SERVIÇO Nº OS-${os.number}
+                    ORDEM DE SERVIÃ‡O NÂº OS-${os.number}
                 </div>
 
                 <!-- Section: Client Info -->
                 <section class="section">
-                    <h3 class="section-title">INFORMAÇÕES DO CLIENTE</h3>
+                    <h3 class="section-title">INFORMAÃ‡Ã•ES DO CLIENTE</h3>
                     <div class="info-grid two-columns">
                         <div class="col">
                             <div class="field-box">
-                                <label>NÚMERO DA OS</label>
+                                <label>NÃšMERO DA OS</label>
                                 <span>OS-${os.number}</span>
                             </div>
                             <div class="field-box">
@@ -1120,22 +1200,22 @@ window.OSModule = {
                                 <span>${os.clientName}</span>
                             </div>
                             <div class="field-box">
-                                <label>ENDEREÇO</label>
+                                <label>ENDEREÃ‡O</label>
                                 <span>${os.clientAddress || '-'}</span>
                             </div>
                         </div>
                         <div class="col">
                             <div class="field-box">
-                                 <label>DATA DO SERVIÇO</label>
-                                 <span>${new Date(os.date).toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                                 <label>DATA DO SERVIÃ‡O</label>
+                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' Ã s ' + os.startTime : ''}</span>
                              </div>
                              ${os.endTime ? `
                              <div class="field-box">
-                                 <label>PREVISÃO ENTREGA</label>
+                                 <label>PREVISÃƒO ENTREGA</label>
                                  <span>${os.endTime}</span>
                              </div>` : ''}
                             <div class="field-box">
-                                <label>TÉCNICO RESPONSÁVEL</label>
+                                <label>TÃ‰CNICO RESPONSÃVEL</label>
                                 <span>${os.techName || '-'}</span>
                             </div>
                             <div class="field-box">
@@ -1148,7 +1228,7 @@ window.OSModule = {
 
                 <!-- Section: Vehicle Info -->
                 <section class="section">
-                    <h3 class="section-title">INFORMAÇÕES DO VEÍCULO</h3>
+                    <h3 class="section-title">INFORMAÃ‡Ã•ES DO VEÃCULO</h3>
                     <div class="info-grid two-columns vehicle-grid">
                         <div class="col">
                             <div class="field-box">
@@ -1179,7 +1259,7 @@ window.OSModule = {
 
                 <!-- Section: Description -->
                 <section class="section">
-                    <h3 class="section-title">DESCRIÇÃO DO SERVIÇO</h3>
+                    <h3 class="section-title">DESCRIÃ‡ÃƒO DO SERVIÃ‡O</h3>
                     <div class="description-content">
                         ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
                     </div>
@@ -1190,15 +1270,15 @@ window.OSModule = {
                     <h3 class="section-title">VALORES</h3>
                     <div class="values-list">
                         <div class="value-row">
-                            <span>Valor das Peças</span>
+                            <span>Valor das PeÃ§as</span>
                             <span class="value">R$ ${parts.toFixed(2)}</span>
                         </div>
                         <div class="value-row">
-                            <span>Valor da Retífica</span>
+                            <span>Valor da RetÃ­fica</span>
                             <span class="value">R$ ${machine.toFixed(2)}</span>
                         </div>
                         <div class="value-row">
-                            <span>Valor da Mão de Obra</span>
+                            <span>Valor da MÃ£o de Obra</span>
                             <span class="value">R$ ${labor.toFixed(2)}</span>
                         </div>
                         ${misc > 0 ? `
@@ -1230,12 +1310,12 @@ window.OSModule = {
                         Assinatura do Cliente
                     </div>
                     <div class="sig-line">
-                        Assinatura do Responsável
+                        Assinatura do ResponsÃ¡vel
                     </div>
                 </div>
                 
                  <p class="terms">
-                    Declaro ter conferido o veículo e os serviços realizados. A garantia cobre apenas peças e serviços descritos nesta OS.
+                    Declaro ter conferido o veÃ­culo e os serviÃ§os realizados. A garantia cobre apenas peÃ§as e serviÃ§os descritos nesta OS.
                 </p>
             </div>
         `;
@@ -1266,7 +1346,7 @@ window.OSModule = {
 
     processExcelFile: (file) => {
         if (typeof XLSX === 'undefined') {
-            alert('Biblioteca SheetJS (XLSX) não carregada. Verifique sua conexão de internet.');
+            alert('Biblioteca SheetJS (XLSX) nÃ£o carregada. Verifique sua conexÃ£o de internet.');
             return;
         }
 
@@ -1306,7 +1386,7 @@ window.OSModule = {
                 const dataRows = matrix.slice(headerRowIdx + 1);
 
                 if (!dataRows || dataRows.length === 0) {
-                    alert('Nenhuma linha de dados encontrada abaixo do cabeçalho.');
+                    alert('Nenhuma linha de dados encontrada abaixo do cabeÃ§alho.');
                     return;
                 }
 
@@ -1339,14 +1419,14 @@ window.OSModule = {
                 // Normalize spreadsheet status to system values
                 const normalizeStatus = (raw) => {
                     const s = String(raw).trim().toLowerCase();
-                    if (!s || s === 'undefined' || s === 'null') return 'Concluída';
-                    // Numeric or clearly non-status value → default
-                    if (/^\d+([.,]\d+)?$/.test(s.trim())) return 'Concluída';
-                    if (s.includes('finaliz') || s.includes('conclu') || s.includes('pronto') || s.includes('entregue')) return 'Concluída';
+                    if (!s || s === 'undefined' || s === 'null') return 'ConcluÃ­da';
+                    // Numeric or clearly non-status value â†’ default
+                    if (/^\d+([.,]\d+)?$/.test(s.trim())) return 'ConcluÃ­da';
+                    if (s.includes('finaliz') || s.includes('conclu') || s.includes('pronto') || s.includes('entregue')) return 'ConcluÃ­da';
                     if (s.includes('andamento') || s.includes('execu') || s.includes('processo') || s.includes('fazendo')) return 'Em Andamento';
                     if (s.includes('aberto') || s.includes('aberta') || s.includes('aguardando') || s.includes('pendente') || s.includes('novo') || s.includes('nova')) return 'Aberta';
                     // Unknown but non-empty status: keep as-is so user can see original
-                    return String(raw).trim() || 'Concluída';
+                    return String(raw).trim() || 'ConcluÃ­da';
                 };
 
                 // Helper to parse dates (returns "" if missing/invalid)
@@ -1414,7 +1494,7 @@ window.OSModule = {
                     const rowText = row.map(c => String(c).trim()).join('');
                     if (!rowText) return;
 
-                    // Mantém o tipo original da célula: datas do Excel chegam como número
+                    // MantÃ©m o tipo original da cÃ©lula: datas do Excel chegam como nÃºmero
                     // serial e precisam ser entregues assim ao parseDateVal.
                     const getCol = (idx) => (row[idx] !== undefined && row[idx] !== null) ? row[idx] : '';
                     const getText = (idx) => String(getCol(idx)).trim();
@@ -1422,9 +1502,9 @@ window.OSModule = {
                     // Always use positional mapping if row has enough columns (GDN format uses 15+ cols)
                     const isPositionalGDN = row.length >= 10 || (matrix[headerRowIdx] && matrix[headerRowIdx].length >= 10);
 
-                    // No layout padrão GDN a coluna A é o identificador. Não fazemos
-                    // fallback para outra coluna, pois linhas de formatação/fórmulas sem
-                    // ID poderiam ser confundidas com OS e inflar a importação.
+                    // No layout padrÃ£o GDN a coluna A Ã© o identificador. NÃ£o fazemos
+                    // fallback para outra coluna, pois linhas de formataÃ§Ã£o/fÃ³rmulas sem
+                    // ID poderiam ser confundidas com OS e inflar a importaÃ§Ã£o.
                     const rawNum = isPositionalGDN ? getText(0) : String(findValInRow(row, ['id os', 'n os', 'numero os', 'os', 'nota', 'n nota', 'id'])).trim();
                     const rawClient = isPositionalGDN ? getText(3) : String(findValInRow(row, ['cliente', 'nome cliente', 'nome', 'razao social', 'proprietario'])).trim();
 
@@ -1435,13 +1515,13 @@ window.OSModule = {
                         return; // SKIP HEADER TITLE ROW!
                     }
 
-                    // A planilha possui área formatada além dos 94 registros. Para o
-                    // layout GDN, apenas linhas com ID numérico são ordens de serviço.
+                    // A planilha possui Ã¡rea formatada alÃ©m dos 94 registros. Para o
+                    // layout GDN, apenas linhas com ID numÃ©rico sÃ£o ordens de serviÃ§o.
                     // Exemplos aceitos: 064, 64, 2026.064 e OS-064.
                     if (isPositionalGDN && !/(\d)/.test(rawNum)) return;
 
                     // Date detection: AUTO PRIORITY
-                    // 1st: Data de Entrada   2nd: Data de Saída   3rd: leave blank
+                    // 1st: Data de Entrada   2nd: Data de SaÃ­da   3rd: leave blank
                     const rawDateEntrada = isPositionalGDN ? getCol(1) : findValInRow(row, ['data entrada', 'dataentr', 'data entr', 'entrada', 'entr']);
                     const rawDateSaida   = isPositionalGDN ? getCol(2) : findValInRow(row, ['data saida', 'datasaida', 'data said', 'datasaid', 'saida', 'said']);
 
@@ -1449,7 +1529,7 @@ window.OSModule = {
                     if (rawDateEntrada) {
                         rawDate = rawDateEntrada;          // Prefer entrada
                     } else if (rawDateSaida) {
-                        rawDate = rawDateSaida;            // Fallback to saída
+                        rawDate = rawDateSaida;            // Fallback to saÃ­da
                     }
 
                     const parsedDate = parseDateVal(rawDate);
@@ -1486,13 +1566,13 @@ window.OSModule = {
                         clientAddress: String(rawAddress).trim(),
                         clientDoc: String(rawDoc).trim(),
                         techName: String(rawTech).trim(),
-                        vehicleModel: String(rawVehicle).trim() || 'Veículo Não Informado',
+                        vehicleModel: String(rawVehicle).trim() || 'VeÃ­culo NÃ£o Informado',
                         vehiclePlate: String(rawPlate).trim().toUpperCase(),
                         vehicleColor: String(rawColor).trim(),
                         vehicleWarranty: String(rawWarranty).trim() || '3 meses',
                         vehicleYear: String(rawYear).trim(),
                         vehicleKm: String(rawKm).trim(),
-                        description: String(rawService).trim() || 'Serviço Importado via Planilha',
+                        description: String(rawService).trim() || 'ServiÃ§o Importado via Planilha',
                         valParts: rawPartsVal,
                         valMachine: rawMachineVal,
                         valLabor: rawLaborVal,
@@ -1506,7 +1586,7 @@ window.OSModule = {
 
             } catch (err) {
                 console.error('Erro ao ler planilha:', err);
-                alert('Erro ao processar planilha. Verifique se o arquivo não está corrompido.');
+                alert('Erro ao processar planilha. Verifique se o arquivo nÃ£o estÃ¡ corrompido.');
             }
         };
 
@@ -1540,7 +1620,7 @@ window.OSModule = {
                 <td>R$ ${item.totalVal.toFixed(2)}</td>
                 <td><span style="background: #28a74520; color: #28a745; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${item.status}</span></td>
                 <td style="text-align: center;">
-                    <button type="button" class="btn btn-sm btn-danger remove-preview-item" data-idx="${idx}" style="padding: 2px 7px;" title="Remover este item da prévia">
+                    <button type="button" class="btn btn-sm btn-danger remove-preview-item" data-idx="${idx}" style="padding: 2px 7px;" title="Remover este item da prÃ©via">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -1563,13 +1643,13 @@ window.OSModule = {
 
     confirmExcelImport: async () => {
         if (!OSModule.pendingExcelData || OSModule.pendingExcelData.length === 0) {
-            alert('Nenhum dado pendente para importação.');
+            alert('Nenhum dado pendente para importaÃ§Ã£o.');
             return;
         }
 
         const btn = document.getElementById('btn-confirm-excel');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando importação...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando importaÃ§Ã£o...';
 
         try {
             const clearExisting = document.getElementById('excel-clear-existing')?.checked;
@@ -1623,7 +1703,7 @@ window.OSModule = {
                         total: row.totalVal
                     },
                     techName: row.techName || '',
-                    status: row.status || 'Concluída'
+                    status: row.status || 'ConcluÃ­da'
                 };
 
                 osRecords.push(osData);
@@ -1632,21 +1712,21 @@ window.OSModule = {
 
             await window.StorageApp.save('clients', clients);
             await window.StorageApp.save('os_records', osRecords);
-            // Importações antigas não trazem pagamento de forma confiável: entram como
+            // ImportaÃ§Ãµes antigas nÃ£o trazem pagamento de forma confiÃ¡vel: entram como
             // pendentes e podem ser baixadas, inclusive parcialmente, no Financeiro.
             if (window.FinancialModule) await window.FinancialModule.syncAllOS();
 
-            alert(`Importação concluída com sucesso!\n\n- ${newOSCount} Ordens de Serviço geradas.\n- ${newClientsCount} novos clientes cadastrados.`);
+            alert(`ImportaÃ§Ã£o concluÃ­da com sucesso!\n\n- ${newOSCount} Ordens de ServiÃ§o geradas.\n- ${newClientsCount} novos clientes cadastrados.`);
 
             document.getElementById('excel-import-modal').classList.add('hidden');
             OSModule.pendingExcelData = [];
             OSModule.loadOSList();
         } catch (err) {
             console.error('Erro ao importar ordens:', err);
-            alert('Falha ao concluir importação: ' + err.message);
+            alert('Falha ao concluir importaÃ§Ã£o: ' + err.message);
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de Serviço';
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Gerar Ordens de ServiÃ§o';
         }
     },
 
@@ -1672,11 +1752,11 @@ window.OSModule = {
 
         const idsToDelete = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
 
-        if (confirm(`Tem certeza que deseja excluir as ${idsToDelete.length} Ordens de Serviço selecionadas?`)) {
+        if (confirm(`Tem certeza que deseja excluir as ${idsToDelete.length} Ordens de ServiÃ§o selecionadas?`)) {
             let osRecords = window.StorageApp.get('os_records') || [];
             osRecords = osRecords.filter(o => !idsToDelete.includes(o.id));
             await window.StorageApp.save('os_records', osRecords);
-            alert(`${idsToDelete.length} Ordem(ns) de Serviço excluída(s) com sucesso!`);
+            alert(`${idsToDelete.length} Ordem(ns) de ServiÃ§o excluÃ­da(s) com sucesso!`);
             OSModule.loadOSList();
         }
     },
@@ -1684,19 +1764,19 @@ window.OSModule = {
     deleteAllOS: async () => {
         const osRecords = window.StorageApp.get('os_records') || [];
         if (osRecords.length === 0) {
-            alert('Não há Nenhuma Ordem de Serviço cadastrada para excluir.');
+            alert('NÃ£o hÃ¡ Nenhuma Ordem de ServiÃ§o cadastrada para excluir.');
             return;
         }
 
-        const confirm1 = confirm(`ATENÇÃO!\n\nVocê está prestes a EXCLUIR TODAS as ${osRecords.length} Ordens de Serviço do sistema!\n\nEsta ação é permanente e irreversível. Deseja continuar?`);
+        const confirm1 = confirm(`ATENÃ‡ÃƒO!\n\nVocÃª estÃ¡ prestes a EXCLUIR TODAS as ${osRecords.length} Ordens de ServiÃ§o do sistema!\n\nEsta aÃ§Ã£o Ã© permanente e irreversÃ­vel. Deseja continuar?`);
         if (confirm1) {
-            const confirm2 = prompt('Para confirmar a exclusão de TODAS as Ordens de Serviço, digite a palavra "EXCLUIR":');
+            const confirm2 = prompt('Para confirmar a exclusÃ£o de TODAS as Ordens de ServiÃ§o, digite a palavra "EXCLUIR":');
             if (confirm2 && confirm2.trim().toUpperCase() === 'EXCLUIR') {
                 await window.StorageApp.save('os_records', []);
-                alert('Todas as Ordens de Serviço foram excluídas com sucesso!');
+                alert('Todas as Ordens de ServiÃ§o foram excluÃ­das com sucesso!');
                 OSModule.loadOSList();
             } else {
-                alert('Ação cancelada. A palavra de confirmação digitada foi incorreta.');
+                alert('AÃ§Ã£o cancelada. A palavra de confirmaÃ§Ã£o digitada foi incorreta.');
             }
         }
     }
