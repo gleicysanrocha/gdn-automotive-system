@@ -4,6 +4,29 @@
  * de pagamentos, mesmo quando o valor da OS é alterado posteriormente.
  */
 window.FinancialModule = {
+    sortColumn: 'dueDate',
+    sortDirection: 'desc',
+
+    setSort: (col) => {
+        if (FinancialModule.sortColumn === col) {
+            FinancialModule.sortDirection = FinancialModule.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            FinancialModule.sortColumn = col;
+            FinancialModule.sortDirection = 'desc';
+        }
+        FinancialModule.updateReport();
+    },
+
+    getSortIcon: (col) => {
+        if (FinancialModule.sortColumn !== col) {
+            return ' <i class="fa-solid fa-sort" style="color: #cbd5e1; font-size: 0.75rem; margin-left: 4px; opacity: 0.6;"></i>';
+        }
+        if (FinancialModule.sortDirection === 'asc') {
+            return ' <i class="fa-solid fa-sort-up" style="color: var(--primary-color); font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>';
+        }
+        return ' <i class="fa-solid fa-sort-down" style="color: var(--primary-color); font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>';
+    },
+
     currency: (value) => `R$ ${(Number(value) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
 
     dateLabel: (value) => {
@@ -233,45 +256,91 @@ window.FinancialModule = {
         document.getElementById('fin-cash-result').textContent = FinancialModule.currency(received - totalExpenses);
         document.getElementById('fin-expense-summary').textContent = `${FinancialModule.currency(totalExpenses)} em despesas no período`;
 
-        const body = document.getElementById('fin-receivables-body');
-        const visible = receivables.filter(item => item.issueDate?.startsWith(period) || item.dueDate?.startsWith(period) || item.status !== 'paid');
-        body.innerHTML = visible.map(item => {
-            const remaining = Math.max(0, item.amount - item.paidAmount);
-            const overdueItem = item.status !== 'paid' && item.dueDate && item.dueDate < today;
+        const wrapper = document.getElementById('receivables-table-wrapper');
+        if (wrapper) {
+            const visible = receivables.filter(item => item.issueDate?.startsWith(period) || item.dueDate?.startsWith(period) || item.status !== 'paid');
             
-            let statusBadge = '';
-            if (item.status === 'paid') {
-                statusBadge = `<span class="badge" style="background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-circle-check"></i> Pago</span>`;
-            } else if (overdueItem) {
-                statusBadge = `<span class="badge" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-triangle-exclamation"></i> Vencido</span>`;
-            } else if (item.paidAmount > 0) {
-                statusBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-chart-pie"></i> Parcial</span>`;
-            } else {
-                statusBadge = `<span class="badge" style="background: rgba(234, 179, 8, 0.1); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
-            }
+            const sorted = [...visible];
+            sorted.sort((a, b) => {
+                let valA, valB;
+                if (FinancialModule.sortColumn === 'osNumber') {
+                    valA = a.osNumber || '';
+                    valB = b.osNumber || '';
+                } else if (FinancialModule.sortColumn === 'dueDate') {
+                    valA = a.dueDate || '';
+                    valB = b.dueDate || '';
+                } else if (FinancialModule.sortColumn === 'amount') {
+                    valA = a.amount || 0;
+                    valB = b.amount || 0;
+                } else if (FinancialModule.sortColumn === 'remaining') {
+                    valA = Math.max(0, a.amount - a.paidAmount);
+                    valB = Math.max(0, b.amount - b.paidAmount);
+                } else if (FinancialModule.sortColumn === 'status') {
+                    valA = a.status === 'paid' ? 3 : (a.dueDate && a.dueDate < today ? 0 : (a.paidAmount > 0 ? 1 : 2));
+                    valB = b.status === 'paid' ? 3 : (b.dueDate && b.dueDate < today ? 0 : (b.paidAmount > 0 ? 1 : 2));
+                }
+                
+                if (valA < valB) return FinancialModule.sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return FinancialModule.sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
 
-            return `<tr style="background: #ffffff; transition: background 0.2s ease;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='#ffffff';">
-                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
-                    <span class="badge" style="background: rgba(0, 123, 255, 0.08); color: #007bff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(0, 123, 255, 0.15);">#${item.osNumber}</span>
-                    <div style="font-weight: 600; color: var(--text-color); margin-top: 6px; font-size: 0.95rem;">${item.clientName}</div>
-                </td>
-                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
-                    ${overdueItem ? `<span style="color: var(--danger-color); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>` : `<span style="color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>`}
-                </td>
-                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--text-color); font-size: 0.95rem;">
-                    ${FinancialModule.currency(item.amount)}
-                </td>
-                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
-                    ${remaining > 0 ? `<span style="font-weight: bold; color: ${overdueItem ? 'var(--danger-color)' : '#d97706'}; font-size: 0.95rem;">${FinancialModule.currency(remaining)}</span>` : `<span style="color: var(--text-muted); font-size: 0.9rem;">-</span>`}
-                </td>
-                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
-                    ${statusBadge}
-                </td>
-                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: right;">
-                    ${item.status === 'paid' ? `<span style="color: var(--success-color); font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px; padding-right: 10px;"><i class="fa-solid fa-check"></i> Completo</span>` : `<button class="btn btn-sm btn-success" style="background-color: #28a745; border-color: #28a745; border-radius: 6px; font-weight: bold; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(40, 167, 69, 0.15); transition: all 0.2s; cursor: pointer; border: none; color: white;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-1px)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='none';" onclick="FinancialModule.registerPayment('${item.id}')"><i class="fa-solid fa-hand-holding-dollar"></i> Receber</button>`}
-                </td>
-            </tr>`;
-        }).join('') || '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma conta a receber neste período.</td></tr>';
+            const rowsHtml = sorted.map(item => {
+                const remaining = Math.max(0, item.amount - item.paidAmount);
+                const overdueItem = item.status !== 'paid' && item.dueDate && item.dueDate < today;
+                
+                let statusBadge = '';
+                if (item.status === 'paid') {
+                    statusBadge = `<span class="badge" style="background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-circle-check"></i> Pago</span>`;
+                } else if (overdueItem) {
+                    statusBadge = `<span class="badge" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-triangle-exclamation"></i> Vencido</span>`;
+                } else if (item.paidAmount > 0) {
+                    statusBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-chart-pie"></i> Parcial</span>`;
+                } else {
+                    statusBadge = `<span class="badge" style="background: rgba(234, 179, 8, 0.1); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
+                }
+
+                return `<tr style="background: #ffffff; transition: background 0.2s ease;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='#ffffff';">
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                        <span class="badge" style="background: rgba(0, 123, 255, 0.08); color: #007bff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(0, 123, 255, 0.15);">#${item.osNumber}</span>
+                        <div style="font-weight: 600; color: var(--text-color); margin-top: 6px; font-size: 0.95rem;">${item.clientName}</div>
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                        ${overdueItem ? `<span style="color: var(--danger-color); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>` : `<span style="color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>`}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--text-color); font-size: 0.95rem;">
+                        ${FinancialModule.currency(item.amount)}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                        ${remaining > 0 ? `<span style="font-weight: bold; color: ${overdueItem ? 'var(--danger-color)' : '#d97706'}; font-size: 0.95rem;">${FinancialModule.currency(remaining)}</span>` : `<span style="color: var(--text-muted); font-size: 0.9rem;">-</span>`}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                        ${statusBadge}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: right;">
+                        ${item.status === 'paid' ? `<span style="color: var(--success-color); font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px; padding-right: 10px;"><i class="fa-solid fa-check"></i> Completo</span>` : `<button class="btn btn-sm btn-success" style="background-color: #28a745; border-color: #28a745; border-radius: 6px; font-weight: bold; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(40, 167, 69, 0.15); transition: all 0.2s; cursor: pointer; border: none; color: white;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-1px)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='none';" onclick="FinancialModule.registerPayment('${item.id}')"><i class="fa-solid fa-hand-holding-dollar"></i> Receber</button>`}
+                    </td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="6" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma conta a receber neste período.</td></tr>`;
+
+            wrapper.innerHTML = `
+                <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
+                    <thead>
+                        <tr style="background: transparent;">
+                            <th onclick="FinancialModule.setSort('osNumber')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">OS / Cliente${FinancialModule.getSortIcon('osNumber')}</th>
+                            <th onclick="FinancialModule.setSort('dueDate')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Vencimento${FinancialModule.getSortIcon('dueDate')}</th>
+                            <th onclick="FinancialModule.setSort('amount')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Valor${FinancialModule.getSortIcon('amount')}</th>
+                            <th onclick="FinancialModule.setSort('remaining')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Saldo${FinancialModule.getSortIcon('remaining')}</th>
+                            <th onclick="FinancialModule.setSort('status')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Situação${FinancialModule.getSortIcon('status')}</th>
+                            <th style="border: none; padding-bottom: 12px; width: 150px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            `;
+        }
         document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `<div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;"><span>${item.desc}<br><small>${FinancialModule.dateLabel(item.date)}</small></span><span style="white-space:nowrap;color:var(--danger-color)">${FinancialModule.currency(item.value)} <button class="btn btn-sm" onclick="FinancialModule.deleteExpense('${item.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button></span></div>`).join('') || 'Sem despesas neste período.';
     }
 };
