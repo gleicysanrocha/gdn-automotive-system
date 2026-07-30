@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gdn-os-v16';
+const CACHE_NAME = 'gdn-os-v17';
 const ASSETS = [
     './',
     './index.html',
@@ -7,8 +7,8 @@ const ASSETS = [
     './js/storage.js?v=2.8',
     './js/firebase-config.js?v=2.8',
     './js/modules/auth.js?v=2.8',
-    './js/modules/nfse.js?v=2.12',
-    './js/modules/os.js?v=2.12',
+    './js/modules/nfse.js?v=2.13',
+    './js/modules/os.js?v=2.13',
     './js/modules/clients.js?v=2.8',
     './js/modules/technicians.js?v=2.8',
     './js/modules/financial.js?v=2.8',
