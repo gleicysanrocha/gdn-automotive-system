@@ -1825,6 +1825,14 @@ window.OSModule = {
                 btnDeleteSelected.classList.add('hidden');
             }
         }
+        const bulkContainer = document.getElementById('bulk-actions-container');
+        if (bulkContainer) {
+            if (checked.length > 0) {
+                bulkContainer.classList.remove('hidden');
+            } else {
+                bulkContainer.classList.add('hidden');
+            }
+        }
     },
 
     deleteSelectedOS: async () => {
