@@ -135,10 +135,71 @@ window.StorageApp = {
     /**
      * Get data from localStorage
      */
+    formatOSNumber: (number, date) => {
+        if (!number) return '';
+        let numStr = String(number).trim().replace(/^OS\-?/i, '').replace(/^#/g, '');
+        
+        if (/^\d{4}\.\d{3,}$/.test(numStr)) {
+            return numStr;
+        }
+        
+        let year = new Date().getFullYear();
+        if (date) {
+            const parts = String(date).split(/[\/\-]/);
+            if (parts.length === 3) {
+                if (parts[0].length === 4) year = parseInt(parts[0]);
+                else if (parts[2].length === 4) year = parseInt(parts[2]);
+            }
+        }
+        
+        if (/^\d{4}\.\d+$/.test(numStr)) {
+            const parts = numStr.split('.');
+            const seq = parseInt(parts[1]);
+            return `${parts[0]}.${String(seq).padStart(3, '0')}`;
+        }
+        
+        if (/^\d{7}$/.test(numStr)) {
+            const y = numStr.slice(0, 4);
+            const seq = parseInt(numStr.slice(4));
+            return `${y}.${String(seq).padStart(3, '0')}`;
+        }
+        
+        if (/^\d+$/.test(numStr)) {
+            const seq = parseInt(numStr);
+            if (seq > 1000000) {
+                const seqStr = String(seq);
+                const y = seqStr.slice(0, 4);
+                const s = parseInt(seqStr.slice(4));
+                return `${y}.${String(s).padStart(3, '0')}`;
+            }
+            return `${year}.${String(seq).padStart(3, '0')}`;
+        }
+        
+        return numStr;
+    },
+
     get: (key) => {
         try {
             const data = localStorage.getItem(DB_PREFIX + key);
-            return data ? JSON.parse(data) : null;
+            if (!data) return null;
+            let parsed = JSON.parse(data);
+            
+            if (key === 'os_records' && Array.isArray(parsed)) {
+                let changed = false;
+                parsed = parsed.map(os => {
+                    const formatted = window.StorageApp.formatOSNumber(os.number, os.date);
+                    if (os.number !== formatted) {
+                        os.number = formatted;
+                        changed = true;
+                    }
+                    return os;
+                });
+                
+                if (changed) {
+                    window.StorageApp.save(key, parsed);
+                }
+            }
+            return parsed;
         } catch (e) {
             console.error('Error reading from storage', e);
             return null;
