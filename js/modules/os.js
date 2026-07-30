@@ -859,6 +859,7 @@ window.OSModule = {
                 if (ids.length === 0) return;
 
                 if (confirm(`Deseja alterar o status de pagamento de ${ids.length} OS para "${newPayment}"?`)) {
+                    let osRecords = window.StorageApp.get('os_records') || [];
                     osRecords = osRecords.map(os => {
                         if (ids.includes(os.id)) {
                             os.paymentStatus = newPayment;
