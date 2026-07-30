@@ -61,7 +61,7 @@ window.NFSeModule = {
         const clientName = client ? client.name : (os.clientName || os.clientNameManual || 'Cliente Avulso');
         const clientAddress = client ? client.address : (os.clientAddress || '');
         const clientEmail = client ? client.email : '';
-        const clientPhone = client ? client.phone : (os.clientPhone || '');
+        const clientPhone = client ? client.phone : (os.clientPhone || '231');
 
         return {
             ambiente: fiscalSettings.nfseEnvironment,
