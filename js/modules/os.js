@@ -431,15 +431,18 @@ window.OSModule = {
                             <th onclick="window.OSModule.setSort('date')" style="cursor: pointer; user-select: none;">Data${window.OSModule.getSortIcon('date')}</th>
                             <th onclick="window.OSModule.setSort('client')" style="cursor: pointer; user-select: none;">Cliente${window.OSModule.getSortIcon('client')}</th>
                             <th onclick="window.OSModule.setSort('vehicle')" style="cursor: pointer; user-select: none;">Veículo${window.OSModule.getSortIcon('vehicle')}</th>
+                            <th onclick="window.OSModule.setSort('parts')" style="cursor: pointer; user-select: none;">Peças${window.OSModule.getSortIcon('parts')}</th>
+                            <th onclick="window.OSModule.setSort('machine')" style="cursor: pointer; user-select: none;">Retífica${window.OSModule.getSortIcon('machine')}</th>
                             <th onclick="window.OSModule.setSort('total')" style="cursor: pointer; user-select: none;">Total${window.OSModule.getSortIcon('total')}</th>
                             <th onclick="window.OSModule.setSort('status')" style="cursor: pointer; user-select: none;">Status${window.OSModule.getSortIcon('status')}</th>
                             <th onclick="window.OSModule.setSort('payment')" style="cursor: pointer; user-select: none;">Pagamento${window.OSModule.getSortIcon('payment')}</th>
+                            <th>Observação</th>
                             <th>NFS-e</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma OS registrada.</td></tr>
+                        <tr><td colspan="13" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma OS registrada.</td></tr>
                     </tbody>
                 </table>
             `;
@@ -465,6 +468,12 @@ window.OSModule = {
             } else if (window.OSModule.sortColumn === 'vehicle') {
                 valA = (a.vehicleModel || '').toLowerCase();
                 valB = (b.vehicleModel || '').toLowerCase();
+            } else if (window.OSModule.sortColumn === 'parts') {
+                valA = Number(a.values ? a.values.parts : 0) || 0;
+                valB = Number(b.values ? b.values.parts : 0) || 0;
+            } else if (window.OSModule.sortColumn === 'machine') {
+                valA = Number(a.values ? a.values.machine : 0) || 0;
+                valB = Number(b.values ? b.values.machine : 0) || 0;
             } else if (window.OSModule.sortColumn === 'total') {
                 valA = Number(a.values ? a.values.total : a.totalVal) || 0;
                 valB = Number(b.values ? b.values.total : b.totalVal) || 0;
@@ -515,9 +524,12 @@ window.OSModule = {
                     <td>${formattedDate}</td>
                     <td>${os.clientName}</td>
                     <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
+                    <td>R$ ${parseFloat(os.values && os.values.parts || 0).toFixed(2)}</td>
+                    <td>R$ ${parseFloat(os.values && os.values.machine || 0).toFixed(2)}</td>
                     <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
                     <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status || 'Pendente'}</span></td>
                     <td><span style="background-color: ${payBadgeColor}20; color: ${payBadgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${payStatus}</span></td>
+                    <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${os.observations ? os.observations.replace(/"/g, '&quot;') : ''}">${os.observations ? (os.observations.length > 30 ? os.observations.substring(0, 30) + '...' : os.observations) : '<span style="color: var(--text-muted);">-</span>'}</td>
                     <td>${nfseBadgeHtml}</td>
                     <td>
                         <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
@@ -542,9 +554,12 @@ window.OSModule = {
                         <th onclick="window.OSModule.setSort('date')" style="cursor: pointer; user-select: none;">Data${window.OSModule.getSortIcon('date')}</th>
                         <th onclick="window.OSModule.setSort('client')" style="cursor: pointer; user-select: none;">Cliente${window.OSModule.getSortIcon('client')}</th>
                         <th onclick="window.OSModule.setSort('vehicle')" style="cursor: pointer; user-select: none;">Veículo${window.OSModule.getSortIcon('vehicle')}</th>
+                        <th onclick="window.OSModule.setSort('parts')" style="cursor: pointer; user-select: none;">Peças${window.OSModule.getSortIcon('parts')}</th>
+                        <th onclick="window.OSModule.setSort('machine')" style="cursor: pointer; user-select: none;">Retífica${window.OSModule.getSortIcon('machine')}</th>
                         <th onclick="window.OSModule.setSort('total')" style="cursor: pointer; user-select: none;">Total${window.OSModule.getSortIcon('total')}</th>
                         <th onclick="window.OSModule.setSort('status')" style="cursor: pointer; user-select: none;">Status${window.OSModule.getSortIcon('status')}</th>
                         <th onclick="window.OSModule.setSort('payment')" style="cursor: pointer; user-select: none;">Pagamento${window.OSModule.getSortIcon('payment')}</th>
+                        <th>Observação</th>
                         <th>NFS-e</th>
                         <th>Ações</th>
                     </tr>
