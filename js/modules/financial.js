@@ -134,7 +134,7 @@ window.FinancialModule = {
                 <div class="card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
                     <div>
                         <h3><i class="fa-solid fa-money-bill-transfer"></i> Gestão Financeira Profissional</h3>
-                        <p class="text-muted">Acompanhe fluxo de caixa, DRE do período e exporte dados para Excel.</p>
+                        <p class="text-muted">Controle o que é sua Mão de Obra real e separe dos custos de Peças e Retífica de terceiros.</p>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                         <input id="fin-period" class="form-control" type="month" value="${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}" style="width:auto;">
@@ -146,10 +146,10 @@ window.FinancialModule = {
 
                 <!-- KPI Cards -->
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:15px; margin-bottom:20px;">
-                    <div class="card" style="border-left:5px solid var(--success-color);"><p class="text-muted">Recebido no período</p><h2 id="fin-received">R$ 0,00</h2><small id="fin-received-count"></small></div>
-                    <div class="card" style="border-left:5px solid #f0ad4e;"><p class="text-muted">A receber</p><h2 id="fin-open">R$ 0,00</h2><small id="fin-open-count"></small></div>
-                    <div class="card" style="border-left:5px solid var(--danger-color);"><p class="text-muted">Vencido</p><h2 id="fin-overdue">R$ 0,00</h2><small id="fin-overdue-count"></small></div>
-                    <div class="card" style="border-left:5px solid var(--primary-color);"><p class="text-muted">Resultado de caixa</p><h2 id="fin-cash-result">R$ 0,00</h2><small id="fin-expense-summary"></small></div>
+                    <div class="card" style="border-left:5px solid #6c757d;"><p class="text-muted">Faturamento Total Recebido</p><h2 id="fin-received">R$ 0,00</h2><small id="fin-received-count"></small></div>
+                    <div class="card" style="border-left:5px solid var(--success-color);"><p class="text-muted">Minha Mão de Obra Recebida</p><h2 id="fin-labor-received">R$ 0,00</h2><small id="fin-labor-ratio"></small></div>
+                    <div class="card" style="border-left:5px solid #fd7e14;"><p class="text-muted">Custos de Terceiros (Peças/Retífica)</p><h2 id="fin-outsourced-received">R$ 0,00</h2><small id="fin-outsourced-ratio"></small></div>
+                    <div class="card" style="border-left:5px solid var(--danger-color);"><p class="text-muted">Lucro Real (M.O. - Despesas)</p><h2 id="fin-cash-result">R$ 0,00</h2><small id="fin-expense-summary"></small></div>
                 </div>
 
                 <!-- Charts Section -->
@@ -254,18 +254,30 @@ window.FinancialModule = {
         const period = document.getElementById('fin-period')?.value || 'Relatorio';
         const receivables = window.FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
         const expenses = window.StorageApp.get('fin_expenses') || [];
+        const osRecords = window.StorageApp.get('os_records') || [];
+        const osMap = new Map(osRecords.map(os => [os.id, os]));
 
         // Recebiveis data
-        const recData = receivables.map(item => ({
-            "OS": `#${item.osNumber}`,
-            "Cliente": item.clientName,
-            "Data Emissão": window.FinancialModule.dateLabel(item.issueDate),
-            "Vencimento": window.FinancialModule.dateLabel(item.dueDate),
-            "Valor Total": item.amount,
-            "Valor Pago": item.paidAmount,
-            "Saldo Restante": Math.max(0, item.amount - item.paidAmount),
-            "Situação": item.status === 'paid' ? 'Pago' : (item.paidAmount > 0 ? 'Parcial' : 'Pendente')
-        }));
+        const recData = receivables.map(item => {
+            const os = osMap.get(item.osId);
+            const labor = os && os.values ? Number(os.values.labor) || 0 : 0;
+            const parts = os && os.values ? Number(os.values.parts) || 0 : 0;
+            const machine = os && os.values ? Number(os.values.machine) || 0 : 0;
+
+            return {
+                "OS": `#${item.osNumber}`,
+                "Cliente": item.clientName,
+                "Data Emissão": window.FinancialModule.dateLabel(item.issueDate),
+                "Vencimento": window.FinancialModule.dateLabel(item.dueDate),
+                "Valor Total": item.amount,
+                "Mão de Obra (Parte Oficina)": labor,
+                "Peças (Terceiros)": parts,
+                "Retífica (Terceiros)": machine,
+                "Valor Pago": item.paidAmount,
+                "Saldo Restante": Math.max(0, item.amount - item.paidAmount),
+                "Situação": item.status === 'paid' ? 'Pago' : (item.paidAmount > 0 ? 'Parcial' : 'Pendente')
+            };
+        });
 
         // Despesas data
         const expData = expenses.map(item => ({
@@ -295,10 +307,37 @@ window.FinancialModule = {
         const receivables = window.FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
         const expenses = (window.StorageApp.get('fin_expenses') || []).filter(item => item.date?.startsWith(period));
         const periodPayments = receivables.flatMap(item => (item.payments || []).map(payment => ({ ...payment, account: item }))).filter(payment => payment.date?.startsWith(period));
+        const osRecords = window.StorageApp.get('os_records') || [];
+        const osMap = new Map(osRecords.map(os => [os.id, os]));
 
-        const totalReceived = periodPayments.reduce((sum, p) => sum + p.amount, 0);
+        let totalReceived = 0;
+        let totalLaborReceived = 0;
+        let totalPartsReceived = 0;
+        let totalMachineReceived = 0;
+        let totalMiscReceived = 0;
+
+        periodPayments.forEach(payment => {
+            const os = osMap.get(payment.account.osId);
+            totalReceived += payment.amount;
+
+            if (os && os.values) {
+                const total = Number(os.values.total) || 1;
+                const labor = Number(os.values.labor) || 0;
+                const parts = Number(os.values.parts) || 0;
+                const machine = Number(os.values.machine) || 0;
+                const misc = Number(os.values.misc) || 0;
+
+                totalLaborReceived += payment.amount * (labor / total);
+                totalPartsReceived += payment.amount * (parts / total);
+                totalMachineReceived += payment.amount * (machine / total);
+                totalMiscReceived += payment.amount * (misc / total);
+            } else {
+                totalLaborReceived += payment.amount;
+            }
+        });
+
         const totalExpenses = expenses.reduce((sum, e) => sum + e.value, 0);
-        const netResult = totalReceived - totalExpenses;
+        const netResult = (totalLaborReceived + totalMiscReceived) - totalExpenses;
 
         // Expenses breakdown by category
         const categoriesMap = {};
@@ -324,6 +363,7 @@ window.FinancialModule = {
                     .total-row { font-weight: bold; font-size: 16px; border-top: 2px solid #333; border-bottom: 2px solid #333; }
                     .positive { color: #28a745; }
                     .negative { color: #dc3545; }
+                    .bold-text { font-weight: bold; }
                     @media print {
                         .no-print { display: none; }
                     }
@@ -347,19 +387,47 @@ window.FinancialModule = {
                     </thead>
                     <tbody>
                         <tr class="section-header">
-                            <td colspan="2">1. RECEITAS DE CAIXA (Entradas)</td>
+                            <td colspan="2">1. RECEITAS DE CAIXA (Faturamento Bruto)</td>
                         </tr>
                         <tr>
-                            <td>Recebimentos de Ordens de Serviço</td>
-                            <td style="text-align: right;" class="positive">R$ ${totalReceived.toFixed(2)}</td>
+                            <td>Mão de Obra Recebida (Oficina)</td>
+                            <td style="text-align: right;" class="positive">R$ ${totalLaborReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Diversos/Outros Serviços Recebidos</td>
+                            <td style="text-align: right;" class="positive">R$ ${totalMiscReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Peças Recebidas (Terceiros)</td>
+                            <td style="text-align: right; color:#777;">R$ ${totalPartsReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Retífica Recebida (Terceiros)</td>
+                            <td style="text-align: right; color:#777;">R$ ${totalMachineReceived.toFixed(2)}</td>
                         </tr>
                         <tr class="total-row">
-                            <td>RECEITA BRUTA TOTAL</td>
+                            <td>RECEITA BRUTA TOTAL RECEBIDA</td>
                             <td style="text-align: right;" class="positive">R$ ${totalReceived.toFixed(2)}</td>
                         </tr>
                         
                         <tr class="section-header" style="margin-top: 15px;">
-                            <td colspan="2">2. DESPESAS E CUSTOS (Saídas)</td>
+                            <td colspan="2">2. (-) CUSTOS DE TERCEIROS (Repasses deduzidos)</td>
+                        </tr>
+                        <tr>
+                            <td>Dedução - Repasse de Peças</td>
+                            <td style="text-align: right; color: #dc3545;">R$ -${totalPartsReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>Dedução - Repasse de Retífica</td>
+                            <td style="text-align: right; color: #dc3545;">R$ -${totalMachineReceived.toFixed(2)}</td>
+                        </tr>
+                        <tr class="total-row" style="background-color: #f1f5f9;">
+                            <td>RECEITA LÍQUIDA DA OFICINA (Sua Mão de Obra)</td>
+                            <td style="text-align: right; color: #28a745;">R$ ${(totalLaborReceived + totalMiscReceived).toFixed(2)}</td>
+                        </tr>
+
+                        <tr class="section-header" style="margin-top: 15px;">
+                            <td colspan="2">3. (-) DESPESAS E CUSTOS ADMINISTRATIVOS</td>
                         </tr>
                         ${Object.keys(categoriesMap).map(cat => `
                             <tr>
@@ -372,8 +440,8 @@ window.FinancialModule = {
                             <td style="text-align: right;" class="negative">R$ -${totalExpenses.toFixed(2)}</td>
                         </tr>
                         
-                        <tr class="total-row" style="background-color: #f8fafc; font-size:18px;">
-                            <td>RESULTADO LÍQUIDO DO PERÍODO</td>
+                        <tr class="total-row" style="background-color: #e2e8f0; font-size:18px;">
+                            <td>RESULTADO LÍQUIDO DO PERÍODO (Sobra no Bolso)</td>
                             <td style="text-align: right;" class="${netResult >= 0 ? 'positive' : 'negative'}">R$ ${netResult.toFixed(2)}</td>
                         </tr>
                     </tbody>
@@ -511,18 +579,56 @@ window.FinancialModule = {
         const receivables = window.FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
         const expenses = (window.StorageApp.get('fin_expenses') || []).filter(item => item.date?.startsWith(period));
         const periodPayments = receivables.flatMap(item => (item.payments || []).map(payment => ({ ...payment, account: item }))).filter(payment => payment.date?.startsWith(period));
-        const received = periodPayments.reduce((sum, payment) => sum + payment.amount, 0);
+        
+        const osRecords = window.StorageApp.get('os_records') || [];
+        const osMap = new Map(osRecords.map(os => [os.id, os]));
+
+        const totalReceived = periodPayments.reduce((sum, payment) => sum + payment.amount, 0);
         const open = receivables.reduce((sum, item) => sum + Math.max(0, item.amount - item.paidAmount), 0);
         const overdue = receivables.filter(item => item.status !== 'paid' && item.dueDate && item.dueDate < today).reduce((sum, item) => sum + item.amount - item.paidAmount, 0);
         const totalExpenses = expenses.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+
+        // Calcular a parcela correspondente a Mão de Obra e Terceiros para os valores recebidos
+        let laborReceived = 0;
+        let outsourcedReceived = 0;
+
+        periodPayments.forEach(payment => {
+            const os = osMap.get(payment.account.osId);
+            if (os && os.values) {
+                const total = Number(os.values.total) || 1;
+                const labor = Number(os.values.labor) || 0;
+                const misc = Number(os.values.misc) || 0;
+                const parts = Number(os.values.parts) || 0;
+                const machine = Number(os.values.machine) || 0;
+
+                // Fração da OS correspondente ao que fica com a oficina
+                const laborFraction = (labor + misc) / total;
+                const outsourcedFraction = (parts + machine) / total;
+
+                laborReceived += payment.amount * laborFraction;
+                outsourcedReceived += payment.amount * outsourcedFraction;
+            } else {
+                // Caso não tenha o vínculo completo da OS, assume 100% como mão de obra
+                laborReceived += payment.amount;
+            }
+        });
         
-        document.getElementById('fin-received').textContent = window.FinancialModule.currency(received);
+        document.getElementById('fin-received').textContent = window.FinancialModule.currency(totalReceived);
         document.getElementById('fin-received-count').textContent = `${periodPayments.length} recebimento(s)`;
-        document.getElementById('fin-open').textContent = window.FinancialModule.currency(open);
-        document.getElementById('fin-open-count').textContent = `${receivables.filter(item => item.status !== 'paid').length} conta(s) pendente(s)`;
-        document.getElementById('fin-overdue').textContent = window.FinancialModule.currency(overdue);
-        document.getElementById('fin-overdue-count').textContent = `${receivables.filter(item => item.status !== 'paid' && item.dueDate && item.dueDate < today).length} conta(s) vencida(s)`;
-        document.getElementById('fin-cash-result').textContent = window.FinancialModule.currency(received - totalExpenses);
+        
+        // Mão de Obra Recebida
+        document.getElementById('fin-labor-received').textContent = window.FinancialModule.currency(laborReceived);
+        const laborRatio = totalReceived > 0 ? ((laborReceived / totalReceived) * 100).toFixed(0) : 0;
+        document.getElementById('fin-labor-ratio').textContent = `${laborRatio}% do faturamento`;
+
+        // Repasses
+        document.getElementById('fin-outsourced-received').textContent = window.FinancialModule.currency(outsourcedReceived);
+        const outsourcedRatio = totalReceived > 0 ? ((outsourcedReceived / totalReceived) * 100).toFixed(0) : 0;
+        document.getElementById('fin-outsourced-ratio').textContent = `${outsourcedRatio}% do faturamento`;
+
+        // Lucro Real (Minha Mão de Obra - Despesas)
+        const netProfit = laborReceived - totalExpenses;
+        document.getElementById('fin-cash-result').textContent = window.FinancialModule.currency(netProfit);
         document.getElementById('fin-expense-summary').textContent = `${window.FinancialModule.currency(totalExpenses)} em despesas no período`;
 
         // Calculate Category Breakdown
@@ -532,8 +638,8 @@ window.FinancialModule = {
             categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + e.value;
         });
 
-        // Update Charts
-        window.FinancialModule.updateCharts(received, totalExpenses, categoryBreakdown);
+        // Update Charts (usamos a mão de obra recebida como as entradas reais da oficina nos gráficos)
+        window.FinancialModule.updateCharts(laborReceived, totalExpenses, categoryBreakdown);
 
         const wrapper = document.getElementById('receivables-table-wrapper');
         if (wrapper) {
@@ -579,10 +685,18 @@ window.FinancialModule = {
                     statusBadge = `<span class="badge" style="background: rgba(234, 179, 8, 0.1); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
                 }
 
+                // Detalhamento de Mão de Obra e Terceiros na linha
+                const os = osMap.get(item.osId);
+                const laborVal = os && os.values ? Number(os.values.labor) || 0 : item.amount;
+                const partsVal = os && os.values ? Number(os.values.parts) || 0 : 0;
+                const machineVal = os && os.values ? Number(os.values.machine) || 0 : 0;
+                const breakdownText = `Mão de Obra: R$ ${laborVal.toFixed(2)} | Peças: R$ ${partsVal.toFixed(2)} | Retífica: R$ ${machineVal.toFixed(2)}`;
+
                 return `<tr style="background: #ffffff; transition: background 0.2s ease;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='#ffffff';">
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
                         <span class="badge" style="background: rgba(0, 123, 255, 0.08); color: #007bff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(0, 123, 255, 0.15);">#${item.osNumber}</span>
                         <div style="font-weight: 600; color: var(--text-color); margin-top: 6px; font-size: 0.95rem;">${item.clientName}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${breakdownText}</div>
                     </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
                         ${overdueItem ? `<span style="color: var(--danger-color); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> ${window.FinancialModule.dateLabel(item.dueDate)}</span>` : `<span style="color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${window.FinancialModule.dateLabel(item.dueDate)}</span>`}
@@ -606,7 +720,7 @@ window.FinancialModule = {
                 <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
                     <thead>
                         <tr style="background: transparent;">
-                            <th onclick="window.FinancialModule.setSort('osNumber')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">OS / Cliente${window.FinancialModule.getSortIcon('osNumber')}</th>
+                            <th onclick="window.FinancialModule.setSort('osNumber')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">OS / Cliente (Detalhamento)${window.FinancialModule.getSortIcon('osNumber')}</th>
                             <th onclick="window.FinancialModule.setSort('dueDate')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Vencimento${window.FinancialModule.getSortIcon('dueDate')}</th>
                             <th onclick="window.FinancialModule.setSort('amount')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Valor${window.FinancialModule.getSortIcon('amount')}</th>
                             <th onclick="window.FinancialModule.setSort('remaining')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Saldo${window.FinancialModule.getSortIcon('remaining')}</th>
