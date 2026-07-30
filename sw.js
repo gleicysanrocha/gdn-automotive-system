@@ -1,17 +1,17 @@
-const CACHE_NAME = 'gdn-os-v19';
+const CACHE_NAME = 'gdn-os-v20';
 const ASSETS = [
     './',
     './index.html',
     './css/main.css?v=2.1',
     './js/app.js?v=2.8',
-    './js/storage.js?v=2.8',
+    './js/storage.js?v=2.16',
     './js/firebase-config.js?v=2.8',
     './js/modules/auth.js?v=2.8',
-    './js/modules/nfse.js?v=2.15',
-    './js/modules/os.js?v=2.15',
+    './js/modules/nfse.js?v=2.16',
+    './js/modules/os.js?v=2.16',
     './js/modules/clients.js?v=2.8',
     './js/modules/technicians.js?v=2.8',
-    './js/modules/financial.js?v=2.15',
+    './js/modules/financial.js?v=2.16',
     './js/modules/settings.js?v=2.8',
     './assets/img/logo.png',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
