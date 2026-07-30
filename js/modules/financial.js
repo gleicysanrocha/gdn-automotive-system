@@ -119,9 +119,29 @@ window.FinancialModule = {
                     <div class="card" style="border-left:5px solid var(--primary-color);"><p class="text-muted">Resultado de caixa</p><h2 id="fin-cash-result">R$ 0,00</h2><small id="fin-expense-summary"></small></div>
                 </div>
                 <div style="display:grid; grid-template-columns:minmax(0, 2fr) minmax(280px, 1fr); gap:20px;">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;"><h4>Contas a receber</h4><span class="text-muted">Clique em “Receber” para baixa total ou parcial.</span></div>
-                        <div class="table-responsive"><table class="table"><thead><tr><th>OS / Cliente</th><th>Vencimento</th><th>Valor</th><th>Saldo</th><th>Situação</th><th></th></tr></thead><tbody id="fin-receivables-body"></tbody></table></div>
+                    <div class="card" style="border-radius: var(--card-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; background: #ffffff;">
+                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 20px;">
+                            <h4 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-list-check" style="color: var(--primary-color);"></i> Contas a receber
+                            </h4>
+                            <span class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-info-circle"></i> Clique em “Receber” para baixa total ou parcial.</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
+                                <thead>
+                                    <tr style="background: transparent;">
+                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">OS / Cliente</th>
+                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Vencimento</th>
+                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Valor</th>
+                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Saldo</th>
+                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Situação</th>
+                                        <th style="border: none; padding-bottom: 12px; width: 150px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fin-receivables-body">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div class="card"><h4><i class="fa-solid fa-plus-circle"></i> Nova despesa</h4>
                         <form id="expense-form"><div class="form-group"><label class="form-label">Descrição</label><input id="exp-desc" class="form-control" required></div>
@@ -218,10 +238,40 @@ window.FinancialModule = {
         body.innerHTML = visible.map(item => {
             const remaining = Math.max(0, item.amount - item.paidAmount);
             const overdueItem = item.status !== 'paid' && item.dueDate && item.dueDate < today;
-            const label = item.status === 'paid' ? 'Pago' : overdueItem ? 'Vencido' : item.paidAmount > 0 ? 'Parcial' : 'Pendente';
-            const color = item.status === 'paid' ? 'var(--success-color)' : overdueItem ? 'var(--danger-color)' : '#b7791f';
-            return `<tr><td><strong>#${item.osNumber}</strong><br><small>${item.clientName}</small></td><td>${FinancialModule.dateLabel(item.dueDate)}</td><td>${FinancialModule.currency(item.amount)}</td><td>${FinancialModule.currency(remaining)}</td><td><span style="color:${color};font-weight:bold;">${label}</span></td><td>${item.status === 'paid' ? '-' : `<button class="btn btn-sm btn-success" onclick="FinancialModule.registerPayment('${item.id}')">Receber</button>`}</td></tr>`;
-        }).join('') || '<tr><td colspan="6" class="text-center text-muted">Nenhuma conta a receber.</td></tr>';
+            
+            let statusBadge = '';
+            if (item.status === 'paid') {
+                statusBadge = `<span class="badge" style="background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-circle-check"></i> Pago</span>`;
+            } else if (overdueItem) {
+                statusBadge = `<span class="badge" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-triangle-exclamation"></i> Vencido</span>`;
+            } else if (item.paidAmount > 0) {
+                statusBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-chart-pie"></i> Parcial</span>`;
+            } else {
+                statusBadge = `<span class="badge" style="background: rgba(234, 179, 8, 0.1); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 4px; min-width: 95px; justify-content: center;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
+            }
+
+            return `<tr style="background: #ffffff; transition: background 0.2s ease;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='#ffffff';">
+                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                    <span class="badge" style="background: rgba(0, 123, 255, 0.08); color: #007bff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(0, 123, 255, 0.15);">#${item.osNumber}</span>
+                    <div style="font-weight: 600; color: var(--text-color); margin-top: 6px; font-size: 0.95rem;">${item.clientName}</div>
+                </td>
+                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                    ${overdueItem ? `<span style="color: var(--danger-color); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>` : `<span style="color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>`}
+                </td>
+                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--text-color); font-size: 0.95rem;">
+                    ${FinancialModule.currency(item.amount)}
+                </td>
+                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                    ${remaining > 0 ? `<span style="font-weight: bold; color: ${overdueItem ? 'var(--danger-color)' : '#d97706'}; font-size: 0.95rem;">${FinancialModule.currency(remaining)}</span>` : `<span style="color: var(--text-muted); font-size: 0.9rem;">-</span>`}
+                </td>
+                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                    ${statusBadge}
+                </td>
+                <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: right;">
+                    ${item.status === 'paid' ? `<span style="color: var(--success-color); font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px; padding-right: 10px;"><i class="fa-solid fa-check"></i> Completo</span>` : `<button class="btn btn-sm btn-success" style="background-color: #28a745; border-color: #28a745; border-radius: 6px; font-weight: bold; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(40, 167, 69, 0.15); transition: all 0.2s; cursor: pointer; border: none; color: white;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-1px)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='none';" onclick="FinancialModule.registerPayment('${item.id}')"><i class="fa-solid fa-hand-holding-dollar"></i> Receber</button>`}
+                </td>
+            </tr>`;
+        }).join('') || '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma conta a receber neste período.</td></tr>';
         document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `<div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;"><span>${item.desc}<br><small>${FinancialModule.dateLabel(item.date)}</small></span><span style="white-space:nowrap;color:var(--danger-color)">${FinancialModule.currency(item.value)} <button class="btn btn-sm" onclick="FinancialModule.deleteExpense('${item.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button></span></div>`).join('') || 'Sem despesas neste período.';
     }
 };
