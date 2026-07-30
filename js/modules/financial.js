@@ -8,20 +8,20 @@ window.FinancialModule = {
     sortDirection: 'desc',
 
     setSort: (col) => {
-        if (FinancialModule.sortColumn === col) {
-            FinancialModule.sortDirection = FinancialModule.sortDirection === 'asc' ? 'desc' : 'asc';
+        if (window.FinancialModule.sortColumn === col) {
+            window.FinancialModule.sortDirection = window.FinancialModule.sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-            FinancialModule.sortColumn = col;
-            FinancialModule.sortDirection = 'desc';
+            window.FinancialModule.sortColumn = col;
+            window.FinancialModule.sortDirection = 'desc';
         }
-        FinancialModule.updateReport();
+        window.FinancialModule.updateReport();
     },
 
     getSortIcon: (col) => {
-        if (FinancialModule.sortColumn !== col) {
+        if (window.FinancialModule.sortColumn !== col) {
             return ' <i class="fa-solid fa-sort" style="color: #cbd5e1; font-size: 0.75rem; margin-left: 4px; opacity: 0.6;"></i>';
         }
-        if (FinancialModule.sortDirection === 'asc') {
+        if (window.FinancialModule.sortDirection === 'asc') {
             return ' <i class="fa-solid fa-sort-up" style="color: var(--primary-color); font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>';
         }
         return ' <i class="fa-solid fa-sort-down" style="color: var(--primary-color); font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>';
@@ -52,7 +52,7 @@ window.FinancialModule = {
                 payments = [{
                     id: `pay_auto_${Date.now()}`,
                     amount: amount,
-                    date: os.date || new Date().toISOString().slice(0, 10),
+                    date: os.date || window.FinancialModule.today(),
                     createdAt: new Date().toISOString()
                 }];
             }
@@ -64,7 +64,7 @@ window.FinancialModule = {
                 payments = [{
                     id: `pay_auto_${Date.now()}`,
                     amount: osValPaid,
-                    date: os.date || new Date().toISOString().slice(0, 10),
+                    date: os.date || window.FinancialModule.today(),
                     createdAt: new Date().toISOString()
                 }];
             } else if (payments.length > 0 && osValPaid > 0) {
@@ -84,8 +84,8 @@ window.FinancialModule = {
             osId: os.id,
             osNumber: os.number || os.id,
             clientName: os.clientName || 'Cliente avulso',
-            issueDate: os.date || FinancialModule.today(),
-            dueDate: existing.dueDate || os.dueDate || os.date || FinancialModule.today(),
+            issueDate: os.date || window.FinancialModule.today(),
+            dueDate: existing.dueDate || os.dueDate || os.date || window.FinancialModule.today(),
             amount,
             paidAmount,
             status,
@@ -101,7 +101,7 @@ window.FinancialModule = {
         const osRecords = window.StorageApp.get('os_records') || [];
         const migrated = osRecords
             .filter(os => os.id && (Number(os.values?.total ?? os.totalVal) || 0) > 0)
-            .map(os => FinancialModule.receivableFromOS(os, byOS.get(os.id)));
+            .map(os => window.FinancialModule.receivableFromOS(os, byOS.get(os.id)));
         const orphaned = stored.filter(item => !item.osId || !osRecords.some(os => os.id === item.osId));
         return [...migrated, ...orphaned];
     },
@@ -112,16 +112,16 @@ window.FinancialModule = {
         const receivables = window.StorageApp.get('fin_receivables') || [];
         const index = receivables.findIndex(item => item.osId === os.id);
         const previous = index >= 0 ? receivables[index] : {};
-        const account = FinancialModule.receivableFromOS(os, previous);
+        const account = window.FinancialModule.receivableFromOS(os, previous);
         if (index >= 0) receivables[index] = account;
         else receivables.push(account);
         await window.StorageApp.save('fin_receivables', receivables);
     },
 
     syncAllOS: async () => {
-        const records = FinancialModule.getReceivables();
+        const records = window.FinancialModule.getReceivables();
         await window.StorageApp.save('fin_receivables', records);
-        FinancialModule.updateReport();
+        window.FinancialModule.updateReport();
     },
 
     render: (container) => {
@@ -149,21 +149,8 @@ window.FinancialModule = {
                             </h4>
                             <span class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-info-circle"></i> Clique em “Receber” para baixa total ou parcial.</span>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
-                                <thead>
-                                    <tr style="background: transparent;">
-                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">OS / Cliente</th>
-                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Vencimento</th>
-                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Valor</th>
-                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Saldo</th>
-                                        <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Situação</th>
-                                        <th style="border: none; padding-bottom: 12px; width: 150px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="fin-receivables-body">
-                                </tbody>
-                            </table>
+                        <div class="table-responsive" id="receivables-table-wrapper">
+                            <!-- Populado dinamicamente por updateReport -->
                         </div>
                     </div>
                     <div class="card"><h4><i class="fa-solid fa-plus-circle"></i> Nova despesa</h4>
@@ -175,15 +162,15 @@ window.FinancialModule = {
                     </div>
                 </div>
             </div>`;
-        document.getElementById('exp-date').value = FinancialModule.today();
-        FinancialModule.bindEvents();
-        FinancialModule.updateReport();
+        document.getElementById('exp-date').value = window.FinancialModule.today();
+        window.FinancialModule.bindEvents();
+        window.FinancialModule.updateReport();
     },
 
     bindEvents: () => {
-        document.getElementById('fin-period').addEventListener('change', FinancialModule.updateReport);
-        document.getElementById('btn-sync-finance').addEventListener('click', FinancialModule.syncAllOS);
-        document.getElementById('expense-form').addEventListener('submit', FinancialModule.saveExpense);
+        document.getElementById('fin-period').addEventListener('change', window.FinancialModule.updateReport);
+        document.getElementById('btn-sync-finance').addEventListener('click', window.FinancialModule.syncAllOS);
+        document.getElementById('expense-form').addEventListener('submit', window.FinancialModule.saveExpense);
     },
 
     saveExpense: async (event) => {
@@ -191,25 +178,25 @@ window.FinancialModule = {
         const expenses = window.StorageApp.get('fin_expenses') || [];
         expenses.push({ id: `exp_${Date.now()}`, desc: document.getElementById('exp-desc').value.trim(), value: Number(document.getElementById('exp-val').value), date: document.getElementById('exp-date').value, type: 'expense' });
         await window.StorageApp.save('fin_expenses', expenses);
-        event.target.reset(); document.getElementById('exp-date').value = FinancialModule.today(); FinancialModule.updateReport();
+        event.target.reset(); document.getElementById('exp-date').value = window.FinancialModule.today(); window.FinancialModule.updateReport();
     },
 
     deleteExpense: async (id) => {
         if (!confirm('Excluir esta despesa?')) return;
         await window.StorageApp.save('fin_expenses', (window.StorageApp.get('fin_expenses') || []).filter(item => item.id !== id));
-        FinancialModule.updateReport();
+        window.FinancialModule.updateReport();
     },
 
     registerPayment: async (id) => {
-        const receivables = FinancialModule.getReceivables();
+        const receivables = window.FinancialModule.getReceivables();
         const account = receivables.find(item => item.id === id);
         if (!account || account.status === 'paid') return;
         const remaining = account.amount - account.paidAmount;
-        const response = prompt(`Saldo em aberto: ${FinancialModule.currency(remaining)}\nInforme o valor recebido:`, remaining.toFixed(2));
+        const response = prompt(`Saldo em aberto: ${window.FinancialModule.currency(remaining)}\nInforme o valor recebido:`, remaining.toFixed(2));
         if (response === null) return;
         const amount = Number(String(response).replace(',', '.'));
         if (!Number.isFinite(amount) || amount <= 0 || amount > remaining + 0.001) return alert('Informe um valor maior que zero e até o saldo em aberto.');
-        const date = prompt('Data do recebimento (AAAA-MM-DD):', FinancialModule.today());
+        const date = prompt('Data do recebimento (AAAA-MM-DD):', window.FinancialModule.today());
         if (!date) return;
         account.paidAmount = Number((account.paidAmount + amount).toFixed(2));
         account.payments.push({ id: `pay_${Date.now()}`, amount, date, createdAt: new Date().toISOString() });
@@ -233,28 +220,29 @@ window.FinancialModule = {
             }
         }
 
-        FinancialModule.updateReport();
+        window.FinancialModule.updateReport();
     },
 
     updateReport: () => {
         const period = document.getElementById('fin-period')?.value;
         if (!period) return;
-        const today = FinancialModule.today();
-        const receivables = FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
+        const today = window.FinancialModule.today();
+        const receivables = window.FinancialModule.getReceivables().filter(item => item.status !== 'cancelled');
         const expenses = (window.StorageApp.get('fin_expenses') || []).filter(item => item.date?.startsWith(period));
         const periodPayments = receivables.flatMap(item => (item.payments || []).map(payment => ({ ...payment, account: item }))).filter(payment => payment.date?.startsWith(period));
         const received = periodPayments.reduce((sum, payment) => sum + payment.amount, 0);
         const open = receivables.reduce((sum, item) => sum + Math.max(0, item.amount - item.paidAmount), 0);
         const overdue = receivables.filter(item => item.status !== 'paid' && item.dueDate && item.dueDate < today).reduce((sum, item) => sum + item.amount - item.paidAmount, 0);
         const totalExpenses = expenses.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
-        document.getElementById('fin-received').textContent = FinancialModule.currency(received);
+        
+        document.getElementById('fin-received').textContent = window.FinancialModule.currency(received);
         document.getElementById('fin-received-count').textContent = `${periodPayments.length} recebimento(s)`;
-        document.getElementById('fin-open').textContent = FinancialModule.currency(open);
+        document.getElementById('fin-open').textContent = window.FinancialModule.currency(open);
         document.getElementById('fin-open-count').textContent = `${receivables.filter(item => item.status !== 'paid').length} conta(s) pendente(s)`;
-        document.getElementById('fin-overdue').textContent = FinancialModule.currency(overdue);
+        document.getElementById('fin-overdue').textContent = window.FinancialModule.currency(overdue);
         document.getElementById('fin-overdue-count').textContent = `${receivables.filter(item => item.status !== 'paid' && item.dueDate && item.dueDate < today).length} conta(s) vencida(s)`;
-        document.getElementById('fin-cash-result').textContent = FinancialModule.currency(received - totalExpenses);
-        document.getElementById('fin-expense-summary').textContent = `${FinancialModule.currency(totalExpenses)} em despesas no período`;
+        document.getElementById('fin-cash-result').textContent = window.FinancialModule.currency(received - totalExpenses);
+        document.getElementById('fin-expense-summary').textContent = `${window.FinancialModule.currency(totalExpenses)} em despesas no período`;
 
         const wrapper = document.getElementById('receivables-table-wrapper');
         if (wrapper) {
@@ -263,25 +251,25 @@ window.FinancialModule = {
             const sorted = [...visible];
             sorted.sort((a, b) => {
                 let valA, valB;
-                if (FinancialModule.sortColumn === 'osNumber') {
+                if (window.FinancialModule.sortColumn === 'osNumber') {
                     valA = a.osNumber || '';
                     valB = b.osNumber || '';
-                } else if (FinancialModule.sortColumn === 'dueDate') {
+                } else if (window.FinancialModule.sortColumn === 'dueDate') {
                     valA = a.dueDate || '';
                     valB = b.dueDate || '';
-                } else if (FinancialModule.sortColumn === 'amount') {
+                } else if (window.FinancialModule.sortColumn === 'amount') {
                     valA = a.amount || 0;
                     valB = b.amount || 0;
-                } else if (FinancialModule.sortColumn === 'remaining') {
+                } else if (window.FinancialModule.sortColumn === 'remaining') {
                     valA = Math.max(0, a.amount - a.paidAmount);
                     valB = Math.max(0, b.amount - b.paidAmount);
-                } else if (FinancialModule.sortColumn === 'status') {
+                } else if (window.FinancialModule.sortColumn === 'status') {
                     valA = a.status === 'paid' ? 3 : (a.dueDate && a.dueDate < today ? 0 : (a.paidAmount > 0 ? 1 : 2));
                     valB = b.status === 'paid' ? 3 : (b.dueDate && b.dueDate < today ? 0 : (b.paidAmount > 0 ? 1 : 2));
                 }
                 
-                if (valA < valB) return FinancialModule.sortDirection === 'asc' ? -1 : 1;
-                if (valA > valB) return FinancialModule.sortDirection === 'asc' ? 1 : -1;
+                if (valA < valB) return window.FinancialModule.sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return window.FinancialModule.sortDirection === 'asc' ? 1 : -1;
                 return 0;
             });
 
@@ -306,19 +294,19 @@ window.FinancialModule = {
                         <div style="font-weight: 600; color: var(--text-color); margin-top: 6px; font-size: 0.95rem;">${item.clientName}</div>
                     </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
-                        ${overdueItem ? `<span style="color: var(--danger-color); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>` : `<span style="color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${FinancialModule.dateLabel(item.dueDate)}</span>`}
+                        ${overdueItem ? `<span style="color: var(--danger-color); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-clock"></i> ${window.FinancialModule.dateLabel(item.dueDate)}</span>` : `<span style="color: var(--text-muted); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${window.FinancialModule.dateLabel(item.dueDate)}</span>`}
                     </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--text-color); font-size: 0.95rem;">
-                        ${FinancialModule.currency(item.amount)}
+                        ${window.FinancialModule.currency(item.amount)}
                     </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
-                        ${remaining > 0 ? `<span style="font-weight: bold; color: ${overdueItem ? 'var(--danger-color)' : '#d97706'}; font-size: 0.95rem;">${FinancialModule.currency(remaining)}</span>` : `<span style="color: var(--text-muted); font-size: 0.9rem;">-</span>`}
+                        ${remaining > 0 ? `<span style="font-weight: bold; color: ${overdueItem ? 'var(--danger-color)' : '#d97706'}; font-size: 0.95rem;">${window.FinancialModule.currency(remaining)}</span>` : `<span style="color: var(--text-muted); font-size: 0.9rem;">-</span>`}
                     </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
                         ${statusBadge}
                     </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: right;">
-                        ${item.status === 'paid' ? `<span style="color: var(--success-color); font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px; padding-right: 10px;"><i class="fa-solid fa-check"></i> Completo</span>` : `<button class="btn btn-sm btn-success" style="background-color: #28a745; border-color: #28a745; border-radius: 6px; font-weight: bold; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(40, 167, 69, 0.15); transition: all 0.2s; cursor: pointer; border: none; color: white;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-1px)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='none';" onclick="FinancialModule.registerPayment('${item.id}')"><i class="fa-solid fa-hand-holding-dollar"></i> Receber</button>`}
+                        ${item.status === 'paid' ? `<span style="color: var(--success-color); font-weight: bold; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px; padding-right: 10px;"><i class="fa-solid fa-check"></i> Completo</span>` : `<button class="btn btn-sm btn-success" style="background-color: #28a745; border-color: #28a745; border-radius: 6px; font-weight: bold; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(40, 167, 69, 0.15); transition: all 0.2s; cursor: pointer; border: none; color: white;" onmouseover="this.style.backgroundColor='#218838'; this.style.transform='translateY(-1px)';" onmouseout="this.style.backgroundColor='#28a745'; this.style.transform='none';" onclick="window.FinancialModule.registerPayment('${item.id}')"><i class="fa-solid fa-hand-holding-dollar"></i> Receber</button>`}
                     </td>
                 </tr>`;
             }).join('') || `<tr><td colspan="6" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma conta a receber neste período.</td></tr>`;
@@ -327,11 +315,11 @@ window.FinancialModule = {
                 <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
                     <thead>
                         <tr style="background: transparent;">
-                            <th onclick="FinancialModule.setSort('osNumber')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">OS / Cliente${FinancialModule.getSortIcon('osNumber')}</th>
-                            <th onclick="FinancialModule.setSort('dueDate')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Vencimento${FinancialModule.getSortIcon('dueDate')}</th>
-                            <th onclick="FinancialModule.setSort('amount')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Valor${FinancialModule.getSortIcon('amount')}</th>
-                            <th onclick="FinancialModule.setSort('remaining')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Saldo${FinancialModule.getSortIcon('remaining')}</th>
-                            <th onclick="FinancialModule.setSort('status')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Situação${FinancialModule.getSortIcon('status')}</th>
+                            <th onclick="window.FinancialModule.setSort('osNumber')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">OS / Cliente${window.FinancialModule.getSortIcon('osNumber')}</th>
+                            <th onclick="window.FinancialModule.setSort('dueDate')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Vencimento${window.FinancialModule.getSortIcon('dueDate')}</th>
+                            <th onclick="window.FinancialModule.setSort('amount')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Valor${window.FinancialModule.getSortIcon('amount')}</th>
+                            <th onclick="window.FinancialModule.setSort('remaining')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Saldo${window.FinancialModule.getSortIcon('remaining')}</th>
+                            <th onclick="window.FinancialModule.setSort('status')" style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; cursor: pointer; user-select: none;">Situação${window.FinancialModule.getSortIcon('status')}</th>
                             <th style="border: none; padding-bottom: 12px; width: 150px;"></th>
                         </tr>
                     </thead>
@@ -341,6 +329,6 @@ window.FinancialModule = {
                 </table>
             `;
         }
-        document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `<div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;"><span>${item.desc}<br><small>${FinancialModule.dateLabel(item.date)}</small></span><span style="white-space:nowrap;color:var(--danger-color)">${FinancialModule.currency(item.value)} <button class="btn btn-sm" onclick="FinancialModule.deleteExpense('${item.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button></span></div>`).join('') || 'Sem despesas neste período.';
+        document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `<div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;"><span>${item.desc}<br><small>${window.FinancialModule.dateLabel(item.date)}</small></span><span style="white-space:nowrap;color:var(--danger-color)">${window.FinancialModule.currency(item.value)} <button class="btn btn-sm" onclick="window.FinancialModule.deleteExpense('${item.id}')" title="Excluir"><i class="fa-solid fa-trash"></i></button></span></div>`).join('') || 'Sem despesas neste período.';
     }
 };
