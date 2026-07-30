@@ -24,60 +24,6 @@ window.OSModule = {
                     </div>
                 </div>
                 
-
-                <!-- Filtros e Ações em Massa -->
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
-                    <!-- Filtros -->
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-                        <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Todos os Status (Serviço)</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peça">Aguardando Peça</option>
-                                <option value="Finalizado">Finalizado</option>
-                                <option value="Entregue">Entregue</option>
-                            </select>
-                            <select id="filter-os-payment" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Todos os Pagamentos</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Pago">Pago</option>
-                                <option value="Pago Parcialmente">Pago Parcialmente</option>
-                            </select>
-                            <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou Nº..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                        </div>
-                    </div>
-
-                    <!-- Ações em Massa -->
-                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
-                        <span style="font-weight: 600; color: #ffc107; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i> Alterar Selecionados:</span>
-                        
-                        <!-- Alterar Status Serviço -->
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <select id="bulk-update-status" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Novo Status Serviço...</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peça">Aguardando Peça</option>
-                                <option value="Finalizado">Finalizado</option>
-                                <option value="Entregue">Entregue</option>
-                            </select>
-                            <button id="btn-bulk-update-status" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
-                        </div>
-
-                        <!-- Alterar Status Pagamento -->
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <select id="bulk-update-payment" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Novo Status Pagamento...</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Pago">Pago</option>
-                                <option value="Pago Parcialmente">Pago Parcialmente</option>
-                            </select>
-                            <button id="btn-bulk-update-payment" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
-                        </div>
-                    </div>
-                </div>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -89,6 +35,7 @@ window.OSModule = {
                                 <th>Veículo</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th>Pagamento</th>
                                 <th>NFS-e</th>
                                 <th>Ações</th>
                             </tr>
@@ -234,24 +181,6 @@ window.OSModule = {
 
                     <!-- Section 5: General -->
                     <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Informações Gerais</h4>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group">
-                             <label class="form-label">Técnico Responsável</label>
-                             <select id="os-tech-select" class="form-control">
-                                 <option value="">Selecione...</option>
-                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <select id="os-status" class="form-control">
-                                <option value="Aberta">Aberta</option>
-                                <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peças">Aguardando Peças</option>
-                                <option value="Concluída">Concluída</option>
-                                <option value="Cancelada">Cancelada</option>
-                            </select>
-                        </div>
-                    </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
                         <!-- Actions -->
@@ -262,7 +191,7 @@ window.OSModule = {
                             <i class="fa-solid fa-print"></i> Salvar PDF / Imprimir
                         </button>
                         <button type="button" id="btn-nfse-form" class="btn btn-info hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #17a2b8; color: #fff;">
-                            <i class="fa-solid fa-file-invoice-dollar"></i> Emitir NFS-e
+                            <i class="fa-solid fa-file-import"></i> Importar Nota Fiscal
                         </button>
                         <button type="button" id="btn-delete-os" class="btn btn-danger hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #dc3545; color: #fff;">
                             <i class="fa-solid fa-trash"></i> Excluir OS
@@ -369,6 +298,29 @@ window.OSModule = {
     loadOSList: () => {
         const osList = window.StorageApp.get('os_records') || [];
         const tbody = document.getElementById('os-list-body');
+        
+        // Obter valores dos filtros
+        const filterStatus = document.getElementById('filter-os-status') ? document.getElementById('filter-os-status').value : '';
+        const filterPayment = document.getElementById('filter-os-payment') ? document.getElementById('filter-os-payment').value : '';
+        const filterSearch = document.getElementById('filter-os-search') ? document.getElementById('filter-os-search').value.toLowerCase().trim() : '';
+
+        // Filtrar registros
+        const filteredList = osList.filter(os => {
+            const matchStatus = !filterStatus || os.status === filterStatus;
+            const matchPayment = !filterPayment || (os.paymentStatus || 'Pendente') === filterPayment;
+            
+            let matchSearch = true;
+            if (filterSearch) {
+                const searchNum = os.number ? os.number.toLowerCase() : '';
+                const searchClient = os.clientName ? os.clientName.toLowerCase() : '';
+                const searchPlate = os.vehiclePlate ? os.vehiclePlate.toLowerCase() : '';
+                matchSearch = searchNum.includes(filterSearch) || 
+                              searchClient.includes(filterSearch) || 
+                              searchPlate.includes(filterSearch);
+            }
+            
+            return matchStatus && matchPayment && matchSearch;
+        });
 
         if (!tbody) return;
         tbody.innerHTML = '';
@@ -391,13 +343,6 @@ window.OSModule = {
         filteredList.forEach(os => {
             const tr = document.createElement('tr');
 
-            // Status color badge
-            let badgeColor = '#6c757d'; // default
-            if (os.status === 'Concluída') badgeColor = '#28a745';
-            if (os.status === 'Em Andamento') badgeColor = '#007bff';
-            if (os.status === 'Aberta') badgeColor = '#ffc107';
-
-            const nfseBadgeHtml = window.NFSeModule ? window.NFSeModule.renderBadge(os) : '';
 
             // Format date safely
             let formattedDate = '<span style="color: var(--text-muted); font-style: italic;">Sem Data</span>';
@@ -415,15 +360,13 @@ window.OSModule = {
                 <td>${os.clientName}</td>
                 <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
                 <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
-                <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status}</span></td>
-                <td>${nfseBadgeHtml}</td>
                 <td>
                     <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
                     <button class="btn btn-secondary btn-sm print-os-list" data-id="${os.id}" style="background-color: #6f42c1;" title="Imprimir"><i class="fa-solid fa-print"></i></button>
                     ${os.nfseStatus === 'emitida' ? `
-                        <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver DANFSE / Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
+                        <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
                     ` : `
-                        <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Emitir NFS-e"><i class="fa-solid fa-file-invoice-dollar"></i></button>
+                        <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Importar Nota Fiscal"><i class="fa-solid fa-file-import"></i></button>
                     `}
                     <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="background-color: #dc3545; color: #fff;" title="Excluir OS"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -662,14 +605,7 @@ window.OSModule = {
         }
 
         // Delete Form Button
-        const btnDeleteForm = document.getElementById('btn-delete-os');
-        if (btnDeleteForm) {
-            btnDeleteForm.addEventListener('click', () => {
-                const id = document.getElementById('os-id').value;
-                if (id) OSModule.deleteOS(id);
-            });
-        }
-    },
+
 
     toggleManualClient: (isManual) => {
         const selectGroup = document.getElementById('group-client-select');
@@ -993,7 +929,8 @@ window.OSModule = {
                 total: total
             },
             techName,
-            status
+            status,
+            paymentStatus
         };
 
         let osRecords = window.StorageApp.get('os_records') || [];
