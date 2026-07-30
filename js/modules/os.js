@@ -1113,8 +1113,13 @@ window.OSModule = {
 
     saveOS: () => {
         const id = document.getElementById('os-id').value;
-        const number = document.getElementById('os-number').value;
         const date = document.getElementById('os-date').value;
+        const numberInput = document.getElementById('os-number');
+        let number = numberInput ? numberInput.value.trim() : '';
+        if (window.StorageApp && window.StorageApp.formatOSNumber) {
+            number = window.StorageApp.formatOSNumber(number, date);
+            if (numberInput) numberInput.value = number;
+        }
         const startTime = document.getElementById('os-start-time').value;
         const endTime = document.getElementById('os-end-time').value;
 
