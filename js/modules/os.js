@@ -25,17 +25,17 @@ window.OSModule = {
                 </div>
                 
 
-                <!-- Filtros e AÃ§Ãµes em Massa -->
+                <!-- Filtros e Ações em Massa -->
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
                     <!-- Filtros -->
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
                         <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Todos os Status (ServiÃ§o)</option>
+                                <option value="">Todos os Status (Serviço)</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando PeÃ§a">Aguardando PeÃ§a</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Entregue">Entregue</option>
                             </select>
@@ -45,21 +45,21 @@ window.OSModule = {
                                 <option value="Pago">Pago</option>
                                 <option value="Pago Parcialmente">Pago Parcialmente</option>
                             </select>
-                            <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou NÂº..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                            <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou Nº..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
                         </div>
                     </div>
 
-                    <!-- AÃ§Ãµes em Massa -->
+                    <!-- Ações em Massa -->
                     <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
                         <span style="font-weight: 600; color: #ffc107; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i> Alterar Selecionados:</span>
                         
-                        <!-- Alterar Status ServiÃ§o -->
+                        <!-- Alterar Status Serviço -->
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <select id="bulk-update-status" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Novo Status ServiÃ§o...</option>
+                                <option value="">Novo Status Serviço...</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando PeÃ§a">Aguardando PeÃ§a</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Entregue">Entregue</option>
                             </select>
