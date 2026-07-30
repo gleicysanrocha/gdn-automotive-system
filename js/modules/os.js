@@ -784,12 +784,29 @@ window.OSModule = {
                 if (ids.length === 0) return;
 
                 if (confirm(`Deseja alterar o status de pagamento de ${ids.length} OS para "${newPayment}"?`)) {
-                    let osRecords = window.StorageApp.get('os_records') || [];
                     osRecords = osRecords.map(os => {
-                        if (ids.includes(os.id)) os.paymentStatus = newPayment;
+                        if (ids.includes(os.id)) {
+                            os.paymentStatus = newPayment;
+                            if (newPayment === 'Pago') {
+                                os.valPaid = Number(os.values ? os.values.total : os.totalVal) || 0;
+                            } else if (newPayment === 'Pendente') {
+                                os.valPaid = 0;
+                            }
+                        }
                         return os;
                     });
                     await window.StorageApp.save('os_records', osRecords);
+
+                    // Sincroniza com o Financeiro
+                    if (window.FinancialModule) {
+                        for (const id of ids) {
+                            const updatedOs = osRecords.find(o => o.id === id);
+                            if (updatedOs) {
+                                await window.FinancialModule.syncReceivableForOS(updatedOs);
+                            }
+                        }
+                    }
+
                     alert('Status de pagamento atualizado com sucesso!');
                     document.getElementById('bulk-update-payment').value = '';
                     OSModule.loadOSList();
