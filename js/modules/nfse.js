@@ -326,7 +326,7 @@ window.NFSeModule = {
 
                     <!-- Footer Actions -->
                     <div style="background: #0f172a; padding: 20px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
-                        <button id="cancel-nfse-btn" style="background: #ef4444; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                        <button id="cancel-nfse-btn" style="background: #ef4444; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
                             <i class="fa-solid fa-trash"></i> Excluir Nota
                         </button>
                         <div style="display: flex; gap: 10px;">
