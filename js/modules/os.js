@@ -1,5 +1,28 @@
 
 window.OSModule = {
+    sortColumn: 'date',
+    sortDirection: 'desc',
+
+    setSort: (col) => {
+        if (window.OSModule.sortColumn === col) {
+            window.OSModule.sortDirection = window.OSModule.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            window.OSModule.sortColumn = col;
+            window.OSModule.sortDirection = 'desc';
+        }
+        window.OSModule.loadOSList();
+    },
+
+    getSortIcon: (col) => {
+        if (window.OSModule.sortColumn !== col) {
+            return ' <i class="fa-solid fa-sort" style="color: #cbd5e1; font-size: 0.75rem; margin-left: 4px; opacity: 0.6;"></i>';
+        }
+        if (window.OSModule.sortDirection === 'asc') {
+            return ' <i class="fa-solid fa-sort-up" style="color: var(--primary-color); font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>';
+        }
+        return ' <i class="fa-solid fa-sort-down" style="color: var(--primary-color); font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>';
+    },
+
     render: (container) => {
         container.innerHTML = `
             <div class="card" id="os-list-view">
@@ -73,26 +96,8 @@ window.OSModule = {
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-os" title="Selecionar Todas"></th>
-                                <th>Nº OS</th>
-                                <th>Data</th>
-                                <th>Cliente</th>
-                                <th>Veículo</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Pagamento</th>
-                                <th>NFS-e</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="os-list-body">
-                            <!-- JS Populated -->
-                        </tbody>
-                    </table>
+                <div class="table-responsive" id="os-table-wrapper">
+                    <!-- Dynamic table rendered by loadOSList -->
                 </div>
             </div>
 
@@ -177,8 +182,8 @@ window.OSModule = {
                             <input type="text" id="os-plate" class="form-control" required>
                         </div>
                         <div class="form-group">
-                             <label class="form-label">KM</label>
-                             <input type="text" id="os-km" class="form-control">
+                            <label class="form-label">KM</label>
+                            <input type="text" id="os-km" class="form-control">
                         </div>
                          <div class="form-group">
                              <label class="form-label">Garantia (Meses)</label>
@@ -186,10 +191,16 @@ window.OSModule = {
                         </div>
                     </div>
 
-                    <!-- Section 3: Details -->
+                     <!-- Section 3: Details -->
                      <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Descrição Detalhada</h4>
                      <div class="form-group">
-                         <textarea id="os-description" class="form-control" rows="5" placeholder="Descreva os serviços realizados..."></textarea>
+                          <textarea id="os-description" class="form-control" rows="5" placeholder="Descreva os serviços realizados..."></textarea>
+                     </div>
+
+                    <!-- Section 3.5: Observations -->
+                     <h4 class="section-title" style="margin-top: 20px; color: var(--primary-color); border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 15px;">Observações</h4>
+                     <div class="form-group">
+                          <textarea id="os-observations" class="form-control" rows="3" placeholder="Observações internas, notas ou advertências..."></textarea>
                      </div>
 
                      <!-- Section 4: Values -->
@@ -384,7 +395,8 @@ window.OSModule = {
 
     loadOSList: () => {
         const osList = window.StorageApp.get('os_records') || [];
-        const tbody = document.getElementById('os-list-body');
+        const wrapper = document.getElementById('os-table-wrapper');
+        if (!wrapper) return;
         
         // Obter valores dos filtros
         const filterStatus = document.getElementById('filter-os-status') ? document.getElementById('filter-os-status').value : '';
@@ -409,27 +421,67 @@ window.OSModule = {
             return matchStatus && matchPayment && matchSearch;
         });
 
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
         if (filteredList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Nenhuma OS registrada.</td></tr>';
+            wrapper.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-os" title="Selecionar Todas"></th>
+                            <th onclick="window.OSModule.setSort('number')" style="cursor: pointer; user-select: none;">Nº OS${window.OSModule.getSortIcon('number')}</th>
+                            <th onclick="window.OSModule.setSort('date')" style="cursor: pointer; user-select: none;">Data${window.OSModule.getSortIcon('date')}</th>
+                            <th onclick="window.OSModule.setSort('client')" style="cursor: pointer; user-select: none;">Cliente${window.OSModule.getSortIcon('client')}</th>
+                            <th onclick="window.OSModule.setSort('vehicle')" style="cursor: pointer; user-select: none;">Veículo${window.OSModule.getSortIcon('vehicle')}</th>
+                            <th onclick="window.OSModule.setSort('total')" style="cursor: pointer; user-select: none;">Total${window.OSModule.getSortIcon('total')}</th>
+                            <th onclick="window.OSModule.setSort('status')" style="cursor: pointer; user-select: none;">Status${window.OSModule.getSortIcon('status')}</th>
+                            <th onclick="window.OSModule.setSort('payment')" style="cursor: pointer; user-select: none;">Pagamento${window.OSModule.getSortIcon('payment')}</th>
+                            <th>NFS-e</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma OS registrada.</td></tr>
+                    </tbody>
+                </table>
+            `;
             const selectAllHeader = document.getElementById('select-all-os');
             if (selectAllHeader) selectAllHeader.checked = false;
-            OSModule.updateSelectedCount();
+            window.OSModule.updateSelectedCount();
             return;
         }
 
-        // Sort by newest first (handle empty dates safely)
-        filteredList.sort((a, b) => {
-            const da = a.date ? new Date(a.date).getTime() : 0;
-            const db = b.date ? new Date(b.date).getTime() : 0;
-            return db - da;
+        // Sort dynamic list
+        const sortedList = [...filteredList];
+        sortedList.sort((a, b) => {
+            let valA, valB;
+            if (window.OSModule.sortColumn === 'number') {
+                valA = a.number || '';
+                valB = b.number || '';
+            } else if (window.OSModule.sortColumn === 'date') {
+                valA = a.date ? new Date(a.date).getTime() : 0;
+                valB = b.date ? new Date(b.date).getTime() : 0;
+            } else if (window.OSModule.sortColumn === 'client') {
+                valA = (a.clientName || '').toLowerCase();
+                valB = (b.clientName || '').toLowerCase();
+            } else if (window.OSModule.sortColumn === 'vehicle') {
+                valA = (a.vehicleModel || '').toLowerCase();
+                valB = (b.vehicleModel || '').toLowerCase();
+            } else if (window.OSModule.sortColumn === 'total') {
+                valA = Number(a.values ? a.values.total : a.totalVal) || 0;
+                valB = Number(b.values ? b.values.total : b.totalVal) || 0;
+            } else if (window.OSModule.sortColumn === 'status') {
+                valA = (a.status || '').toLowerCase();
+                valB = (b.status || '').toLowerCase();
+            } else if (window.OSModule.sortColumn === 'payment') {
+                valA = (a.paymentStatus || '').toLowerCase();
+                valB = (b.paymentStatus || '').toLowerCase();
+            }
+
+            if (valA < valB) return window.OSModule.sortDirection === 'asc' ? -1 : 1;
+            if (valA > valB) return window.OSModule.sortDirection === 'asc' ? 1 : -1;
+            return 0;
         });
 
-        filteredList.forEach(os => {
-            const tr = document.createElement('tr');
-
+        const rowsHtml = sortedList.map(os => {
             // Status do serviço color badge
             let badgeColor = '#6c757d'; // default
             if (os.status === 'Finalizado') badgeColor = '#28a745';
@@ -456,29 +508,52 @@ window.OSModule = {
                 }
             }
 
-            tr.innerHTML = `
-                <td style="text-align: center;"><input type="checkbox" class="os-checkbox" data-id="${os.id}"></td>
-                <td><strong>#${os.number}</strong></td>
-                <td>${formattedDate}</td>
-                <td>${os.clientName}</td>
-                <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
-                <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
-                <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status || 'Pendente'}</span></td>
-                <td><span style="background-color: ${payBadgeColor}20; color: ${payBadgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${payStatus}</span></td>
-                <td>${nfseBadgeHtml}</td>
-                <td>
-                    <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn btn-secondary btn-sm print-os-list" data-id="${os.id}" style="background-color: #6f42c1;" title="Imprimir"><i class="fa-solid fa-print"></i></button>
-                    ${os.nfseStatus === 'emitida' ? `
-                        <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
-                    ` : `
-                        <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Importar Nota Fiscal"><i class="fa-solid fa-file-import"></i></button>
-                    `}
-                    <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="background-color: #dc3545; color: #fff;" title="Excluir OS"><i class="fa-solid fa-trash"></i></button>
-                </td>
+            return `
+                <tr>
+                    <td style="text-align: center;"><input type="checkbox" class="os-checkbox" data-id="${os.id}"></td>
+                    <td><strong>#${os.number}</strong></td>
+                    <td>${formattedDate}</td>
+                    <td>${os.clientName}</td>
+                    <td>${os.vehicleModel} <small>(${os.vehiclePlate})</small></td>
+                    <td>R$ ${parseFloat(os.values.total).toFixed(2)}</td>
+                    <td><span style="background-color: ${badgeColor}20; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${os.status || 'Pendente'}</span></td>
+                    <td><span style="background-color: ${payBadgeColor}20; color: ${payBadgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">${payStatus}</span></td>
+                    <td>${nfseBadgeHtml}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm edit-os" data-id="${os.id}" title="Ver/Editar"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn btn-secondary btn-sm print-os-list" data-id="${os.id}" style="background-color: #6f42c1;" title="Imprimir"><i class="fa-solid fa-print"></i></button>
+                        ${os.nfseStatus === 'emitida' ? `
+                            <button class="btn btn-sm view-nfse" data-id="${os.id}" style="background-color: #28a745; color: #fff;" title="Ver Nota Fiscal"><i class="fa-solid fa-file-invoice"></i></button>
+                        ` : `
+                            <button class="btn btn-sm emit-nfse" data-id="${os.id}" style="background-color: #17a2b8; color: #fff;" title="Importar Nota Fiscal"><i class="fa-solid fa-file-import"></i></button>
+                        `}
+                        <button class="btn btn-danger btn-sm delete-os" data-id="${os.id}" style="background-color: #dc3545; color: #fff;" title="Excluir OS"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
             `;
-            tbody.appendChild(tr);
-        });
+        }).join('');
+
+        wrapper.innerHTML = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all-os" title="Selecionar Todas"></th>
+                        <th onclick="window.OSModule.setSort('number')" style="cursor: pointer; user-select: none;">Nº OS${window.OSModule.getSortIcon('number')}</th>
+                        <th onclick="window.OSModule.setSort('date')" style="cursor: pointer; user-select: none;">Data${window.OSModule.getSortIcon('date')}</th>
+                        <th onclick="window.OSModule.setSort('client')" style="cursor: pointer; user-select: none;">Cliente${window.OSModule.getSortIcon('client')}</th>
+                        <th onclick="window.OSModule.setSort('vehicle')" style="cursor: pointer; user-select: none;">Veículo${window.OSModule.getSortIcon('vehicle')}</th>
+                        <th onclick="window.OSModule.setSort('total')" style="cursor: pointer; user-select: none;">Total${window.OSModule.getSortIcon('total')}</th>
+                        <th onclick="window.OSModule.setSort('status')" style="cursor: pointer; user-select: none;">Status${window.OSModule.getSortIcon('status')}</th>
+                        <th onclick="window.OSModule.setSort('payment')" style="cursor: pointer; user-select: none;">Pagamento${window.OSModule.getSortIcon('payment')}</th>
+                        <th>NFS-e</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="os-list-body">
+                    ${rowsHtml}
+                </tbody>
+            </table>
+        `;
 
         // Checkbox events
         const selectAll = document.getElementById('select-all-os');
@@ -487,29 +562,29 @@ window.OSModule = {
             selectAll.onchange = (e) => {
                 const checked = e.target.checked;
                 document.querySelectorAll('.os-checkbox').forEach(cb => cb.checked = checked);
-                OSModule.updateSelectedCount();
+                window.OSModule.updateSelectedCount();
             };
         }
 
         document.querySelectorAll('.os-checkbox').forEach(cb => {
             cb.onchange = () => {
-                OSModule.updateSelectedCount();
+                window.OSModule.updateSelectedCount();
             };
         });
 
-        OSModule.updateSelectedCount();
+        window.OSModule.updateSelectedCount();
 
         document.querySelectorAll('.edit-os').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
-                OSModule.editOS(target.getAttribute('data-id'));
+                window.OSModule.editOS(target.getAttribute('data-id'));
             });
         });
 
         document.querySelectorAll('.print-os-list').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
-                OSModule.printOS(target.getAttribute('data-id'));
+                window.OSModule.printOS(target.getAttribute('data-id'));
             });
         });
 
@@ -537,7 +612,7 @@ window.OSModule = {
             btn.addEventListener('click', (e) => {
                 const target = e.target.closest('button');
                 const osId = target.getAttribute('data-id');
-                OSModule.deleteOS(osId);
+                window.OSModule.deleteOS(osId);
             });
         });
     },
@@ -960,6 +1035,8 @@ window.OSModule = {
             // New OS
             document.getElementById('os-form').reset();
             document.getElementById('os-id').value = '';
+            const obsInput = document.getElementById('os-observations');
+            if (obsInput) obsInput.value = '';
             document.getElementById('os-form-title').textContent = 'Nova Ordem de Serviço';
 
             // Default to Select Mode
@@ -1149,6 +1226,7 @@ window.OSModule = {
 
         // Details
         const description = document.getElementById('os-description').value;
+        const observations = document.getElementById('os-observations') ? document.getElementById('os-observations').value : '';
 
         // Values
         const valParts = parseFloat(document.getElementById('val-parts').value) || 0;
@@ -1172,6 +1250,7 @@ window.OSModule = {
             clientId, clientName, clientDoc, clientPhone, clientAddress, isManual,
             vehicleModel, vehicleYear, vehiclePlate, vehicleKm, vehicleWarranty,
             description,
+            observations,
             values: {
                 parts: valParts,
                 machine: valMachine,
@@ -1264,6 +1343,8 @@ window.OSModule = {
             document.getElementById('os-warranty').value = os.vehicleWarranty;
 
             document.getElementById('os-description').value = os.description;
+            const obsInput = document.getElementById('os-observations');
+            if (obsInput) obsInput.value = os.observations || '';
 
             document.getElementById('val-parts').value = os.values.parts || '';
             document.getElementById('val-machine').value = os.values.machine || '';
@@ -1439,6 +1520,16 @@ window.OSModule = {
                         ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
                     </div>
                 </section>
+
+                ${os.observations ? `
+                <!-- Section: Observations -->
+                <section class="section">
+                    <h3 class="section-title">OBSERVAÇÕES</h3>
+                    <div class="description-content" style="font-style: italic; color: #555;">
+                        ${os.observations.replace(/\n/g, '<br>')}
+                    </div>
+                </section>
+                ` : ''}
 
                 <!-- Section: Values -->
                 <section class="section">
