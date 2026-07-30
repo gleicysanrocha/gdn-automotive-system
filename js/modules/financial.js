@@ -17,8 +17,45 @@ window.FinancialModule = {
     /** Cria uma conta pendente para uma OS antiga quando ela ainda não foi migrada. */
     receivableFromOS: (os, existing = {}) => {
         const amount = Number(os.values?.total ?? os.totalVal) || 0;
-        const paidAmount = Math.min(Number(existing.paidAmount) || 0, amount);
-        const status = paidAmount >= amount && amount > 0 ? 'paid' : (existing.status === 'cancelled' ? 'cancelled' : 'pending');
+        
+        let paidAmount = Number(existing.paidAmount) || 0;
+        let payments = existing.payments || [];
+        let status = existing.status || 'pending';
+
+        if (os.paymentStatus === 'Pago') {
+            paidAmount = amount;
+            status = 'paid';
+            if (payments.length === 0 && amount > 0) {
+                payments = [{
+                    id: `pay_auto_${Date.now()}`,
+                    amount: amount,
+                    date: os.date || new Date().toISOString().slice(0, 10),
+                    createdAt: new Date().toISOString()
+                }];
+            }
+        } else if (os.paymentStatus === 'Pago Parcialmente') {
+            const osValPaid = Number(os.valPaid) || 0;
+            paidAmount = osValPaid;
+            status = paidAmount >= amount && amount > 0 ? 'paid' : 'pending';
+            if (payments.length === 0 && osValPaid > 0) {
+                payments = [{
+                    id: `pay_auto_${Date.now()}`,
+                    amount: osValPaid,
+                    date: os.date || new Date().toISOString().slice(0, 10),
+                    createdAt: new Date().toISOString()
+                }];
+            } else if (payments.length > 0 && osValPaid > 0) {
+                const autoPay = payments.find(p => p.id.startsWith('pay_auto_'));
+                if (autoPay) {
+                    autoPay.amount = osValPaid;
+                }
+            }
+        } else {
+            payments = payments.filter(p => !p.id.startsWith('pay_auto_'));
+            paidAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+            status = paidAmount >= amount && amount > 0 ? 'paid' : (existing.status === 'cancelled' ? 'cancelled' : 'pending');
+        }
+
         return {
             id: existing.id || `rec_${os.id}`,
             osId: os.id,
@@ -29,7 +66,7 @@ window.FinancialModule = {
             amount,
             paidAmount,
             status,
-            payments: existing.payments || [],
+            payments,
             createdAt: existing.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -135,6 +172,24 @@ window.FinancialModule = {
         account.payments.push({ id: `pay_${Date.now()}`, amount, date, createdAt: new Date().toISOString() });
         account.status = account.paidAmount >= account.amount ? 'paid' : 'pending';
         await window.StorageApp.save('fin_receivables', receivables);
+
+        // Sincroniza de volta com o registro da OS
+        if (account.osId) {
+            const osRecords = window.StorageApp.get('os_records') || [];
+            const osIndex = osRecords.findIndex(o => o.id === account.osId);
+            if (osIndex !== -1) {
+                const os = osRecords[osIndex];
+                if (account.status === 'paid') {
+                    os.paymentStatus = 'Pago';
+                    os.valPaid = account.amount;
+                } else {
+                    os.paymentStatus = 'Pago Parcialmente';
+                    os.valPaid = account.paidAmount;
+                }
+                await window.StorageApp.save('os_records', osRecords);
+            }
+        }
+
         FinancialModule.updateReport();
     },
 
