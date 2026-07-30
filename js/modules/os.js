@@ -12,12 +12,7 @@ window.OSModule = {
                         <button id="btn-delete-all-os" class="btn btn-outline-danger" style="color: #dc3545; border: 1px solid #dc3545; background: transparent;" title="Excluir todas as Ordens de Serviço do banco">
                             <i class="fa-solid fa-trash-can"></i> Excluir Todas
                         </button>
-                        <button id="btn-import-whatsapp" class="btn btn-secondary" style="background-color: #25d366; border-color: #128c7e;">
-                            <i class="fa-brands fa-whatsapp"></i> Importar WhatsApp
-                        </button>
-                        <button id="btn-import-excel" class="btn btn-secondary" style="background-color: #107c41; border-color: #0b5a2f;">
-                            <i class="fa-solid fa-file-excel"></i> Importar Planilha
-                        </button>
+
                         <button id="btn-new-os" class="btn btn-primary">
                             <i class="fa-solid fa-plus"></i> Nova OS
                         </button>
