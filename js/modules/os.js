@@ -257,6 +257,18 @@ window.OSModule = {
                         </div>
                     </div>
 
+                    <!-- Campos de Pagamento Parcial -->
+                    <div id="os-partial-payment-container" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid #334155;">
+                        <div class="form-group">
+                            <label class="form-label">Valor Pago (R$)</label>
+                            <input type="number" step="0.01" id="os-val-paid" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Valor Restante (R$)</label>
+                            <input type="text" id="os-val-remaining" class="form-control" readonly style="font-weight: bold; color: #ffc107;">
+                        </div>
+                    </div>
+
                     <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
                         <!-- Actions -->
                         <button type="submit" class="btn btn-primary" style="padding: 12px 25px; font-size: 1.1rem;">
@@ -656,6 +668,21 @@ window.OSModule = {
             input.addEventListener('input', OSModule.calculateTotal);
         });
 
+        // Partial Payment triggers
+        const payStatusSelect = document.getElementById('os-payment-status');
+        if (payStatusSelect) {
+            payStatusSelect.addEventListener('change', () => {
+                OSModule.togglePartialPaymentFields();
+            });
+        }
+
+        const valPaidInput = document.getElementById('os-val-paid');
+        if (valPaidInput) {
+            valPaidInput.addEventListener('input', () => {
+                OSModule.calculateRemainingPayment();
+            });
+        }
+
         // Form Submit
         const form = document.getElementById('os-form');
         if (form) {
@@ -865,7 +892,40 @@ window.OSModule = {
         const total = (parts + machine + labor + misc) - discount;
 
         document.getElementById('os-total-display').textContent = total.toFixed(2);
+        if (typeof OSModule.calculateRemainingPayment === 'function') {
+            OSModule.calculateRemainingPayment();
+        }
         return total;
+    },
+
+    togglePartialPaymentFields: () => {
+        const select = document.getElementById('os-payment-status');
+        const container = document.getElementById('os-partial-payment-container');
+        if (select && container) {
+            if (select.value === 'Pago Parcialmente') {
+                container.classList.remove('hidden');
+                OSModule.calculateRemainingPayment();
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+    },
+
+    calculateRemainingPayment: () => {
+        const parts = parseFloat(document.getElementById('val-parts').value) || 0;
+        const machine = parseFloat(document.getElementById('val-machine').value) || 0;
+        const labor = parseFloat(document.getElementById('val-labor').value) || 0;
+        const misc = parseFloat(document.getElementById('val-misc').value) || 0;
+        const discount = parseFloat(document.getElementById('val-discount').value) || 0;
+        const total = (parts + machine + labor + misc) - discount;
+
+        const valPaidInput = document.getElementById('os-val-paid');
+        const valRemainingInput = document.getElementById('os-val-remaining');
+        if (valPaidInput && valRemainingInput) {
+            const valPaid = parseFloat(valPaidInput.value) || 0;
+            const remaining = total - valPaid;
+            valRemainingInput.value = remaining.toFixed(2);
+        }
     },
 
     showForm: (isEdit = false) => {
@@ -888,6 +948,11 @@ window.OSModule = {
             // Default to Select Mode
             document.getElementById('os-manual-client').checked = false;
             OSModule.toggleManualClient(false);
+
+            // Clear partial payment
+            const valPaidInput = document.getElementById('os-val-paid');
+            if (valPaidInput) valPaidInput.value = '';
+            OSModule.togglePartialPaymentFields();
 
             // Generate next number
             const osList = window.StorageApp.get('os_records') || [];
@@ -1076,6 +1141,7 @@ window.OSModule = {
         const techName = document.getElementById('os-tech-select').value;
         const status = document.getElementById('os-status').value;
         const paymentStatus = document.getElementById('os-payment-status') ? document.getElementById('os-payment-status').value : 'Pendente';
+        const valPaid = paymentStatus === 'Pago Parcialmente' ? (parseFloat(document.getElementById('os-val-paid').value) || 0) : 0;
 
         const osData = {
             id: id || Date.now().toString(),
@@ -1095,7 +1161,8 @@ window.OSModule = {
             },
             techName,
             status,
-            paymentStatus
+            paymentStatus,
+            valPaid
         };
 
         let osRecords = window.StorageApp.get('os_records') || [];
@@ -1189,6 +1256,11 @@ window.OSModule = {
             if (paySelect) {
                 paySelect.value = os.paymentStatus || 'Pendente';
             }
+            const valPaidInput = document.getElementById('os-val-paid');
+            if (valPaidInput) {
+                valPaidInput.value = os.valPaid || '';
+            }
+            OSModule.togglePartialPaymentFields();
 
             OSModule.calculateTotal();
             document.getElementById('btn-print-os').classList.remove('hidden');
@@ -1376,6 +1448,25 @@ window.OSModule = {
                             <span>VALOR TOTAL</span>
                             <span class="value">R$ ${total.toFixed(2)}</span>
                         </div>
+                        ${os.paymentStatus === 'Pago Parcialmente' ? `
+                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
+                            <span>STATUS DO PAGAMENTO</span>
+                            <span class="value" style="font-weight: bold; color: #f59e0b;">Pago Parcialmente</span>
+                        </div>
+                        <div class="value-row">
+                            <span>Valor Pago</span>
+                            <span class="value">R$ ${(parseFloat(os.valPaid) || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="value-row" style="font-weight: bold; color: #ef4444;">
+                            <span>VALOR RESTANTE</span>
+                            <span class="value">R$ ${(total - (parseFloat(os.valPaid) || 0)).toFixed(2)}</span>
+                        </div>
+                        ` : `
+                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
+                            <span>STATUS DO PAGAMENTO</span>
+                            <span class="value" style="font-weight: bold; color: ${os.paymentStatus === 'Pago' ? '#22c55e' : '#ef4444'};">${os.paymentStatus || 'Pendente'}</span>
+                        </div>
+                        `}
                     </div>
                 </section>
 
