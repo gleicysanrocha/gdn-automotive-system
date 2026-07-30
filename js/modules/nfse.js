@@ -1,14 +1,14 @@
 /**
- * MÃ³dulo de Nota Fiscal de ServiÃ§o EletrÃ´nica (NFS-e)
- * GDN ServiÃ§os Automotivos
+ * Módulo de Nota Fiscal de Serviço Eletrônica (NFS-e)
+ * GDN Serviços Automotivos
  */
 
 window.NFSeModule = {
-    // Retorna as configuraÃ§Ãµes fiscais salvas ou padrÃµes
+    // Retorna as configurações fiscais salvas ou padrões
     getFiscalSettings: () => {
         const settings = window.StorageApp.get('storeSettings') || {};
         return {
-            name: settings.name || 'GDN ServiÃ§os Automotivos',
+            name: settings.name || 'GDN Serviços Automotivos',
             cnpj: settings.cnpj || '',
             address: settings.address || '',
             phone: settings.phone || '',
@@ -21,28 +21,28 @@ window.NFSeModule = {
         };
     },
 
-    // Valida se a OS possui todos os campos necessÃ¡rios para emissÃ£o da NFS-e
+    // Valida se a OS possui todos os campos necessários para emissão da NFS-e
     validateOSForNFSe: (os, client) => {
         const errors = [];
 
         const valLabor = parseFloat((os.values ? os.values.labor : os.valLabor) || 0);
         if (valLabor <= 0) {
-            errors.push('A OS nÃ£o possui valor de MÃ£o de Obra / ServiÃ§o tributÃ¡vel (valor R$ 0,00).');
+            errors.push('A OS não possui valor de Mão de Obra / Serviço tributável (valor R$ 0,00).');
         }
 
         const doc = (client ? (client.document || client.cpf || client.cnpj) : os.clientDoc) || '';
         if (!doc || doc.trim().length < 11) {
-            errors.push('O cliente nÃ£o possui CPF/CNPJ vÃ¡lido cadastrado (mÃ­nimo 11 dÃ­gitos).');
+            errors.push('O cliente não possui CPF/CNPJ válido cadastrado (mínimo 11 dígitos).');
         }
 
         const clientName = (client ? client.name : (os.clientName || os.clientNameManual)) || '';
         if (!clientName || clientName.trim() === '') {
-            errors.push('Nome do cliente Ã© obrigatÃ³rio para emissÃ£o de nota fiscal.');
+            errors.push('Nome do cliente é obrigatório para emissão de nota fiscal.');
         }
 
         const address = (client ? client.address : os.clientAddress) || '';
         if (!address || address.trim() === '') {
-            errors.push('EndereÃ§o do cliente Ã© obrigatÃ³rio para a NFS-e.');
+            errors.push('Endereço do cliente é obrigatório para a NFS-e.');
         }
 
         return {
@@ -51,7 +51,7 @@ window.NFSeModule = {
         };
     },
 
-    // Gera a estrutura do Payload JSON para envio Ã  API da NFS-e
+    // Gera a estrutura do Payload JSON para envio à API da NFS-e
     buildPayload: (os, client, fiscalSettings) => {
         const valLabor = parseFloat((os.values ? os.values.labor : os.valLabor) || 0);
         const aliquota = fiscalSettings.aliquotaIss / 100;
@@ -61,7 +61,7 @@ window.NFSeModule = {
         const clientName = client ? client.name : (os.clientName || os.clientNameManual || 'Cliente Avulso');
         const clientAddress = client ? client.address : (os.clientAddress || '');
         const clientEmail = client ? client.email : '';
-        const clientPhone = client ? client.phone : (os.clientPhone || '231');
+        const clientPhone = client ? client.phone : (os.clientPhone || '');
 
         return {
             ambiente: fiscalSettings.nfseEnvironment,
@@ -78,13 +78,13 @@ window.NFSeModule = {
                 telefone: clientPhone,
                 endereco: {
                     logradouro: clientAddress,
-                    cidade: 'SÃ£o Paulo',
+                    cidade: 'São Paulo',
                     uf: 'SP'
                 }
             },
             servico: {
                 item_lista_servico: fiscalSettings.codigoServico,
-                discriminacao: `ServiÃ§os automotivos referentes Ã  O.S. NÂº ${os.number || os.id}.\nVeÃ­culo: ${os.vehicleModel || os.model || ''} - Placa: ${os.vehiclePlate || os.plate || ''}\nDescriÃ§Ã£o: ${os.description || 'ManutenÃ§Ã£o e reparaÃ§Ã£o mecÃ¢nica.'}`,
+                discriminacao: `Serviços automotivos referentes à O.S. N. ${os.number || os.id}.\nVeículo: ${os.vehicleModel || os.model || ''} - Placa: ${os.vehiclePlate || os.plate || ''}\nDescrição: ${os.description || 'Manutenção e reparação mecânica.'}`,
                 valor_servicos: valLabor,
                 aliquota_iss: fiscalSettings.aliquotaIss,
                 valor_iss: parseFloat(valorIss.toFixed(2)),
@@ -94,18 +94,18 @@ window.NFSeModule = {
         };
     },
 
-    // Redireciona para exibir a modal de importaÃ§Ã£o
+    // Redireciona para exibir a modal de importação
     emitirNFSe: async (osId) => {
         window.NFSeModule.showImportModal(osId);
         return true;
     },
 
-    // Abre a modal para importaÃ§Ã£o do arquivo da nota fiscal emitida
+    // Abre a modal para importação do arquivo da nota fiscal emitida
     showImportModal: (osId) => {
         const osRecords = window.StorageApp.get('os_records') || [];
         const osIndex = osRecords.findIndex(o => o.id == osId);
         if (osIndex === -1) {
-            alert('Ordem de ServiÃ§o nÃ£o encontrada.');
+            alert('Ordem de Serviço não encontrada.');
             return;
         }
         const os = osRecords[osIndex];
@@ -126,13 +126,13 @@ window.NFSeModule = {
                     <form id="nfse-import-form" style="padding: 25px; display: flex; flex-direction: column; gap: 20px;">
                         <div>
                             <p style="margin: 0 0 15px 0; color: #94a3b8; font-size: 0.9rem; line-height: 1.5;">
-                                Anexe a nota fiscal correspondente Ã  <strong>O.S. NÂº ${os.number || os.id}</strong>.
+                                Anexe a nota fiscal correspondente à <strong>O.S. N. ${os.number || os.id}</strong>.
                             </p>
                         </div>
 
-                        <!-- NÃºmero da Nota -->
+                        <!-- Número da Nota -->
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <label style="font-size: 0.875rem; font-weight: 500; color: #cbd5e1;">NÃºmero da Nota Fiscal</label>
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #cbd5e1;">Número da Nota Fiscal</label>
                             <input type="text" id="import-nfse-number" placeholder="Ex: 2026093" required style="background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px 12px; color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='#334155'">
                         </div>
 
@@ -143,7 +143,7 @@ window.NFSeModule = {
                                 <input type="file" id="import-nfse-file" accept=".pdf,.xml,.png,.jpg,.jpeg" required style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
                                 <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: #64748b; margin-bottom: 10px; display: block;"></i>
                                 <span id="file-label" style="font-size: 0.875rem; color: #94a3b8; display: block;">Arrastar arquivo ou clique para selecionar</span>
-                                <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 5px;">PDF, XML ou Imagens de atÃ© 5MB</span>
+                                <span style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 5px;">PDF, XML ou Imagens de até 5MB</span>
                             </div>
                         </div>
 
@@ -188,7 +188,7 @@ window.NFSeModule = {
         document.getElementById('close-import-modal-btn').addEventListener('click', removeModal);
         document.getElementById('cancel-import-btn').addEventListener('click', removeModal);
 
-        // SubmissÃ£o do Form
+        // Submissão do Form
         document.getElementById('nfse-import-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const file = fileInput.files[0];
@@ -215,12 +215,12 @@ window.NFSeModule = {
                 alert('Nota Fiscal importada com sucesso!');
                 removeModal();
 
-                // Recarrega listagem e visualizaÃ§Ã£o da OS aberta se aplicÃ¡vel
+                // Recarrega listagem e visualização da OS aberta se aplicável
                 if (window.OSModule) {
                     if (typeof window.OSModule.loadOSList === 'function') {
                         window.OSModule.loadOSList();
                     }
-                    // Se estiver com o formulÃ¡rio de ediÃ§Ã£o aberto para esta OS, atualiza o botÃ£o
+                    // Se estiver com o formulário de edição aberto para esta OS, atualiza o botão
                     const formId = document.getElementById('os-id') ? document.getElementById('os-id').value : '';
                     if (formId === osId && typeof window.OSModule.editOS === 'function') {
                         window.OSModule.editOS(osId);
@@ -269,8 +269,8 @@ window.NFSeModule = {
         const status = os.nfseStatus || 'nao_emitida';
         switch (status) {
             case 'emitida':
-                return `<span class="badge" style="background-color: #28a745; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;" title="Nota Fiscal Importada NÂº ${os.nfseNumero || ''}">
-                    <i class="fa-solid fa-file-invoice"></i> NÂº ${os.nfseNumero || 'OK'}
+                return `<span class="badge" style="background-color: #28a745; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;" title="Nota Fiscal Importada N. ${os.nfseNumero || ''}">
+                    <i class="fa-solid fa-file-invoice"></i> N. ${os.nfseNumero || 'OK'}
                 </span>`;
             default:
                 return `<span class="badge" style="background-color: #f8f9fa; color: #6c757d; border: 1px dashed #ccc; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem;">
@@ -279,12 +279,12 @@ window.NFSeModule = {
         }
     },
 
-    // Exibe Modal de VisualizaÃ§Ã£o/GestÃ£o da Nota Fiscal Importada
+    // Exibe Modal de Visualização/Gestão da Nota Fiscal Importada
     showNFSeModal: (osId) => {
         const osRecords = window.StorageApp.get('os_records') || [];
         const os = osRecords.find(o => o.id == osId);
         if (!os || !os.nfseFileBase64) {
-            alert('Arquivo de Nota Fiscal nÃ£o localizado para esta OS.');
+            alert('Arquivo de Nota Fiscal não localizado para esta OS.');
             return;
         }
 
@@ -305,16 +305,16 @@ window.NFSeModule = {
                     <!-- Details -->
                     <div style="padding: 25px; display: flex; flex-direction: column; gap: 15px;">
                         <div style="display: flex; flex-direction: column; gap: 5px; border-bottom: 1px solid #334155; padding-bottom: 15px;">
-                            <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em;">Ordem de ServiÃ§o</span>
-                            <span style="font-size: 1.05rem; font-weight: 500;">O.S. NÂº ${os.number || os.id} - Cliente: ${os.clientName || 'Manual/NÃ£o informado'}</span>
+                            <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em;">Ordem de Serviço</span>
+                            <span style="font-size: 1.05rem; font-weight: 500;">O.S. N. ${os.number || os.id} - Cliente: ${os.clientName || 'Manual/Não informado'}</span>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-bottom: 1px solid #334155; padding-bottom: 15px;">
                             <div style="display: flex; flex-direction: column; gap: 5px;">
-                                <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em;">NÃºmero da Nota</span>
-                                <span style="font-size: 1rem; font-weight: 500; color: #38bdf8;">${os.nfseNumero || 'NÃ£o informado'}</span>
+                                <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em;">Número da Nota</span>
+                                <span style="font-size: 1rem; font-weight: 500; color: #38bdf8;">${os.nfseNumero || 'Não informado'}</span>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 5px;">
-                                <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em;">Data de ImportaÃ§Ã£o</span>
+                                <span style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em;">Data de Importação</span>
                                 <span style="font-size: 1rem; font-weight: 500;">${dataEmissao}</span>
                             </div>
                         </div>
