@@ -1780,7 +1780,8 @@ window.OSModule = {
         container.style.left = '0';
         container.style.top = '0';
         container.style.width = '800px';
-        container.style.opacity = '0.01';
+        container.style.opacity = '1';
+        container.style.background = '#fff';
         container.style.pointerEvents = 'none';
         container.style.zIndex = '-9999';
 
