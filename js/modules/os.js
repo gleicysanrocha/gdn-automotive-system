@@ -107,7 +107,6 @@ window.OSModule = {
                 <div id="os-nfse-summary-bar" style="background: var(--background-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: var(--text-color); font-size: 0.9rem;">
                     <div><i class="fa-solid fa-file-invoice" style="color:var(--success-color);"></i> <strong>NFS-e Emitidas:</strong> <span id="os-summary-nfse-count" style="font-weight:bold; color:#28a745;">0</span></div>
                     <div><i class="fa-solid fa-gears" style="color:var(--primary-color);"></i> <strong>Mão de Obra Faturada:</strong> <span id="os-summary-nfse-labor" style="font-weight:bold; color:#28a745;">R$ 0,00</span></div>
-                    <div><i class="fa-solid fa-percent" style="color:#ffc107;"></i> <strong>ISS Estimado:</strong> <span id="os-summary-nfse-iss" style="font-weight:bold; color:#ffc107;">R$ 0,00</span></div>
                 </div>
 
                 <div class="table-responsive" id="os-table-wrapper">
@@ -444,17 +443,12 @@ window.OSModule = {
         const totalLaborInvoiced = periodInvoices.reduce((sum, os) => {
             return sum + (Number(os.values ? os.values.labor : os.valLabor) || 0);
         }, 0);
-        
-        const fiscalSettings = window.NFSeModule ? window.NFSeModule.getFiscalSettings() : { aliquotaIss: 5 };
-        const totalIss = totalLaborInvoiced * (fiscalSettings.aliquotaIss / 100);
 
         const summaryCount = document.getElementById('os-summary-nfse-count');
         const summaryLabor = document.getElementById('os-summary-nfse-labor');
-        const summaryIss = document.getElementById('os-summary-nfse-iss');
         
         if (summaryCount) summaryCount.textContent = periodInvoices.length;
         if (summaryLabor) summaryLabor.textContent = `R$ ${totalLaborInvoiced.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        if (summaryIss) summaryIss.textContent = `R$ ${totalIss.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         if (filteredList.length === 0) {
             wrapper.innerHTML = `
