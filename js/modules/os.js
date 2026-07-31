@@ -42,48 +42,46 @@ window.OSModule = {
                     </div>
                 </div>
                 
-
                 <!-- Filtros e Ações em Massa -->
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
                     <!-- Filtros -->
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-                        <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                            <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Todos os Status (Serviço)</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peça">Aguardando Peça</option>
-                                <option value="Finalizado">Finalizado</option>
-                                <option value="Entregue">Entregue</option>
-                            </select>
-                            <select id="filter-os-payment" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Todos os Pagamentos</option>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Pago">Pago</option>
-                                <option value="Pago Parcialmente">Pago Parcialmente</option>
-                            </select>
-                            <input type="month" id="filter-os-month" class="form-control" style="max-width: 160px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                            <select id="filter-os-nfse" class="form-control" style="max-width: 180px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Todas as NFS-e</option>
-                                <option value="emitida">Com NFS-e (Emitida)</option>
-                                <option value="nao_emitida">Sem NFS-e</option>
-                            </select>
-                            <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou Nº..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                            <button id="btn-clear-os-filters" class="btn btn-secondary" style="background-color: #475569; color: white; border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros</button>
-                        </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
+                        <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
+                            <option value="">Todos os Status (Servi&ccedil;o)</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Aguardando Peça">Aguardando Pe&ccedil;a</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Entregue">Entregue</option>
+                        </select>
+                        <select id="filter-os-payment" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
+                            <option value="">Todos os Pagamentos</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Pago">Pago</option>
+                            <option value="Pago Parcialmente">Pago Parcialmente</option>
+                        </select>
+                        <input type="month" id="filter-os-month" class="form-control" style="max-width: 160px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
+                        <select id="filter-os-nfse" class="form-control" style="max-width: 180px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
+                            <option value="">Todas as NFS-e</option>
+                            <option value="emitida">Com NFS-e (Emitida)</option>
+                            <option value="nao_emitida">Sem NFS-e</option>
+                        </select>
+                        <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou N&ordm;..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
+                        <button id="btn-clear-os-filters" class="btn btn-secondary" style="background-color: #475569; color: white; border: none; padding: 0 12px; font-size: 0.85rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer; height: 34px;"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros</button>
                     </div>
+
                     <!-- Ações em Massa -->
-                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px; margin-bottom: 12px;">
-                        <span style="font-weight: 600; color: #ffc107; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-list-check"></i> Ações em Lote:</span>
+                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
+                        <span style="font-weight: 600; color: #ffc107; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-list-check"></i> A&ccedil;&otilde;es em Lote:</span>
                         
                         <!-- Unified Bulk Update Form -->
                         <div style="display: flex; gap: 8px; align-items: center; background: #1e293b; padding: 4px 8px; border-radius: 6px; border: 1px solid #334155;">
                             <select id="bulk-update-status" class="form-control" style="width: 160px; padding: 4px 8px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
-                                <option value="">Sem Alterar Serviço</option>
+                                <option value="">Sem Alterar Servi&ccedil;o</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peça">Aguardando Peça</option>
+                                <option value="Aguardando Peça">Aguardando Pe&ccedil;a</option>
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Entregue">Entregue</option>
                             </select>
@@ -93,7 +91,7 @@ window.OSModule = {
                                 <option value="Pago">Pago</option>
                                 <option value="Pago Parcialmente">Pago Parcialmente</option>
                             </select>
-                            <button id="btn-bulk-apply-changes" class="btn" style="background-color: #3b82f6; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; box-sizing: border-box;"><i class="fa-solid fa-check-double"></i> Alterar Status</button>
+                            <button id="btn-bulk-apply-changes" class="btn" style="background-color: #3b82f6; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; box-sizing: border-box;">Alterar Status</button>
                         </div>
 
                         <!-- Action Buttons (Standard size and height) -->
@@ -102,7 +100,7 @@ window.OSModule = {
                             <button id="btn-bulk-download-pdf" class="btn btn-info" style="background-color: #17a2b8; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
                             <button id="btn-bulk-print" class="btn btn-primary" style="background-color: #5a35b8; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
                         </div>
-                    </div>             </div>
+                    </div>
                 </div>
 
                 <!-- NFS-e Summary Bar -->
