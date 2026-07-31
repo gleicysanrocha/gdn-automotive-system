@@ -1624,7 +1624,7 @@ window.OSModule = {
                         <div class="col">
                             <div class="field-box">
                                  <label>DATA DO SERVIÇO</label>
-                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
                              </div>
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
@@ -1850,7 +1850,7 @@ window.OSModule = {
                             <div class="col">
                                 <div class="field-box">
                                      <label>DATA DO SERVIÇO</label>
-                                     <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                                     <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
                                  </div>
                                 <div class="field-box">
                                     <label>TÉCNICO RESPONSÁVEL</label>
@@ -2027,7 +2027,7 @@ window.OSModule = {
                         <div class="col">
                             <div class="field-box">
                                  <label>DATA DO SERVIÇO</label>
-                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
                              </div>
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
