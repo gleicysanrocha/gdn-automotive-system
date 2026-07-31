@@ -77,7 +77,7 @@ window.OSModule = {
                         
                         <!-- Unified Bulk Update Form -->
                         <div style="display: flex; gap: 8px; align-items: center; background: #1e293b; padding: 4px 8px; border-radius: 6px; border: 1px solid #334155;">
-                            <select id="bulk-update-status" class="form-control" style="width: 160px; padding: 4px 8px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
+                            <select id="bulk-update-status" class="form-control" style="width: 170px; padding: 4px 8px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
                                 <option value="">Sem Alterar Servi&ccedil;o</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
@@ -85,20 +85,20 @@ window.OSModule = {
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Entregue">Entregue</option>
                             </select>
-                            <select id="bulk-update-payment" class="form-control" style="width: 165px; padding: 4px 8px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
+                            <select id="bulk-update-payment" class="form-control" style="width: 175px; padding: 4px 8px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
                                 <option value="">Sem Alterar Pagamento</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Pago">Pago</option>
                                 <option value="Pago Parcialmente">Pago Parcialmente</option>
                             </select>
-                            <button id="btn-bulk-apply-changes" class="btn" style="background-color: #3b82f6; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; box-sizing: border-box;">Alterar Status</button>
+                            <button id="btn-bulk-apply-changes" class="btn" style="background-color: #3b82f6; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; box-sizing: border-box;">Alterar Status</button>
                         </div>
 
                         <!-- Action Buttons (Standard size and height) -->
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <button id="btn-bulk-export-excel" class="btn btn-success" style="background-color: #217346; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
-                            <button id="btn-bulk-download-pdf" class="btn btn-info" style="background-color: #17a2b8; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
-                            <button id="btn-bulk-print" class="btn btn-primary" style="background-color: #5a35b8; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
+                            <button id="btn-bulk-export-excel" class="btn btn-success" style="background-color: #217346; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
+                            <button id="btn-bulk-download-pdf" class="btn btn-info" style="background-color: #17a2b8; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
+                            <button id="btn-bulk-print" class="btn btn-primary" style="background-color: #5a35b8; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
                         </div>
                     </div>
                 </div>
