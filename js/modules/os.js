@@ -1813,7 +1813,7 @@ window.OSModule = {
                         </div>
                         <div>
                             <p style="margin: 2px 0;"><strong>Data do Serviço:</strong> ${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</p>
-                            ${os.endTime ? `<p style="margin: 2px 0;"><strong>Previsão de Entrega:</strong> ${os.endTime}</p>` : ''}
+                            ${os.endTime ? '<p style="margin: 2px 0;"><strong>Previsão de Entrega:</strong> ' + os.endTime + '</p>' : ''}
                             <p style="margin: 2px 0;"><strong>Técnico:</strong> ${os.techName || '-'}</p>
                             <p style="margin: 2px 0;"><strong>CPF/CNPJ:</strong> ${os.clientDoc || '-'}</p>
                         </div>
@@ -1844,15 +1844,7 @@ window.OSModule = {
                     </div>
                 </section>
 
-                ${os.observations ? `
-                <!-- Section: Observations -->
-                <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
-                    <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">OBSERVAÇÕES</h3>
-                    <div style="font-size: 0.8rem; font-style: italic; color: #555; line-height: 1.3;">
-                        ${os.observations.replace(/\n/g, '<br>')}
-                    </div>
-                </section>
-                ` : ''}
+                ${os.observations ? '<!-- Section: Observations --><section class="section" style="margin-bottom: 15px; z-index:1; position:relative;"><h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">OBSERVAÇÕES</h3><div style="font-size: 0.8rem; font-style: italic; color: #555; line-height: 1.3;">' + os.observations.replace(/\n/g, '<br>') + '</div></section>' : ''}
 
                 <!-- Section: Values -->
                 <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
@@ -1861,8 +1853,8 @@ window.OSModule = {
                         <p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Valor das Peças:</span> <span>R$ ${parts.toFixed(2)}</span></p>
                         <p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Valor da Retífica:</span> <span>R$ ${machine.toFixed(2)}</span></p>
                         <p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Valor da Mão de Obra:</span> <span>R$ ${labor.toFixed(2)}</span></p>
-                        ${misc > 0 ? `<p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Outros (${os.values.miscDesc || ''}):</span> <span>R$ ${misc.toFixed(2)}</span></p>` : ''}
-                        ${discount > 0 ? `<p style="display:flex; justify-content:space-between; margin:2px 0; color: #dc3545;"><span>Desconto:</span> <span>- R$ ${discount.toFixed(2)}</span></p>` : ''}
+                        ${misc > 0 ? '<p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Outros (' + (os.values.miscDesc || '') + '):</span> <span>R$ ' + misc.toFixed(2) + '</span></p>' : ''}
+                        ${discount > 0 ? '<p style="display:flex; justify-content:space-between; margin:2px 0; color: #dc3545;"><span>Desconto:</span> <span>- R$ ' + discount.toFixed(2) + '</span></p>' : ''}
                         <p style="display:flex; justify-content:space-between; margin:6px 0 2px 0; border-top: 1px solid #333; font-weight:bold; font-size: 0.9rem; padding-top:3px;"><span>VALOR TOTAL:</span> <span>R$ ${total.toFixed(2)}</span></p>
                     </div>
                 </section>
