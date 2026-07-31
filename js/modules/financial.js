@@ -8,6 +8,7 @@ window.FinancialModule = {
     sortDirection: 'desc',
     cashFlowChart: null,
     categoriesChart: null,
+    activeTab: 'receivables',
 
     setSort: (col) => {
         if (window.FinancialModule.sortColumn === col) {
@@ -134,7 +135,7 @@ window.FinancialModule = {
                 <div class="card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
                     <div>
                         <h3><i class="fa-solid fa-money-bill-transfer"></i> Gestão Financeira Profissional</h3>
-                        <p class="text-muted">Controle o que é sua Mão de Obra real e separe dos custos de Peças e Retífica de terceiros.</p>
+                        <p class="text-muted">Acompanhe fluxo de caixa, DRE, exportações e notas fiscais emitidas no mês.</p>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                         <input id="fin-period" class="form-control" type="month" value="${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}" style="width:auto;">
@@ -167,14 +168,21 @@ window.FinancialModule = {
                 <!-- Tables and Expense Form Section -->
                 <div style="display:grid; grid-template-columns:minmax(0, 2fr) minmax(300px, 1fr); gap:20px;">
                     <div class="card" style="border-radius: var(--card-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; background: #ffffff;">
-                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 20px;">
-                            <h4 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-list-check" style="color: var(--primary-color);"></i> Contas a receber
-                            </h4>
-                            <span class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-info-circle"></i> Clique em “Receber” para baixa total ou parcial.</span>
+                        <!-- Tab Header Navigation -->
+                        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 20px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+                            <div style="display:flex; gap:12px;">
+                                <button id="tab-receivables" class="btn btn-sm" style="font-weight:bold; background:var(--primary-color); color:white; border:none; padding: 6px 14px; border-radius:6px; cursor:pointer;">Contas a Receber</button>
+                                <button id="tab-invoices" class="btn btn-sm" style="font-weight:bold; background:#e9ecef; color:var(--text-color); border:none; padding: 6px 14px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px;">Notas Fiscais (NFS-e) <span id="fin-invoice-count-badge" class="badge" style="background:#6c757d; color:white; font-size:0.75rem; padding: 2px 6px; border-radius:10px;">0</span></button>
+                            </div>
+                            <span id="tab-helper-text" class="text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-info-circle"></i> Clique em “Receber” para baixa total ou parcial.</span>
                         </div>
+                        
+                        <!-- Table wrappers -->
                         <div class="table-responsive" id="receivables-table-wrapper">
-                            <!-- Populado dinamicamente por updateReport -->
+                            <!-- Contas a receber content -->
+                        </div>
+                        <div class="table-responsive hidden" id="invoices-table-wrapper">
+                            <!-- Notas fiscais content -->
                         </div>
                     </div>
                     
@@ -225,6 +233,31 @@ window.FinancialModule = {
         document.getElementById('btn-export-excel').addEventListener('click', window.FinancialModule.exportToExcel);
         document.getElementById('btn-generate-dre').addEventListener('click', window.FinancialModule.generateDRE);
         document.getElementById('expense-form').addEventListener('submit', window.FinancialModule.saveExpense);
+
+        // Bind tab buttons
+        document.getElementById('tab-receivables').onclick = () => {
+            window.FinancialModule.activeTab = 'receivables';
+            document.getElementById('tab-receivables').style.background = 'var(--primary-color)';
+            document.getElementById('tab-receivables').style.color = 'white';
+            document.getElementById('tab-invoices').style.background = '#e9ecef';
+            document.getElementById('tab-invoices').style.color = 'var(--text-color)';
+            
+            document.getElementById('receivables-table-wrapper').classList.remove('hidden');
+            document.getElementById('invoices-table-wrapper').classList.add('hidden');
+            document.getElementById('tab-helper-text').innerHTML = '<i class="fa-solid fa-info-circle"></i> Clique em “Receber” para baixa total ou parcial.';
+        };
+
+        document.getElementById('tab-invoices').onclick = () => {
+            window.FinancialModule.activeTab = 'invoices';
+            document.getElementById('tab-invoices').style.background = 'var(--primary-color)';
+            document.getElementById('tab-invoices').style.color = 'white';
+            document.getElementById('tab-receivables').style.background = '#e9ecef';
+            document.getElementById('tab-receivables').style.color = 'var(--text-color)';
+            
+            document.getElementById('receivables-table-wrapper').classList.add('hidden');
+            document.getElementById('invoices-table-wrapper').classList.remove('hidden');
+            document.getElementById('tab-helper-text').innerHTML = '<i class="fa-solid fa-file-invoice"></i> Controle mensal de NFS-e emitidas.';
+        };
     },
 
     saveExpense: async (event) => {
@@ -641,6 +674,7 @@ window.FinancialModule = {
         // Update Charts (usamos a mão de obra recebida como as entradas reais da oficina nos gráficos)
         window.FinancialModule.updateCharts(laborReceived, totalExpenses, categoryBreakdown);
 
+        // --- POPULA CONTAS A RECEBER TAB ---
         const wrapper = document.getElementById('receivables-table-wrapper');
         if (wrapper) {
             const visible = receivables.filter(item => item.issueDate?.startsWith(period) || item.dueDate?.startsWith(period) || item.status !== 'paid');
@@ -734,6 +768,85 @@ window.FinancialModule = {
                 </table>
             `;
         }
+
+        // --- POPULA NOTAS FISCAIS TAB ---
+        const invoiceWrapper = document.getElementById('invoices-table-wrapper');
+        const periodInvoices = osRecords.filter(os => {
+            return os.nfseStatus === 'emitida' && os.nfseDataEmissao && os.nfseDataEmissao.startsWith(period);
+        });
+
+        // Atualiza a badge numérica da tab
+        const invoiceCountBadge = document.getElementById('fin-invoice-count-badge');
+        if (invoiceCountBadge) {
+            invoiceCountBadge.textContent = periodInvoices.length;
+        }
+
+        if (invoiceWrapper) {
+            const fiscalSettings = window.NFSeModule ? window.NFSeModule.getFiscalSettings() : { aliquotaIss: 5 };
+            const aliq = fiscalSettings.aliquotaIss / 100;
+
+            let periodInvoicedSum = 0;
+            let periodIssSum = 0;
+
+            const invoiceRowsHtml = periodInvoices.map(os => {
+                const laborVal = os.values ? Number(os.values.labor) || 0 : Number(os.valLabor) || 0;
+                const issEst = laborVal * aliq;
+
+                periodInvoicedSum += laborVal;
+                periodIssSum += issEst;
+
+                const dataNota = os.nfseDataEmissao ? new Date(os.nfseDataEmissao).toLocaleDateString('pt-BR') : '-';
+
+                return `<tr style="background: #ffffff; transition: background 0.2s ease;" onmouseover="this.style.background='#f8fafc';" onmouseout="this.style.background='#ffffff';">
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                        <span class="badge" style="background: rgba(40, 167, 69, 0.08); color: #28a745; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(40, 167, 69, 0.15);"><i class="fa-solid fa-file-invoice"></i> Nº ${os.nfseNumero || 'OK'}</span>
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle;">
+                        <span class="badge" style="background: rgba(0, 123, 255, 0.08); color: #007bff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(0, 123, 255, 0.15);">#${os.number}</span>
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; color: var(--text-color); font-weight: 500;">
+                        ${os.clientName || 'Cliente Avulso'}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; color: var(--text-muted);">
+                        ${dataNota}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--text-color);">
+                        ${window.FinancialModule.currency(laborVal)}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--danger-color);">
+                        ${window.FinancialModule.currency(issEst)}
+                    </td>
+                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: right;">
+                        <button class="btn btn-sm btn-primary" style="background-color: var(--primary-color); border: none; border-radius: 6px; font-weight: bold; padding: 6px 14px; color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" onclick="window.NFSeModule.showNFSeModal('${os.id}')"><i class="fa-solid fa-eye"></i> Ver PDF</button>
+                    </td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="7" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-file-excel" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma NFS-e importada neste período.</td></tr>`;
+
+            invoiceWrapper.innerHTML = `
+                <div style="background: #f8fafc; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-size:0.9rem;"><strong>Total Faturado em Notas:</strong> <span style="color:var(--success-color); font-weight:bold; font-size:1.05rem;">${window.FinancialModule.currency(periodInvoicedSum)}</span></div>
+                    <div style="font-size:0.9rem;"><strong>ISS Estimado (${fiscalSettings.aliquotaIss}%):</strong> <span style="color:var(--danger-color); font-weight:bold; font-size:1.05rem;">${window.FinancialModule.currency(periodIssSum)}</span></div>
+                </div>
+                <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
+                    <thead>
+                        <tr style="background: transparent;">
+                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Nº Nota</th>
+                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">OS</th>
+                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Cliente</th>
+                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Data Emissão</th>
+                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Valor de Serviço</th>
+                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">ISS (${fiscalSettings.aliquotaIss}%)</th>
+                            <th style="border: none; padding-bottom: 12px; width: 120px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${invoiceRowsHtml}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // --- POPULA DESPESAS LIST ---
         document.getElementById('fin-expenses-list').innerHTML = expenses.map(item => `
             <div style="display:flex;justify-content:space-between;gap:8px;margin:8px 0;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
                 <span>
