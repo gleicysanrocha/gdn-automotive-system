@@ -104,7 +104,7 @@ window.OSModule = {
                 </div>
 
                 <!-- NFS-e Summary Bar -->
-                <div id="os-nfse-summary-bar" style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: #fff; font-size: 0.9rem;">
+                <div id="os-nfse-summary-bar" style="background: var(--background-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: var(--text-color); font-size: 0.9rem;">
                     <div><i class="fa-solid fa-file-invoice" style="color:var(--success-color);"></i> <strong>NFS-e Emitidas:</strong> <span id="os-summary-nfse-count" style="font-weight:bold; color:#28a745;">0</span></div>
                     <div><i class="fa-solid fa-gears" style="color:var(--primary-color);"></i> <strong>Mão de Obra Faturada:</strong> <span id="os-summary-nfse-labor" style="font-weight:bold; color:#28a745;">R$ 0,00</span></div>
                     <div><i class="fa-solid fa-percent" style="color:#ffc107;"></i> <strong>ISS Estimado:</strong> <span id="os-summary-nfse-iss" style="font-weight:bold; color:#ffc107;">R$ 0,00</span></div>
