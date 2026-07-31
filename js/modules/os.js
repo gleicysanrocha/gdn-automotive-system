@@ -1758,7 +1758,15 @@ window.OSModule = {
             <body>
                 ${printContent}
                 <script>
-                    window.onload = function() { setTimeout    downloadSingleOSPDF: (os) => {
+                    window.onload = function() { setTimeout(() => window.print(), 500); }
+                </script>
+            </body>
+            </html>
+        `);
+        win.document.close();
+    },
+
+    downloadSingleOSPDF: (os) => {
         const parts = parseFloat(os.values.parts) || 0;
         const machine = parseFloat(os.values.machine) || 0;
         const labor = parseFloat(os.values.labor) || 0;
