@@ -1774,20 +1774,9 @@ window.OSModule = {
         const misc = parseFloat(os.values.misc) || 0;
         const total = parseFloat(os.values.total) || 0;
 
-        // Render inside viewport area but make it invisible and non-interactive to allow html2canvas rendering
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.left = '0';
-        container.style.top = '0';
-        container.style.width = '800px';
-        container.style.opacity = '1';
-        container.style.background = '#fff';
-        container.style.pointerEvents = 'none';
-        container.style.zIndex = '-9999';
-
         const printStyles = `
             @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-            body { font-family: 'Roboto', sans-serif; font-size: 10px; color: #333; background: #fff; }
+            body { font-family: 'Roboto', sans-serif; font-size: 10px; color: #333; background: #fff; padding: 20px; }
             .print-page { width: 100%; max-width: 210mm; margin: 0 auto; position: relative; z-index: 1; padding: 8mm 10mm; box-sizing: border-box; background: white; }
             .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; max-width: 500px; z-index: -1; pointer-events: none; opacity: 0.05; display: flex; justify-content: center; align-items: center; }
             .watermark img { width: 100%; height: auto; border-radius: 50%; background: #000; }
@@ -1819,161 +1808,160 @@ window.OSModule = {
             .terms { margin-top: 10px; font-size: 8.5px; text-align: center; color: #666; font-style: italic; line-height: 1.2; }
         `;
 
-        container.innerHTML = `
-            <style>${printStyles}</style>
-            <div class="print-page">
-                <!-- Watermark Background -->
-                <div class="watermark">
-                     <img src="assets/img/logo.png" alt="GDN Watermark">
+        const htmlContent = `
+            <div style="font-family: 'Roboto', sans-serif; background: #fff; color: #333; padding: 10px; width: 750px;">
+                <style>${printStyles}</style>
+                <div class="print-page">
+                    <!-- Watermark Background -->
+                    <div class="watermark">
+                         <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Watermark">
+                    </div>
+
+                    <header class="header">
+                        <div class="logo-area">
+                            <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Serviços Automotivos">
+                        </div>
+                        <div class="header-info">
+                            <h1>GDN SERVIÇOS AUTOMOTIVOS</h1>
+                            <p class="phone">Tel: (11) 94857-9072</p>
+                        </div>
+                    </header>
+
+                    <div class="os-title-bar">
+                        ORDEM DE SERVIÇO Nº OS-${os.number}
+                    </div>
+
+                    <!-- Section: Client Info -->
+                    <section class="section">
+                        <h3 class="section-title">INFORMAÇÕES DO CLIENTE</h3>
+                        <div class="info-grid two-columns">
+                            <div class="col">
+                                <div class="field-box">
+                                    <label>NÚMERO DA OS</label>
+                                    <span>OS-${os.number}</span>
+                                </div>
+                                <div class="field-box">
+                                    <label>STATUS</label>
+                                    <span>${os.status}</span>
+                                </div>
+                                <div class="field-box">
+                                    <label>CLIENTE</label>
+                                    <span>${os.clientName}</span>
+                                </div>
+                                <div class="field-box">
+                                    <label>ENDEREÇO</label>
+                                    <span>${os.clientAddress || '-'}</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="field-box">
+                                     <label>DATA DO SERVIÇO</label>
+                                     <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                                 </div>
+                                 ${os.endTime ? '<div class="field-box"><label>PREVISÃO ENTREGA</label><span>' + os.endTime + '</span></div>' : ''}
+                                <div class="field-box">
+                                    <label>TÉCNICO RESPONSÁVEL</label>
+                                    <span>${os.techName || '-'}</span>
+                                </div>
+                                <div class="field-box">
+                                    <label>CPF/CNPJ</label>
+                                    <span>${os.clientDoc || '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Vehicle Info -->
+                    <section class="section">
+                        <h3 class="section-title">INFORMAÇÕES DO VEÍCULO</h3>
+                        <div class="info-grid two-columns vehicle-grid">
+                            <div class="col">
+                                <div class="field-box">
+                                    <label>MODELO</label>
+                                    <span>${os.vehicleModel}</span>
+                                </div>
+                                <div class="field-box">
+                                    <label>PLACA</label>
+                                    <span>${os.vehiclePlate}</span>
+                                </div>
+                                 <div class="field-box">
+                                    <label>GARANTIA</label>
+                                    <span>${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                 <div class="field-box">
+                                    <label>ANO</label>
+                                    <span>${os.vehicleYear || '-'}</span>
+                                </div>
+                                <div class="field-box">
+                                    <label>KM</label>
+                                    <span>${os.vehicleKm || '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Description -->
+                    <section class="section">
+                        <h3 class="section-title">DESCRIÇÃO DO SERVIÇO</h3>
+                        <div class="description-content">
+                            ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
+                        </div>
+                    </section>
+
+                    ${os.observations ? '<!-- Section: Observations --><section class="section"><h3 class="section-title">OBSERVAÇÕES</h3><div class="description-content" style="font-style: italic; color: #555;">' + os.observations.replace(/\n/g, '<br>') + '</div></section>' : ''}
+
+                    <!-- Section: Values -->
+                    <section class="section">
+                        <h3 class="section-title">VALORES</h3>
+                        <div class="values-list">
+                            <div class="value-row">
+                                <span>Valor das Peças</span>
+                                <span class="value">R$ ${parts.toFixed(2)}</span>
+                            </div>
+                            <div class="value-row">
+                                <span>Valor da Retífica</span>
+                                <span class="value">R$ ${machine.toFixed(2)}</span>
+                            </div>
+                            <div class="value-row">
+                                <span>Valor da Mão de Obra</span>
+                                <span class="value">R$ ${labor.toFixed(2)}</span>
+                            </div>
+                            ${misc > 0 ? '<div class="value-row"><span>Outros (' + (os.values.miscDesc || '') + ')</span><span class="value">R$ ' + misc.toFixed(2) + '</span></div>' : ''}
+                            ${discount > 0 ? '<div class="value-row discount"><span>Desconto</span><span class="value">- R$ ' + discount.toFixed(2) + '</span></div>' : ''}
+                            <div class="value-row total">
+                                <span>VALOR TOTAL</span>
+                                <span class="value">R$ ${total.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Footer Info -->
+                    <div class="footer-info-box">
+                            <span><strong>CONTATO</strong> Tel: (11) 94857-9072</span>
+                            <span><strong>PAGAMENTO</strong> PIX: 56.306.502/0001-08</span>
+                    </div>
+
+                    <!-- Signatures -->
+                    <div class="signatures">
+                        <div class="sig-line">
+                            Assinatura do Cliente
+                        </div>
+                        <div class="sig-line">
+                            Assinatura do Responsável
+                        </div>
+                    </div>
+                    
+                     <p class="terms">
+                        Declaro ter conferido o veículo e os serviços realizados. A garantia cobre apenas peças e serviços descritos nesta OS.
+                    </p>
                 </div>
-
-                <header class="header">
-                    <div class="logo-area">
-                        <img src="assets/img/logo.png" alt="GDN Serviços Automotivos">
-                    </div>
-                    <div class="header-info">
-                        <h1>GDN SERVIÇOS AUTOMOTIVOS</h1>
-                        <p class="phone">Tel: (11) 94857-9072</p>
-                    </div>
-                </header>
-
-                <div class="os-title-bar">
-                    ORDEM DE SERVIÇO Nº OS-${os.number}
-                </div>
-
-                <!-- Section: Client Info -->
-                <section class="section">
-                    <h3 class="section-title">INFORMAÇÕES DO CLIENTE</h3>
-                    <div class="info-grid two-columns">
-                        <div class="col">
-                            <div class="field-box">
-                                <label>NÚMERO DA OS</label>
-                                <span>OS-${os.number}</span>
-                            </div>
-                            <div class="field-box">
-                                <label>STATUS</label>
-                                <span>${os.status}</span>
-                            </div>
-                            <div class="field-box">
-                                <label>CLIENTE</label>
-                                <span>${os.clientName}</span>
-                            </div>
-                            <div class="field-box">
-                                <label>ENDEREÇO</label>
-                                <span>${os.clientAddress || '-'}</span>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="field-box">
-                                 <label>DATA DO SERVIÇO</label>
-                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
-                             </div>
-                             ${os.endTime ? '<div class="field-box"><label>PREVISÃO ENTREGA</label><span>' + os.endTime + '</span></div>' : ''}
-                            <div class="field-box">
-                                <label>TÉCNICO RESPONSÁVEL</label>
-                                <span>${os.techName || '-'}</span>
-                            </div>
-                            <div class="field-box">
-                                <label>CPF/CNPJ</label>
-                                <span>${os.clientDoc || '-'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section: Vehicle Info -->
-                <section class="section">
-                    <h3 class="section-title">INFORMAÇÕES DO VEÍCULO</h3>
-                    <div class="info-grid two-columns vehicle-grid">
-                        <div class="col">
-                            <div class="field-box">
-                                <label>MODELO</label>
-                                <span>${os.vehicleModel}</span>
-                            </div>
-                            <div class="field-box">
-                                <label>PLACA</label>
-                                <span>${os.vehiclePlate}</span>
-                            </div>
-                             <div class="field-box">
-                                <label>GARANTIA</label>
-                                <span>${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</span>
-                            </div>
-                        </div>
-                        <div class="col">
-                             <div class="field-box">
-                                <label>ANO</label>
-                                <span>${os.vehicleYear || '-'}</span>
-                            </div>
-                            <div class="field-box">
-                                <label>KM</label>
-                                <span>${os.vehicleKm || '-'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section: Description -->
-                <section class="section">
-                    <h3 class="section-title">DESCRIÇÃO DO SERVIÇO</h3>
-                    <div class="description-content">
-                        ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
-                    </div>
-                </section>
-
-                ${os.observations ? '<!-- Section: Observations --><section class="section"><h3 class="section-title">OBSERVAÇÕES</h3><div class="description-content" style="font-style: italic; color: #555;">' + os.observations.replace(/\n/g, '<br>') + '</div></section>' : ''}
-
-                <!-- Section: Values -->
-                <section class="section">
-                    <h3 class="section-title">VALORES</h3>
-                    <div class="values-list">
-                        <div class="value-row">
-                            <span>Valor das Peças</span>
-                            <span class="value">R$ ${parts.toFixed(2)}</span>
-                        </div>
-                        <div class="value-row">
-                            <span>Valor da Retífica</span>
-                            <span class="value">R$ ${machine.toFixed(2)}</span>
-                        </div>
-                        <div class="value-row">
-                            <span>Valor da Mão de Obra</span>
-                            <span class="value">R$ ${labor.toFixed(2)}</span>
-                        </div>
-                        ${misc > 0 ? '<div class="value-row"><span>Outros (' + (os.values.miscDesc || '') + ')</span><span class="value">R$ ' + misc.toFixed(2) + '</span></div>' : ''}
-                        ${discount > 0 ? '<div class="value-row discount"><span>Desconto</span><span class="value">- R$ ' + discount.toFixed(2) + '</span></div>' : ''}
-                        <div class="value-row total">
-                            <span>VALOR TOTAL</span>
-                            <span class="value">R$ ${total.toFixed(2)}</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section: Footer Info -->
-                <div class="footer-info-box">
-                        <span><strong>CONTATO</strong> Tel: (11) 94857-9072</span>
-                        <span><strong>PAGAMENTO</strong> PIX: 56.306.502/0001-08</span>
-                </div>
-
-                <!-- Signatures -->
-                <div class="signatures">
-                    <div class="sig-line">
-                        Assinatura do Cliente
-                    </div>
-                    <div class="sig-line">
-                        Assinatura do Responsável
-                    </div>
-                </div>
-                
-                 <p class="terms">
-                    Declaro ter conferido o veículo e os serviços realizados. A garantia cobre apenas peças e serviços descritos nesta OS.
-                </p>
             </div>
         `;
 
-        document.body.appendChild(container);
-
         if (typeof html2pdf === 'undefined') {
             alert('Aguarde o carregamento do gerador de PDFs. Tente novamente em 2 segundos.');
-            document.body.removeChild(container);
             return;
         }
 
@@ -1985,12 +1973,7 @@ window.OSModule = {
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().from(container).set(opt).save().then(() => {
-            document.body.removeChild(container);
-        }).catch((err) => {
-            console.error('Erro na exportação de PDF:', err);
-            document.body.removeChild(container);
-        });
+        html2pdf().from(htmlContent).set(opt).save();
     },
 
     printMultipleOS: (ids) => {
