@@ -100,6 +100,12 @@ window.OSModule = {
                             </select>
                             <button id="btn-bulk-update-payment" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
                         </div>
+
+                        <!-- Ações Extras (Exportação e Impressão Lote) -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button id="btn-bulk-export-excel" class="btn btn-sm btn-success" style="background-color: #217346; border-color: #1e6b3f; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                            <button id="btn-bulk-print" class="btn btn-sm btn-primary" style="background-color: #5a35b8; border-color: #4b2a9e; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-print"></i> Imprimir Recibos</button>
+                        </div>
                     </div>
                 </div>
 
@@ -933,10 +939,67 @@ window.OSModule = {
                         }
                     }
 
-                    alert('Status de pagamento atualizado com sucesso!');
+                    alert('Status de pagamento updated with success!');
                     document.getElementById('bulk-update-payment').value = '';
                     OSModule.loadOSList();
                 }
+            });
+        }
+
+        // Bulk Export Excel
+        const btnBulkExport = document.getElementById('btn-bulk-export-excel');
+        if (btnBulkExport) {
+            btnBulkExport.addEventListener('click', () => {
+                const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
+                const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
+                if (ids.length === 0) {
+                    alert('Selecione pelo menos uma OS para exportar.');
+                    return;
+                }
+                const osRecords = window.StorageApp.get('os_records') || [];
+                const selectedOS = osRecords.filter(os => ids.includes(os.id));
+                const excelData = selectedOS.map(os => ({
+                    "OS": `#${os.number}`,
+                    "Data": os.date ? new Date(os.date).toLocaleDateString('pt-BR') : '-',
+                    "Cliente": os.clientName || 'Manual/Avulso',
+                    "CPF/CNPJ": os.clientDoc || '-',
+                    "Telefone": os.clientPhone || '-',
+                    "Veículo": os.vehicleModel || '-',
+                    "Ano": os.vehicleYear || '-',
+                    "Placa": os.vehiclePlate || '-',
+                    "KM": os.vehicleKm || '-',
+                    "Peças (R$)": os.values ? os.values.parts || 0 : 0,
+                    "Retífica (R$)": os.values ? os.values.machine || 0 : 0,
+                    "Mão de Obra (R$)": os.values ? os.values.labor || 0 : 0,
+                    "Diversos (R$)": os.values ? os.values.misc || 0 : 0,
+                    "Desconto (R$)": os.values ? os.values.discount || 0 : 0,
+                    "Total (R$)": os.values ? os.values.total || 0 : 0,
+                    "Status Serviço": os.status || 'Pendente',
+                    "Status Pagamento": os.paymentStatus || 'Pendente',
+                    "Observações": os.observations || '-'
+                }));
+                if (typeof XLSX === 'undefined') {
+                    alert('Biblioteca do Excel não está carregada. Tente novamente em alguns segundos.');
+                    return;
+                }
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                XLSX.utils.book_append_sheet(wb, ws, "Ordens de Serviço");
+                XLSX.writeFile(wb, "Ordens_de_Servico_Selecionadas.xlsx");
+            });
+        }
+
+        // Bulk Print Receipts
+        const btnBulkPrint = document.getElementById('btn-bulk-print');
+        if (btnBulkPrint) {
+            btnBulkPrint.addEventListener('click', () => {
+                const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
+                const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
+                if (ids.length === 0) {
+                    alert('Selecione pelo menos uma OS para imprimir.');
+                    return;
+                }
+                OSModule.printMultipleOS(ids);
             });
         }
     },
@@ -1671,6 +1734,237 @@ window.OSModule = {
                 ${printContent}
                 <script>
                     window.onload = function() { setTimeout(() => window.print(), 500); }
+                </script>
+            </body>
+            </html>
+        `);
+        win.document.close();
+    },
+
+    printMultipleOS: (ids) => {
+        const osRecords = window.StorageApp.get('os_records') || [];
+        let combinedHtml = '';
+
+        for (const id of ids) {
+            const os = osRecords.find(o => o.id === id);
+            if (!os) continue;
+
+            // Ensure values are numbers
+            const parts = parseFloat(os.values.parts) || 0;
+            const machine = parseFloat(os.values.machine) || 0;
+            const labor = parseFloat(os.values.labor) || 0;
+            const discount = parseFloat(os.values.discount) || 0;
+            const misc = parseFloat(os.values.misc) || 0;
+            const total = parseFloat(os.values.total) || 0;
+
+            combinedHtml += `
+            <div class="print-page" style="page-break-after: always; position: relative; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px dashed #ccc;">
+                <!-- Watermark Background -->
+                <div class="watermark">
+                     <img src="assets/img/logo.png" alt="GDN Watermark">
+                </div>
+
+                <header class="header">
+                    <div class="logo-area">
+                        <img src="assets/img/logo.png" alt="GDN Serviços Automotivos">
+                    </div>
+                    <div class="header-info">
+                        <h1>GDN SERVIÇOS AUTOMOTIVOS</h1>
+                        <p class="phone">Tel: (11) 94857-9072</p>
+                    </div>
+                </header>
+
+                <div class="os-title-bar">
+                    ORDEM DE SERVIÇO Nº OS-${os.number}
+                </div>
+
+                <!-- Section: Client Info -->
+                <section class="section">
+                    <h3 class="section-title">INFORMAÇÕES DO CLIENTE</h3>
+                    <div class="info-grid two-columns">
+                        <div class="col">
+                            <div class="field-box">
+                                <label>NÚMERO DA OS</label>
+                                <span>OS-${os.number}</span>
+                            </div>
+                            <div class="field-box">
+                                <label>STATUS</label>
+                                <span>${os.status}</span>
+                            </div>
+                            <div class="field-box">
+                                <label>CLIENTE</label>
+                                <span>${os.clientName}</span>
+                            </div>
+                            <div class="field-box">
+                                <label>ENDEREÇO</label>
+                                <span>${os.clientAddress || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="field-box">
+                                 <label>DATA DO SERVIÇO</label>
+                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
+                             </div>
+                             ${os.endTime ? `
+                             <div class="field-box">
+                                 <label>PREVISÃO ENTREGA</label>
+                                 <span>${os.endTime}</span>
+                             </div>` : ''}
+                            <div class="field-box">
+                                <label>TÉCNICO RESPONSÁVEL</label>
+                                <span>${os.techName || '-'}</span>
+                            </div>
+                            <div class="field-box">
+                                <label>CPF/CNPJ</label>
+                                <span>${os.clientDoc || '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Vehicle Info -->
+                <section class="section">
+                    <h3 class="section-title">INFORMAÇÕES DO VEÍCULO</h3>
+                    <div class="info-grid two-columns vehicle-grid">
+                        <div class="col">
+                            <div class="field-box">
+                                <label>MODELO</label>
+                                <span>${os.vehicleModel}</span>
+                            </div>
+                            <div class="field-box">
+                                <label>PLACA</label>
+                                <span>${os.vehiclePlate}</span>
+                            </div>
+                             <div class="field-box">
+                                <label>GARANTIA</label>
+                                <span>${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                             <div class="field-box">
+                                <label>ANO</label>
+                                <span>${os.vehicleYear || '-'}</span>
+                            </div>
+                            <div class="field-box">
+                                <label>KM</label>
+                                <span>${os.vehicleKm || '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Description -->
+                <section class="section">
+                    <h3 class="section-title">DESCRIÇÃO DO SERVIÇO</h3>
+                    <div class="description-content">
+                        ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
+                    </div>
+                </section>
+
+                ${os.observations ? `
+                <!-- Section: Observations -->
+                <section class="section">
+                    <h3 class="section-title">OBSERVAÇÕES</h3>
+                    <div class="description-content" style="font-style: italic; color: #555;">
+                        ${os.observations.replace(/\n/g, '<br>')}
+                    </div>
+                </section>
+                ` : ''}
+
+                <!-- Section: Values -->
+                <section class="section">
+                    <h3 class="section-title">VALORES</h3>
+                    <div class="values-list">
+                        <div class="value-row">
+                            <span>Valor das Peças</span>
+                            <span class="value">R$ ${parts.toFixed(2)}</span>
+                        </div>
+                        <div class="value-row">
+                            <span>Valor da Retífica</span>
+                            <span class="value">R$ ${machine.toFixed(2)}</span>
+                        </div>
+                        <div class="value-row">
+                            <span>Valor da Mão de Obra</span>
+                            <span class="value">R$ ${labor.toFixed(2)}</span>
+                        </div>
+                        ${misc > 0 ? `
+                        <div class="value-row">
+                            <span>Outros (${os.values.miscDesc || ''})</span>
+                            <span class="value">R$ ${misc.toFixed(2)}</span>
+                        </div>` : ''}
+                        ${discount > 0 ? `
+                        <div class="value-row discount">
+                            <span>Desconto</span>
+                            <span class="value">- R$ ${discount.toFixed(2)}</span>
+                        </div>` : ''}
+                        <div class="value-row total">
+                            <span>VALOR TOTAL</span>
+                            <span class="value">R$ ${total.toFixed(2)}</span>
+                        </div>
+                        ${os.paymentStatus === 'Pago Parcialmente' ? `
+                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
+                            <span>STATUS DO PAGAMENTO</span>
+                            <span class="value" style="font-weight: bold; color: #f59e0b;">Pago Parcialmente</span>
+                        </div>
+                        <div class="value-row">
+                            <span>Valor Pago</span>
+                            <span class="value">R$ ${(parseFloat(os.valPaid) || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="value-row" style="font-weight: bold; color: #ef4444;">
+                            <span>VALOR RESTANTE</span>
+                            <span class="value">R$ ${(total - (parseFloat(os.valPaid) || 0)).toFixed(2)}</span>
+                        </div>
+                        ` : `
+                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
+                            <span>STATUS DO PAGAMENTO</span>
+                            <span class="value" style="font-weight: bold; color: ${os.paymentStatus === 'Pago' ? '#22c55e' : '#ef4444'};">${os.paymentStatus || 'Pendente'}</span>
+                        </div>
+                        `}
+                    </div>
+                </section>
+
+                <!-- Section: Footer Info -->
+                <div class="footer-info-box">
+                        <span><strong>CONTATO</strong> Tel: (11) 94857-9072</span>
+                        <span><strong>PAGAMENTO</strong> PIX: 56.306.502/0001-08</span>
+                </div>
+
+                <!-- Signatures -->
+                <div class="signatures">
+                    <div class="sig-line">
+                        Assinatura do Cliente
+                    </div>
+                    <div class="sig-line">
+                        Assinatura do Responsável
+                    </div>
+                </div>
+                
+                 <p class="terms">
+                    Declaro ter conferido o veículo e os serviços realizados. A garantia cobre apenas peças e serviços descritos nesta OS.
+                </p>
+            </div>
+            `;
+        }
+
+        const win = window.open('', '', 'width=900,height=700');
+        win.document.write(`
+            <html>
+            <head>
+                <title>Recibos OS em Lote</title>
+                <link rel="stylesheet" href="css/print.css">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                <style>
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px; }
+                    @media print {
+                        body { padding: 0; }
+                        .print-page { page-break-after: always; border-bottom: none !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
+                    }
+                </style>
+            </head>
+            <body>
+                ` + combinedHtml + `
+                <script>
+                    window.onload = function() { setTimeout(() => window.print(), 800); }
                 </script>
             </body>
             </html>
