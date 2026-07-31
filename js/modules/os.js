@@ -48,7 +48,7 @@ window.OSModule = {
                     <!-- Filtros -->
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
                         <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                             <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
                                 <option value="">Todos os Status (Serviço)</option>
                                 <option value="Pendente">Pendente</option>
@@ -62,6 +62,12 @@ window.OSModule = {
                                 <option value="Pendente">Pendente</option>
                                 <option value="Pago">Pago</option>
                                 <option value="Pago Parcialmente">Pago Parcialmente</option>
+                            </select>
+                            <input type="month" id="filter-os-month" class="form-control" style="max-width: 160px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                            <select id="filter-os-nfse" class="form-control" style="max-width: 180px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Todas as NFS-e</option>
+                                <option value="emitida">Com NFS-e (Emitida)</option>
+                                <option value="nao_emitida">Sem NFS-e</option>
                             </select>
                             <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou Nº..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
                         </div>
@@ -96,6 +102,14 @@ window.OSModule = {
                         </div>
                     </div>
                 </div>
+
+                <!-- NFS-e Summary Bar -->
+                <div id="os-nfse-summary-bar" style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: #fff; font-size: 0.9rem;">
+                    <div><i class="fa-solid fa-file-invoice" style="color:var(--success-color);"></i> <strong>NFS-e Emitidas:</strong> <span id="os-summary-nfse-count" style="font-weight:bold; color:#28a745;">0</span></div>
+                    <div><i class="fa-solid fa-gears" style="color:var(--primary-color);"></i> <strong>Mão de Obra Faturada:</strong> <span id="os-summary-nfse-labor" style="font-weight:bold; color:#28a745;">R$ 0,00</span></div>
+                    <div><i class="fa-solid fa-percent" style="color:#ffc107;"></i> <strong>ISS Estimado:</strong> <span id="os-summary-nfse-iss" style="font-weight:bold; color:#ffc107;">R$ 0,00</span></div>
+                </div>
+
                 <div class="table-responsive" id="os-table-wrapper">
                     <!-- Dynamic table rendered by loadOSList -->
                 </div>
@@ -401,12 +415,16 @@ window.OSModule = {
         // Obter valores dos filtros
         const filterStatus = document.getElementById('filter-os-status') ? document.getElementById('filter-os-status').value : '';
         const filterPayment = document.getElementById('filter-os-payment') ? document.getElementById('filter-os-payment').value : '';
+        const filterMonth = document.getElementById('filter-os-month') ? document.getElementById('filter-os-month').value : '';
+        const filterNfse = document.getElementById('filter-os-nfse') ? document.getElementById('filter-os-nfse').value : '';
         const filterSearch = document.getElementById('filter-os-search') ? document.getElementById('filter-os-search').value.toLowerCase().trim() : '';
 
         // Filtrar registros
         const filteredList = osList.filter(os => {
             const matchStatus = !filterStatus || os.status === filterStatus;
             const matchPayment = !filterPayment || (os.paymentStatus || 'Pendente') === filterPayment;
+            const matchMonth = !filterMonth || (os.date && os.date.startsWith(filterMonth)) || (os.nfseDataEmissao && os.nfseDataEmissao.startsWith(filterMonth));
+            const matchNfse = !filterNfse || (filterNfse === 'emitida' && os.nfseStatus === 'emitida') || (filterNfse === 'nao_emitida' && os.nfseStatus !== 'emitida');
             
             let matchSearch = true;
             if (filterSearch) {
@@ -418,8 +436,25 @@ window.OSModule = {
                               searchPlate.includes(filterSearch);
             }
             
-            return matchStatus && matchPayment && matchSearch;
+            return matchStatus && matchPayment && matchMonth && matchNfse && matchSearch;
         });
+
+        // NFS-e Summary calculations
+        const periodInvoices = filteredList.filter(os => os.nfseStatus === 'emitida');
+        const totalLaborInvoiced = periodInvoices.reduce((sum, os) => {
+            return sum + (Number(os.values ? os.values.labor : os.valLabor) || 0);
+        }, 0);
+        
+        const fiscalSettings = window.NFSeModule ? window.NFSeModule.getFiscalSettings() : { aliquotaIss: 5 };
+        const totalIss = totalLaborInvoiced * (fiscalSettings.aliquotaIss / 100);
+
+        const summaryCount = document.getElementById('os-summary-nfse-count');
+        const summaryLabor = document.getElementById('os-summary-nfse-labor');
+        const summaryIss = document.getElementById('os-summary-nfse-iss');
+        
+        if (summaryCount) summaryCount.textContent = periodInvoices.length;
+        if (summaryLabor) summaryLabor.textContent = `R$ ${totalLaborInvoiced.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        if (summaryIss) summaryIss.textContent = `R$ ${totalIss.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         if (filteredList.length === 0) {
             wrapper.innerHTML = `
@@ -833,6 +868,12 @@ window.OSModule = {
 
         const fSearch = document.getElementById('filter-os-search');
         if (fSearch) fSearch.addEventListener('input', () => OSModule.loadOSList());
+
+        const fMonth = document.getElementById('filter-os-month');
+        if (fMonth) fMonth.addEventListener('change', () => OSModule.loadOSList());
+
+        const fNfse = document.getElementById('filter-os-nfse');
+        if (fNfse) fNfse.addEventListener('change', () => OSModule.loadOSList());
 
         // Ações em massa
         const btnBulkStatus = document.getElementById('btn-bulk-update-status');
