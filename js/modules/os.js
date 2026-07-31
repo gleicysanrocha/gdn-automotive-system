@@ -1613,10 +1613,6 @@ window.OSModule = {
                                 <span>OS-${os.number}</span>
                             </div>
                             <div class="field-box">
-                                <label>STATUS</label>
-                                <span>${os.status}</span>
-                            </div>
-                            <div class="field-box">
                                 <label>CLIENTE</label>
                                 <span>${os.clientName}</span>
                             </div>
@@ -1630,11 +1626,6 @@ window.OSModule = {
                                  <label>DATA DO SERVIÇO</label>
                                  <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
                              </div>
-                             ${os.endTime ? `
-                             <div class="field-box">
-                                 <label>PREVISÃO ENTREGA</label>
-                                 <span>${os.endTime}</span>
-                             </div>` : ''}
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
                                 <span>${os.techName || '-'}</span>
@@ -1848,10 +1839,6 @@ window.OSModule = {
                                     <span>OS-${os.number}</span>
                                 </div>
                                 <div class="field-box">
-                                    <label>STATUS</label>
-                                    <span>${os.status}</span>
-                                </div>
-                                <div class="field-box">
                                     <label>CLIENTE</label>
                                     <span>${os.clientName}</span>
                                 </div>
@@ -1865,7 +1852,6 @@ window.OSModule = {
                                      <label>DATA DO SERVIÇO</label>
                                      <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
                                  </div>
-                                 ${os.endTime ? '<div class="field-box"><label>PREVISÃO ENTREGA</label><span>' + os.endTime + '</span></div>' : ''}
                                 <div class="field-box">
                                     <label>TÉCNICO RESPONSÁVEL</label>
                                     <span>${os.techName || '-'}</span>
@@ -2030,10 +2016,6 @@ window.OSModule = {
                                 <span>OS-${os.number}</span>
                             </div>
                             <div class="field-box">
-                                <label>STATUS</label>
-                                <span>${os.status}</span>
-                            </div>
-                            <div class="field-box">
                                 <label>CLIENTE</label>
                                 <span>${os.clientName}</span>
                             </div>
@@ -2047,11 +2029,6 @@ window.OSModule = {
                                  <label>DATA DO SERVIÇO</label>
                                  <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
                              </div>
-                             ${os.endTime ? `
-                             <div class="field-box">
-                                 <label>PREVISÃO ENTREGA</label>
-                                 <span>${os.endTime}</span>
-                             </div>` : ''}
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
                                 <span>${os.techName || '-'}</span>
