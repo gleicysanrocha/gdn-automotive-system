@@ -786,14 +786,11 @@ window.FinancialModule = {
             const aliq = fiscalSettings.aliquotaIss / 100;
 
             let periodInvoicedSum = 0;
-            let periodIssSum = 0;
 
             const invoiceRowsHtml = periodInvoices.map(os => {
                 const laborVal = os.values ? Number(os.values.labor) || 0 : Number(os.valLabor) || 0;
-                const issEst = laborVal * aliq;
 
                 periodInvoicedSum += laborVal;
-                periodIssSum += issEst;
 
                 const dataNota = os.nfseDataEmissao ? new Date(os.nfseDataEmissao).toLocaleDateString('pt-BR') : '-';
 
@@ -813,19 +810,15 @@ window.FinancialModule = {
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--text-color);">
                         ${window.FinancialModule.currency(laborVal)}
                     </td>
-                    <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-weight: 600; color: var(--danger-color);">
-                        ${window.FinancialModule.currency(issEst)}
-                    </td>
                     <td style="padding: 14px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: right;">
                         <button class="btn btn-sm btn-primary" style="background-color: var(--primary-color); border: none; border-radius: 6px; font-weight: bold; padding: 6px 14px; color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" onclick="window.NFSeModule.showNFSeModal('${os.id}')"><i class="fa-solid fa-eye"></i> Ver PDF</button>
                     </td>
                 </tr>`;
-            }).join('') || `<tr><td colspan="7" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-file-excel" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma NFS-e importada neste período.</td></tr>`;
+            }).join('') || `<tr><td colspan="6" style="padding: 30px; text-align: center; color: #94a3b8;"><i class="fa-solid fa-file-excel" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #cbd5e1;"></i> Nenhuma NFS-e importada neste período.</td></tr>`;
 
             invoiceWrapper.innerHTML = `
-                <div style="background: #f8fafc; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; border: 1px solid #e2e8f0;">
+                <div style="background: #f8fafc; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e2e8f0;">
                     <div style="font-size:0.9rem;"><strong>Total Faturado em Notas:</strong> <span style="color:var(--success-color); font-weight:bold; font-size:1.05rem;">${window.FinancialModule.currency(periodInvoicedSum)}</span></div>
-                    <div style="font-size:0.9rem;"><strong>ISS Estimado (${fiscalSettings.aliquotaIss}%):</strong> <span style="color:var(--danger-color); font-weight:bold; font-size:1.05rem;">${window.FinancialModule.currency(periodIssSum)}</span></div>
                 </div>
                 <table class="table" style="vertical-align: middle; border-collapse: separate; border-spacing: 0 8px; width: 100%;">
                     <thead>
@@ -835,7 +828,6 @@ window.FinancialModule = {
                             <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Cliente</th>
                             <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Data Emissão</th>
                             <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">Valor de Serviço</th>
-                            <th style="border: none; padding-bottom: 12px; color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">ISS (${fiscalSettings.aliquotaIss}%)</th>
                             <th style="border: none; padding-bottom: 12px; width: 120px;"></th>
                         </tr>
                     </thead>
