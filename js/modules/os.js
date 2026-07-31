@@ -298,6 +298,9 @@ window.OSModule = {
                         <button type="submit" class="btn btn-primary" style="padding: 12px 25px; font-size: 1.1rem;">
                             <i class="fa-solid fa-save"></i> Salvar OS
                         </button>
+                        <button type="button" id="btn-save-and-new-os" class="btn btn-success" style="padding: 12px 25px; font-size: 1.1rem; background-color: #28a745; color: #fff;">
+                            <i class="fa-solid fa-file-circle-plus"></i> Salvar e Nova OS
+                        </button>
                         <button type="button" id="btn-print-os" class="btn btn-secondary hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #6f42c1;">
                             <i class="fa-solid fa-print"></i> Salvar PDF / Imprimir
                         </button>
@@ -808,6 +811,20 @@ window.OSModule = {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 OSModule.saveOS();
+            });
+        }
+
+        // Save and New OS
+        const btnSaveAndNew = document.getElementById('btn-save-and-new-os');
+        if (btnSaveAndNew) {
+            btnSaveAndNew.addEventListener('click', () => {
+                const frm = document.getElementById('os-form');
+                if (frm && frm.checkValidity && !frm.checkValidity()) {
+                    frm.reportValidity();
+                    return;
+                }
+                OSModule.saveOS();
+                OSModule.showForm(false);
             });
         }
 
