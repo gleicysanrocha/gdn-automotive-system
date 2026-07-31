@@ -995,7 +995,6 @@ window.OSModule = {
             });
         }
 
-        // Bulk Download PDF Receipts (Separados)
         const btnBulkDownloadPdf = document.getElementById('btn-bulk-download-pdf');
         if (btnBulkDownloadPdf) {
             btnBulkDownloadPdf.addEventListener('click', () => {
@@ -1007,9 +1006,15 @@ window.OSModule = {
                 }
                 const osRecords = window.StorageApp.get('os_records') || [];
                 const selectedOS = osRecords.filter(os => ids.includes(os.id));
-                selectedOS.forEach(os => {
-                    OSModule.downloadSingleOSPDF(os);
-                });
+                
+                let index = 0;
+                function downloadNext() {
+                    if (index >= selectedOS.length) return;
+                    OSModule.downloadSingleOSPDF(selectedOS[index]);
+                    index++;
+                    setTimeout(downloadNext, 1200);
+                }
+                downloadNext();
             });
         }
 
