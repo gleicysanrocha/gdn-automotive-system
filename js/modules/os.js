@@ -1774,14 +1774,52 @@ window.OSModule = {
         const misc = parseFloat(os.values.misc) || 0;
         const total = parseFloat(os.values.total) || 0;
 
-        // Build container hidden from screen but active in DOM so it inherits CSS rules from css/print.css
+        // Render inside viewport area but make it invisible and non-interactive to allow html2canvas rendering
         const container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.left = '-9999px';
-        container.style.top = '-9999px';
+        container.style.position = 'absolute';
+        container.style.left = '0';
+        container.style.top = '0';
         container.style.width = '800px';
+        container.style.opacity = '0.01';
+        container.style.pointerEvents = 'none';
+        container.style.zIndex = '-9999';
+
+        const printStyles = `
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+            body { font-family: 'Roboto', sans-serif; font-size: 10px; color: #333; background: #fff; }
+            .print-page { width: 100%; max-width: 210mm; margin: 0 auto; position: relative; z-index: 1; padding: 8mm 10mm; box-sizing: border-box; background: white; }
+            .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; max-width: 500px; z-index: -1; pointer-events: none; opacity: 0.05; display: flex; justify-content: center; align-items: center; }
+            .watermark img { width: 100%; height: auto; border-radius: 50%; background: #000; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #1a3c6e; padding-bottom: 8px; }
+            .logo-area { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+            .logo-area img { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #1a3c6e; background: #000; }
+            .header-info { text-align: right; }
+            .header-info h1 { font-size: 18px; color: #1a3c6e; margin: 0; font-weight: 700; text-transform: uppercase; }
+            .header-info .phone { font-size: 11px; color: #555; margin-top: 2px; }
+            .os-title-bar { text-align: center; font-weight: bold; font-size: 13px; color: white; background-color: #1a3c6e; padding: 4px 0; margin-bottom: 10px; border-radius: 4px; }
+            .section { margin-bottom: 10px; }
+            .section-title { font-size: 11px; font-weight: 700; color: #1a3c6e; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 2px; margin-bottom: 5px; }
+            .info-grid { display: flex; gap: 20px; }
+            .col { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+            .field-box { display: flex; flex-direction: row; align-items: center; border-bottom: 1px dotted #f0f0f0; padding-bottom: 2px; }
+            .field-box label { font-size: 9px; color: #666; text-transform: uppercase; font-weight: 500; width: 90px; flex-shrink: 0; }
+            .field-box span { font-size: 11px; font-weight: 600; color: #000; }
+            .description-content { border: 1px solid #ddd; padding: 8px; min-height: 60px; max-height: 300px; font-size: 10px; line-height: 1.3; overflow: hidden; }
+            .values-list { display: flex; flex-direction: column; border: 1px solid #eee; }
+            .value-row { display: flex; justify-content: space-between; padding: 3px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
+            .value-row:last-child { border-bottom: none; }
+            .value-row span:first-child { font-weight: 500; color: #444; }
+            .value-row .value { font-weight: bold; color: #000; }
+            .value-row.total { background-color: #f0f4f8; border-top: 2px solid #1a3c6e; padding: 8px; font-size: 14px; }
+            .value-row.total span { color: #1a3c6e; font-weight: 800; }
+            .footer-info-box { border: 1px solid #ccc; padding: 6px 10px; margin-bottom: 15px; color: #555; font-size: 9px; display: flex; justify-content: space-between; background: #f9f9f9; }
+            .signatures { display: flex; justify-content: space-between; margin-top: 25px; margin-bottom: 10px; }
+            .sig-line { width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 4px; font-size: 10px; color: #444; }
+            .terms { margin-top: 10px; font-size: 8.5px; text-align: center; color: #666; font-style: italic; line-height: 1.2; }
+        `;
 
         container.innerHTML = `
+            <style>${printStyles}</style>
             <div class="print-page">
                 <!-- Watermark Background -->
                 <div class="watermark">
