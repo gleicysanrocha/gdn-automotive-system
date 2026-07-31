@@ -105,7 +105,7 @@ window.OSModule = {
                         <!-- Ações Extras (Exportação e Impressão Lote) -->
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <button id="btn-bulk-export-excel" class="btn btn-sm btn-success" style="background-color: #217346; border-color: #1e6b3f; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
-                            <button id="btn-bulk-download-html" class="btn btn-sm btn-info" style="background-color: #17a2b8; border-color: #117a8b; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-arrow-down"></i> Baixar Recibos HTML (Separados)</button>
+                            <button id="btn-bulk-download-pdf" class="btn btn-sm btn-info" style="background-color: #17a2b8; border-color: #117a8b; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
                             <button id="btn-bulk-print" class="btn btn-sm btn-primary" style="background-color: #5a35b8; border-color: #4b2a9e; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
                         </div>
                     </div>
@@ -995,10 +995,10 @@ window.OSModule = {
             });
         }
 
-        // Bulk Download HTML Receipts (Separados)
-        const btnBulkDownloadHtml = document.getElementById('btn-bulk-download-html');
-        if (btnBulkDownloadHtml) {
-            btnBulkDownloadHtml.addEventListener('click', () => {
+        // Bulk Download PDF Receipts (Separados)
+        const btnBulkDownloadPdf = document.getElementById('btn-bulk-download-pdf');
+        if (btnBulkDownloadPdf) {
+            btnBulkDownloadPdf.addEventListener('click', () => {
                 const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
                 const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
                 if (ids.length === 0) {
@@ -1008,7 +1008,7 @@ window.OSModule = {
                 const osRecords = window.StorageApp.get('os_records') || [];
                 const selectedOS = osRecords.filter(os => ids.includes(os.id));
                 selectedOS.forEach(os => {
-                    OSModule.downloadSingleOSHTML(os);
+                    OSModule.downloadSingleOSPDF(os);
                 });
             });
         }
@@ -1719,25 +1719,6 @@ window.OSModule = {
                             <span>VALOR TOTAL</span>
                             <span class="value">R$ ${total.toFixed(2)}</span>
                         </div>
-                        ${os.paymentStatus === 'Pago Parcialmente' ? `
-                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
-                            <span>STATUS DO PAGAMENTO</span>
-                            <span class="value" style="font-weight: bold; color: #f59e0b;">Pago Parcialmente</span>
-                        </div>
-                        <div class="value-row">
-                            <span>Valor Pago</span>
-                            <span class="value">R$ ${(parseFloat(os.valPaid) || 0).toFixed(2)}</span>
-                        </div>
-                        <div class="value-row" style="font-weight: bold; color: #ef4444;">
-                            <span>VALOR RESTANTE</span>
-                            <span class="value">R$ ${(total - (parseFloat(os.valPaid) || 0)).toFixed(2)}</span>
-                        </div>
-                        ` : `
-                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
-                            <span>STATUS DO PAGAMENTO</span>
-                            <span class="value" style="font-weight: bold; color: ${os.paymentStatus === 'Pago' ? '#22c55e' : '#ef4444'};">${os.paymentStatus || 'Pendente'}</span>
-                        </div>
-                        `}
                     </div>
                 </section>
 
@@ -1777,15 +1758,7 @@ window.OSModule = {
             <body>
                 ${printContent}
                 <script>
-                    window.onload = function() { setTimeout(() => window.print(), 500); }
-                </script>
-            </body>
-            </html>
-        `);
-        win.document.close();
-    },
-
-    downloadSingleOSHTML: (os) => {
+                    window.onload = function() { setTimeout    downloadSingleOSPDF: (os) => {
         const parts = parseFloat(os.values.parts) || 0;
         const machine = parseFloat(os.values.machine) || 0;
         const labor = parseFloat(os.values.labor) || 0;
@@ -1793,129 +1766,125 @@ window.OSModule = {
         const misc = parseFloat(os.values.misc) || 0;
         const total = parseFloat(os.values.total) || 0;
 
-        const htmlContent = `
-            <html>
-            <head>
-                <title>OS-${os.number}</title>
-                <link rel="stylesheet" href="https://gleicysanrocha.github.io/gdn-automotive-system/css/print.css">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-                <style>
-                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px; font-family: sans-serif; }
-                </style>
-            </head>
-            <body>
-                <div class="print-page">
-                    <!-- Watermark Background -->
-                    <div class="watermark" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; z-index: -1;">
-                         <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Watermark" style="width: 350px;">
-                    </div>
+        const container = document.createElement('div');
+        container.style.padding = '20px';
+        container.style.fontFamily = 'sans-serif';
+        container.style.position = 'relative';
+        container.style.color = '#333';
 
-                    <header class="header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                        <div class="logo-area">
-                            <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Serviços Automotivos" style="max-height: 80px;">
-                        </div>
-                        <div class="header-info" style="text-align: right;">
-                            <h1 style="margin:0; font-size: 1.5rem; font-family: 'Exo 2', sans-serif;">GDN SERVIÇOS AUTOMOTIVOS</h1>
-                            <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Tel: (11) 94857-9072</p>
-                        </div>
-                    </header>
-
-                    <div class="os-title-bar" style="background: #333; color: #fff; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 20px; font-size: 1.1rem; font-family: 'Exo 2', sans-serif;">
-                        ORDEM DE SERVIÇO Nº OS-${os.number}
-                    </div>
-
-                    <!-- Section: Client Info -->
-                    <section class="section" style="margin-bottom: 20px;">
-                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">INFORMAÇÕES DO CLIENTE</h3>
-                        <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
-                            <div>
-                                <p style="margin: 4px 0;"><strong>Número da OS:</strong> OS-${os.number}</p>
-                                <p style="margin: 4px 0;"><strong>Status:</strong> ${os.status}</p>
-                                <p style="margin: 4px 0;"><strong>Cliente:</strong> ${os.clientName}</p>
-                                <p style="margin: 4px 0;"><strong>Endereço:</strong> ${os.clientAddress || '-'}</p>
-                            </div>
-                            <div>
-                                <p style="margin: 4px 0;"><strong>Data do Serviço:</strong> ${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</p>
-                                ${os.endTime ? `<p style="margin: 4px 0;"><strong>Previsão de Entrega:</strong> ${os.endTime}</p>` : ''}
-                                <p style="margin: 4px 0;"><strong>Técnico:</strong> ${os.techName || '-'}</p>
-                                <p style="margin: 4px 0;"><strong>CPF/CNPJ:</strong> ${os.clientDoc || '-'}</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Section: Vehicle Info -->
-                    <section class="section" style="margin-bottom: 20px;">
-                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">INFORMAÇÕES DO VEÍCULO</h3>
-                        <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
-                            <div>
-                                <p style="margin: 4px 0;"><strong>Modelo:</strong> ${os.vehicleModel}</p>
-                                <p style="margin: 4px 0;"><strong>Placa:</strong> ${os.vehiclePlate}</p>
-                                <p style="margin: 4px 0;"><strong>Garantia:</strong> ${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</p>
-                            </div>
-                            <div>
-                                <p style="margin: 4px 0;"><strong>Ano:</strong> ${os.vehicleYear || '-'}</p>
-                                <p style="margin: 4px 0;"><strong>KM:</strong> ${os.vehicleKm || '-'}</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Section: Description -->
-                    <section class="section" style="margin-bottom: 20px;">
-                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">DESCRIÇÃO DO SERVIÇO</h3>
-                        <div style="font-size: 0.85rem; line-height: 1.4;">
-                            ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
-                        </div>
-                    </section>
-
-                    ${os.observations ? `
-                    <!-- Section: Observations -->
-                    <section class="section" style="margin-bottom: 20px;">
-                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">OBSERVAÇÕES</h3>
-                        <div style="font-size: 0.85rem; font-style: italic; color: #555; line-height: 1.4;">
-                            ${os.observations.replace(/\n/g, '<br>')}
-                        </div>
-                    </section>
-                    ` : ''}
-
-                    <!-- Section: Values -->
-                    <section class="section" style="margin-bottom: 20px;">
-                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">VALORES</h3>
-                        <div style="font-size: 0.85rem; max-width: 320px; margin-left: 0;">
-                            <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor das Peças:</span> <span>R$ ${parts.toFixed(2)}</span></p>
-                            <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor da Retífica:</span> <span>R$ ${machine.toFixed(2)}</span></p>
-                            <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor da Mão de Obra:</span> <span>R$ ${labor.toFixed(2)}</span></p>
-                            ${misc > 0 ? `<p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Outros (${os.values.miscDesc || ''}):</span> <span>R$ ${misc.toFixed(2)}</span></p>` : ''}
-                            ${discount > 0 ? `<p style="display:flex; justify-content:space-between; margin:4px 0; color: #dc3545;"><span>Desconto:</span> <span>- R$ ${discount.toFixed(2)}</span></p>` : ''}
-                            <p style="display:flex; justify-content:space-between; margin:8px 0 4px 0; border-top: 1px solid #333; font-weight:bold; font-size: 0.95rem; padding-top:4px;"><span>VALOR TOTAL:</span> <span>R$ ${total.toFixed(2)}</span></p>
-                        </div>
-                    </section>
-
-                    <div style="margin-top: 30px; font-size:0.8rem; display:flex; justify-content:space-between; border-top: 1px solid #ccc; padding-top: 10px;">
-                        <span><strong>CONTATO:</strong> Tel: (11) 94857-9072</span>
-                        <span><strong>PAGAMENTO:</strong> PIX: 56.306.502/0001-08</span>
-                    </div>
-
-                    <div style="margin-top: 60px; display:flex; justify-content:space-between; gap: 50px; font-size: 0.85rem;">
-                        <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 5px;">Assinatura do Cliente</div>
-                        <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 5px;">Assinatura do Responsável</div>
-                    </div>
+        container.innerHTML = `
+            <div class="print-page" style="position: relative; padding: 15px; background:#fff;">
+                <!-- Watermark Background -->
+                <div class="watermark" style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none; z-index: 0; text-align:center;">
+                     <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Watermark" style="width: 280px;">
                 </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                </script>
-            </body>
-            </html>
+
+                <header class="header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; z-index:1; position:relative;">
+                    <div class="logo-area">
+                        <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Serviços Automotivos" style="max-height: 70px;">
+                    </div>
+                    <div class="header-info" style="text-align: right;">
+                        <h1 style="margin:0; font-size: 1.3rem; font-family: 'Exo 2', sans-serif;">GDN SERVIÇOS AUTOMOTIVOS</h1>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem;">Tel: (11) 94857-9072</p>
+                    </div>
+                </header>
+
+                <div class="os-title-bar" style="background: #333; color: #fff; padding: 6px; font-weight: bold; text-align: center; margin-bottom: 15px; font-size: 1rem; font-family: 'Exo 2', sans-serif; z-index:1; position:relative;">
+                    ORDEM DE SERVIÇO Nº OS-${os.number}
+                </div>
+
+                <!-- Section: Client Info -->
+                <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">INFORMAÇÕES DO CLIENTE</h3>
+                    <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.8rem;">
+                        <div>
+                            <p style="margin: 2px 0;"><strong>Número da OS:</strong> OS-${os.number}</p>
+                            <p style="margin: 2px 0;"><strong>Status:</strong> ${os.status}</p>
+                            <p style="margin: 2px 0;"><strong>Cliente:</strong> ${os.clientName}</p>
+                            <p style="margin: 2px 0;"><strong>Endereço:</strong> ${os.clientAddress || '-'}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 2px 0;"><strong>Data do Serviço:</strong> ${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</p>
+                            ${os.endTime ? `<p style="margin: 2px 0;"><strong>Previsão de Entrega:</strong> ${os.endTime}</p>` : ''}
+                            <p style="margin: 2px 0;"><strong>Técnico:</strong> ${os.techName || '-'}</p>
+                            <p style="margin: 2px 0;"><strong>CPF/CNPJ:</strong> ${os.clientDoc || '-'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Vehicle Info -->
+                <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">INFORMAÇÕES DO VEÍCULO</h3>
+                    <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.8rem;">
+                        <div>
+                            <p style="margin: 2px 0;"><strong>Modelo:</strong> ${os.vehicleModel}</p>
+                            <p style="margin: 2px 0;"><strong>Placa:</strong> ${os.vehiclePlate}</p>
+                            <p style="margin: 2px 0;"><strong>Garantia:</strong> ${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 2px 0;"><strong>Ano:</strong> ${os.vehicleYear || '-'}</p>
+                            <p style="margin: 2px 0;"><strong>KM:</strong> ${os.vehicleKm || '-'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Description -->
+                <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">DESCRIÇÃO DO SERVIÇO</h3>
+                    <div style="font-size: 0.8rem; line-height: 1.3;">
+                        ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
+                    </div>
+                </section>
+
+                ${os.observations ? `
+                <!-- Section: Observations -->
+                <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">OBSERVAÇÕES</h3>
+                    <div style="font-size: 0.8rem; font-style: italic; color: #555; line-height: 1.3;">
+                        ${os.observations.replace(/\n/g, '<br>')}
+                    </div>
+                </section>
+                ` : ''}
+
+                <!-- Section: Values -->
+                <section class="section" style="margin-bottom: 15px; z-index:1; position:relative;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; font-weight: bold;">VALORES</h3>
+                    <div style="font-size: 0.8rem; max-width: 280px; margin-left: 0;">
+                        <p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Valor das Peças:</span> <span>R$ ${parts.toFixed(2)}</span></p>
+                        <p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Valor da Retífica:</span> <span>R$ ${machine.toFixed(2)}</span></p>
+                        <p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Valor da Mão de Obra:</span> <span>R$ ${labor.toFixed(2)}</span></p>
+                        ${misc > 0 ? `<p style="display:flex; justify-content:space-between; margin:2px 0;"><span>Outros (${os.values.miscDesc || ''}):</span> <span>R$ ${misc.toFixed(2)}</span></p>` : ''}
+                        ${discount > 0 ? `<p style="display:flex; justify-content:space-between; margin:2px 0; color: #dc3545;"><span>Desconto:</span> <span>- R$ ${discount.toFixed(2)}</span></p>` : ''}
+                        <p style="display:flex; justify-content:space-between; margin:6px 0 2px 0; border-top: 1px solid #333; font-weight:bold; font-size: 0.9rem; padding-top:3px;"><span>VALOR TOTAL:</span> <span>R$ ${total.toFixed(2)}</span></p>
+                    </div>
+                </section>
+
+                <div style="margin-top: 25px; font-size:0.75rem; display:flex; justify-content:space-between; border-top: 1px solid #ccc; padding-top: 8px; z-index:1; position:relative;">
+                    <span><strong>CONTATO:</strong> Tel: (11) 94857-9072</span>
+                    <span><strong>PAGAMENTO:</strong> PIX: 56.306.502/0001-08</span>
+                </div>
+
+                <div style="margin-top: 40px; display:flex; justify-content:space-between; gap: 40px; font-size: 0.8rem; z-index:1; position:relative;">
+                    <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 3px;">Assinatura do Cliente</div>
+                    <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 3px;">Assinatura do Responsável</div>
+                </div>
+            </div>
         `;
 
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (typeof html2pdf === 'undefined') {
+            alert('Aguarde o carregamento do gerador de PDFs. Tente novamente em 2 segundos.');
+            return;
+        }
+
+        const opt = {
+            margin: 10,
+            filename: `OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(container).set(opt).save();
     },
 
     printMultipleOS: (ids) => {
@@ -2078,25 +2047,6 @@ window.OSModule = {
                             <span>VALOR TOTAL</span>
                             <span class="value">R$ ${total.toFixed(2)}</span>
                         </div>
-                        ${os.paymentStatus === 'Pago Parcialmente' ? `
-                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
-                            <span>STATUS DO PAGAMENTO</span>
-                            <span class="value" style="font-weight: bold; color: #f59e0b;">Pago Parcialmente</span>
-                        </div>
-                        <div class="value-row">
-                            <span>Valor Pago</span>
-                            <span class="value">R$ ${(parseFloat(os.valPaid) || 0).toFixed(2)}</span>
-                        </div>
-                        <div class="value-row" style="font-weight: bold; color: #ef4444;">
-                            <span>VALOR RESTANTE</span>
-                            <span class="value">R$ ${(total - (parseFloat(os.valPaid) || 0)).toFixed(2)}</span>
-                        </div>
-                        ` : `
-                        <div class="value-row" style="border-top: 1px dashed #ddd; padding-top: 5px; margin-top: 5px;">
-                            <span>STATUS DO PAGAMENTO</span>
-                            <span class="value" style="font-weight: bold; color: ${os.paymentStatus === 'Pago' ? '#22c55e' : '#ef4444'};">${os.paymentStatus || 'Pendente'}</span>
-                        </div>
-                        `}
                     </div>
                 </section>
 
