@@ -73,42 +73,36 @@ window.OSModule = {
                             <button id="btn-clear-os-filters" class="btn btn-secondary" style="background-color: #475569; color: white; border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros</button>
                         </div>
                     </div>
-
                     <!-- Ações em Massa -->
-                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
-                        <span style="font-weight: 600; color: #ffc107; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i> Alterar Selecionados:</span>
+                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px; margin-bottom: 12px;">
+                        <span style="font-weight: 600; color: #ffc107; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-list-check"></i> Ações em Lote:</span>
                         
-                        <!-- Alterar Status Serviço -->
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <select id="bulk-update-status" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Novo Status Serviço...</option>
+                        <!-- Unified Bulk Update Form -->
+                        <div style="display: flex; gap: 8px; align-items: center; background: #1e293b; padding: 4px 8px; border-radius: 6px; border: 1px solid #334155;">
+                            <select id="bulk-update-status" class="form-control" style="width: 160px; padding: 4px 8px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
+                                <option value="">Sem Alterar Serviço</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
                                 <option value="Aguardando Peça">Aguardando Peça</option>
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Entregue">Entregue</option>
                             </select>
-                            <button id="btn-bulk-update-status" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
-                        </div>
-
-                        <!-- Alterar Status Pagamento -->
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <select id="bulk-update-payment" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
-                                <option value="">Novo Status Pagamento...</option>
+                            <select id="bulk-update-payment" class="form-control" style="width: 165px; padding: 4px 8px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
+                                <option value="">Sem Alterar Pagamento</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Pago">Pago</option>
                                 <option value="Pago Parcialmente">Pago Parcialmente</option>
                             </select>
-                            <button id="btn-bulk-update-payment" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
+                            <button id="btn-bulk-apply-changes" class="btn" style="background-color: #3b82f6; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; box-sizing: border-box;"><i class="fa-solid fa-check-double"></i> Alterar Status</button>
                         </div>
 
-                        <!-- Ações Extras (Exportação e Impressão Lote) -->
+                        <!-- Action Buttons (Standard size and height) -->
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <button id="btn-bulk-export-excel" class="btn btn-sm btn-success" style="background-color: #217346; border-color: #1e6b3f; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
-                            <button id="btn-bulk-download-pdf" class="btn btn-sm btn-info" style="background-color: #17a2b8; border-color: #117a8b; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
-                            <button id="btn-bulk-print" class="btn btn-sm btn-primary" style="background-color: #5a35b8; border-color: #4b2a9e; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
+                            <button id="btn-bulk-export-excel" class="btn btn-success" style="background-color: #217346; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
+                            <button id="btn-bulk-download-pdf" class="btn btn-info" style="background-color: #17a2b8; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
+                            <button id="btn-bulk-print" class="btn btn-primary" style="background-color: #5a35b8; border: none; color: white; padding: 0 12px; font-size: 0.8rem; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 600;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
                         </div>
-                    </div>
+                    </div>             </div>
                 </div>
 
                 <!-- NFS-e Summary Bar -->
@@ -878,53 +872,45 @@ window.OSModule = {
         if (fNfse) fNfse.addEventListener('change', () => OSModule.loadOSList());
 
         // Ações em massa
-        const btnBulkStatus = document.getElementById('btn-bulk-update-status');
-        if (btnBulkStatus) {
-            btnBulkStatus.addEventListener('click', async () => {
+        const btnBulkApplyChanges = document.getElementById('btn-bulk-apply-changes');
+        if (btnBulkApplyChanges) {
+            btnBulkApplyChanges.addEventListener('click', async () => {
                 const newStatus = document.getElementById('bulk-update-status').value;
-                if (!newStatus) {
-                    alert('Selecione um status de serviço para alterar.');
-                    return;
-                }
-                const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
-                const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
-                if (ids.length === 0) return;
-
-                if (confirm(`Deseja alterar o status de serviço de ${ids.length} OS para "${newStatus}"?`)) {
-                    let osRecords = window.StorageApp.get('os_records') || [];
-                    osRecords = osRecords.map(os => {
-                        if (ids.includes(os.id)) os.status = newStatus;
-                        return os;
-                    });
-                    await window.StorageApp.save('os_records', osRecords);
-                    alert('Status de serviço atualizado com sucesso!');
-                    document.getElementById('bulk-update-status').value = '';
-                    OSModule.loadOSList();
-                }
-            });
-        }
-
-        const btnBulkPayment = document.getElementById('btn-bulk-update-payment');
-        if (btnBulkPayment) {
-            btnBulkPayment.addEventListener('click', async () => {
                 const newPayment = document.getElementById('bulk-update-payment').value;
-                if (!newPayment) {
-                    alert('Selecione um status de pagamento para alterar.');
+                if (!newStatus && !newPayment) {
+                    alert('Selecione pelo menos uma alteração (Status de Serviço ou Status de Pagamento).');
                     return;
                 }
                 const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
                 const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
-                if (ids.length === 0) return;
+                if (ids.length === 0) {
+                    alert('Selecione pelo menos uma OS para alterar.');
+                    return;
+                }
 
-                if (confirm(`Deseja alterar o status de pagamento de ${ids.length} OS para "${newPayment}"?`)) {
+                let msg = 'Deseja alterar as OSs selecionadas?';
+                if (newStatus && newPayment) {
+                    msg = `Deseja alterar o Status de Serviço para "${newStatus}" e o Status de Pagamento para "${newPayment}" em ${ids.length} OSs?`;
+                } else if (newStatus) {
+                    msg = `Deseja alterar o Status de Serviço para "${newStatus}" em ${ids.length} OSs?`;
+                } else if (newPayment) {
+                    msg = `Deseja alterar o Status de Pagamento para "${newPayment}" em ${ids.length} OSs?`;
+                }
+
+                if (confirm(msg)) {
                     let osRecords = window.StorageApp.get('os_records') || [];
                     osRecords = osRecords.map(os => {
                         if (ids.includes(os.id)) {
-                            os.paymentStatus = newPayment;
-                            if (newPayment === 'Pago') {
-                                os.valPaid = Number(os.values ? os.values.total : os.totalVal) || 0;
-                            } else if (newPayment === 'Pendente') {
-                                os.valPaid = 0;
+                            if (newStatus) {
+                                os.status = newStatus;
+                            }
+                            if (newPayment) {
+                                os.paymentStatus = newPayment;
+                                if (newPayment === 'Pago') {
+                                    os.valPaid = Number(os.values ? os.values.total : os.totalVal) || 0;
+                                } else if (newPayment === 'Pendente') {
+                                    os.valPaid = 0;
+                                }
                             }
                         }
                         return os;
@@ -932,7 +918,7 @@ window.OSModule = {
                     await window.StorageApp.save('os_records', osRecords);
 
                     // Sincroniza com o Financeiro
-                    if (window.FinancialModule) {
+                    if (newPayment && window.FinancialModule) {
                         for (const id of ids) {
                             const updatedOs = osRecords.find(o => o.id === id);
                             if (updatedOs) {
@@ -941,7 +927,8 @@ window.OSModule = {
                         }
                     }
 
-                    alert('Status de pagamento updated with success!');
+                    alert('Alterações aplicadas com sucesso!');
+                    document.getElementById('bulk-update-status').value = '';
                     document.getElementById('bulk-update-payment').value = '';
                     OSModule.loadOSList();
                 }
@@ -1753,7 +1740,7 @@ window.OSModule = {
         win.document.write(`
             <html>
             <head>
-                <title>OS-${os.number}</title>
+                <title>OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}</title>
                 <link rel="stylesheet" href="css/print.css">
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
                 <style>
