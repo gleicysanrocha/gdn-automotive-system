@@ -42,63 +42,74 @@ window.OSModule = {
                     </div>
                 </div>
                 
+
                 <!-- Filtros e Ações em Massa -->
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;">
                     <!-- Filtros -->
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                        <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
-                        <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
-                            <option value="">Todos os Status (Servi&ccedil;o)</option>
-                            <option value="Pendente">Pendente</option>
-                            <option value="Em Andamento">Em Andamento</option>
-                            <option value="Aguardando Peça">Aguardando Pe&ccedil;a</option>
-                            <option value="Finalizado">Finalizado</option>
-                            <option value="Entregue">Entregue</option>
-                        </select>
-                        <select id="filter-os-payment" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
-                            <option value="">Todos os Pagamentos</option>
-                            <option value="Pendente">Pendente</option>
-                            <option value="Pago">Pago</option>
-                            <option value="Pago Parcialmente">Pago Parcialmente</option>
-                        </select>
-                        <input type="month" id="filter-os-month" class="form-control" style="max-width: 160px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
-                        <select id="filter-os-nfse" class="form-control" style="max-width: 180px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
-                            <option value="">Todas as NFS-e</option>
-                            <option value="emitida">Com NFS-e (Emitida)</option>
-                            <option value="nao_emitida">Sem NFS-e</option>
-                        </select>
-                        <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente, Placa ou N&ordm;..." style="width: 250px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 34px;">
-                        <button id="btn-clear-os-filters" class="btn btn-secondary" style="background-color: #475569; color: white; border: none; padding: 0 12px; font-size: 0.85rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer; height: 34px;"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros</button>
-                    </div>
-
-                    <!-- Ações em Massa -->
-                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
-                        <span style="font-weight: 600; color: #ffc107; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-list-check"></i> A&ccedil;&otilde;es em Lote:</span>
-                        
-                        <!-- Unified Bulk Update Form -->
-                        <div style="display: flex; gap: 8px; align-items: center; background: #1e293b; padding: 4px 8px; border-radius: 6px; border: 1px solid #334155;">
-                            <select id="bulk-update-status" class="form-control" style="width: 170px; padding: 4px 8px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
-                                <option value="">Sem Alterar Servi&ccedil;o</option>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <span style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;"><i class="fa-solid fa-filter"></i> Filtrar por:</span>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                            <select id="filter-os-status" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Todos os Status (Serviço)</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Em Andamento">Em Andamento</option>
-                                <option value="Aguardando Peça">Aguardando Pe&ccedil;a</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Entregue">Entregue</option>
                             </select>
-                            <select id="bulk-update-payment" class="form-control" style="width: 175px; padding: 4px 8px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px; height: 32px; box-sizing: border-box;">
-                                <option value="">Sem Alterar Pagamento</option>
+                            <select id="filter-os-payment" class="form-control" style="max-width: 200px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Todos os Pagamentos</option>
                                 <option value="Pendente">Pendente</option>
                                 <option value="Pago">Pago</option>
                                 <option value="Pago Parcialmente">Pago Parcialmente</option>
                             </select>
-                            <button id="btn-bulk-apply-changes" class="btn" style="background-color: #3b82f6; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; font-weight: 500; display: flex; align-items: center; gap: 4px; cursor: pointer; box-sizing: border-box;">Alterar Status</button>
+                            <input type="date" id="filter-os-start-date" class="form-control" title="Data Inicial" style="max-width: 140px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                            <span style="color: #64748b; font-size: 0.85rem;">até</span>
+                            <input type="date" id="filter-os-end-date" class="form-control" title="Data Final" style="max-width: 140px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                            <select id="filter-os-nfse" class="form-control" style="max-width: 180px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Todas as NFS-e</option>
+                                <option value="emitida">Com NFS-e (Emitida)</option>
+                                <option value="nao_emitida">Sem NFS-e</option>
+                            </select>
+                            <input type="text" id="filter-os-number" class="form-control" placeholder="Nº OS" style="max-width: 100px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                            <input type="text" id="filter-os-search" class="form-control" placeholder="Buscar por Cliente ou Placa..." style="width: 230px; padding: 6px 12px; font-size: 0.85rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                            <button id="btn-clear-os-filters" class="btn btn-secondary" style="background-color: #475569; color: white; border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar Filtros</button>
+                        </div>
+                    </div>
+
+                    <!-- Ações em Massa -->
+                    <div id="bulk-actions-container" class="hidden" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border-top: 1px solid #334155; padding-top: 12px;">
+                        <span style="font-weight: 600; color: #ffc107; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i> Alterar Selecionados:</span>
+                        
+                        <!-- Alterar Status Serviço -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select id="bulk-update-status" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Novo Status Serviço...</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Entregue">Entregue</option>
+                            </select>
+                            <button id="btn-bulk-update-status" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
                         </div>
 
-                        <!-- Action Buttons (Standard size and height) -->
+                        <!-- Alterar Status Pagamento -->
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <button id="btn-bulk-export-excel" class="btn btn-success" style="background-color: #217346; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 500;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
-                            <button id="btn-bulk-download-pdf" class="btn btn-info" style="background-color: #17a2b8; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 500;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
-                            <button id="btn-bulk-print" class="btn btn-primary" style="background-color: #5a35b8; border: none; color: white; padding: 0 12px; font-size: 0.85rem; font-family: inherit; letter-spacing: normal; border-radius: 4px; height: 32px; display: flex; align-items: center; gap: 6px; cursor: pointer; box-sizing: border-box; font-weight: 500;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
+                            <select id="bulk-update-payment" class="form-control" style="max-width: 180px; padding: 5px 10px; font-size: 0.8rem; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 4px;">
+                                <option value="">Novo Status Pagamento...</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Pago Parcialmente">Pago Parcialmente</option>
+                            </select>
+                            <button id="btn-bulk-update-payment" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #334155; color: #fff; border: 1px solid #475569;">Alterar</button>
+                        </div>
+
+                        <!-- Ações Extras (Exportação e Impressão Lote) -->
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button id="btn-bulk-export-excel" class="btn btn-sm btn-success" style="background-color: #217346; border-color: #1e6b3f; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-excel"></i> Baixar Excel (Separados)</button>
+                            <button id="btn-bulk-download-pdf" class="btn btn-sm btn-info" style="background-color: #17a2b8; border-color: #117a8b; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-file-pdf"></i> Baixar Recibos PDF (Separados)</button>
+                            <button id="btn-bulk-print" class="btn btn-sm btn-primary" style="background-color: #5a35b8; border-color: #4b2a9e; color: white; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer;"><i class="fa-solid fa-print"></i> Imprimir Juntos (Lote)</button>
                         </div>
                     </div>
                 </div>
@@ -237,14 +248,15 @@ window.OSModule = {
                         </div>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-top: 10px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                        <div class="form-group">
-                             <label class="form-label">Descrição Diversos (Opcional)</label>
-                             <input type="text" id="desc-misc" class="form-control" placeholder="Ex: Taxa de lavagem">
+                    <div id="misc-items-wrapper" style="margin-top: 10px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label class="form-label" style="margin-bottom: 0; font-weight: bold;">Itens Diversos / Outros Serviços</label>
+                            <button type="button" id="btn-add-misc" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 5px; padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fa-solid fa-plus"></i> Adicionar Item
+                            </button>
                         </div>
-                         <div class="form-group">
-                            <label class="form-label">Valor Diversos (+)</label>
-                            <input type="number" step="0.01" id="val-misc" class="form-control calc-input" placeholder="0.00">
+                        <div id="misc-items-container" style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Dynamic rows will be inserted here -->
                         </div>
                     </div>
 
@@ -297,9 +309,6 @@ window.OSModule = {
                         <!-- Actions -->
                         <button type="submit" class="btn btn-primary" style="padding: 12px 25px; font-size: 1.1rem;">
                             <i class="fa-solid fa-save"></i> Salvar OS
-                        </button>
-                        <button type="button" id="btn-save-and-new-os" class="btn btn-success" style="padding: 12px 25px; font-size: 1.1rem; background-color: #28a745; color: #fff;">
-                            <i class="fa-solid fa-file-circle-plus"></i> Salvar e Nova OS
                         </button>
                         <button type="button" id="btn-print-os" class="btn btn-secondary hidden" style="padding: 12px 25px; font-size: 1.1rem; background-color: #6f42c1;">
                             <i class="fa-solid fa-print"></i> Salvar PDF / Imprimir
@@ -417,16 +426,25 @@ window.OSModule = {
         // Obter valores dos filtros
         const filterStatus = document.getElementById('filter-os-status') ? document.getElementById('filter-os-status').value : '';
         const filterPayment = document.getElementById('filter-os-payment') ? document.getElementById('filter-os-payment').value : '';
-        const filterMonth = document.getElementById('filter-os-month') ? document.getElementById('filter-os-month').value : '';
+        const filterStartDate = document.getElementById('filter-os-start-date') ? document.getElementById('filter-os-start-date').value : '';
+        const filterEndDate = document.getElementById('filter-os-end-date') ? document.getElementById('filter-os-end-date').value : '';
         const filterNfse = document.getElementById('filter-os-nfse') ? document.getElementById('filter-os-nfse').value : '';
+        const filterOSNumber = document.getElementById('filter-os-number') ? document.getElementById('filter-os-number').value.toLowerCase().trim() : '';
         const filterSearch = document.getElementById('filter-os-search') ? document.getElementById('filter-os-search').value.toLowerCase().trim() : '';
 
         // Filtrar registros
         const filteredList = osList.filter(os => {
             const matchStatus = !filterStatus || os.status === filterStatus;
             const matchPayment = !filterPayment || (os.paymentStatus || 'Pendente') === filterPayment;
-            const matchMonth = !filterMonth || (os.date && os.date.startsWith(filterMonth)) || (os.nfseDataEmissao && os.nfseDataEmissao.startsWith(filterMonth));
+            
+            // Filtro de período (Data Inicial e Data Final)
+            const matchStartDate = !filterStartDate || (os.date && os.date >= filterStartDate);
+            const matchEndDate = !filterEndDate || (os.date && os.date <= filterEndDate);
+            
             const matchNfse = !filterNfse || (filterNfse === 'emitida' && os.nfseStatus === 'emitida') || (filterNfse === 'nao_emitida' && os.nfseStatus !== 'emitida');
+            
+            // Filtro específico do Número da OS
+            const matchOSNumber = !filterOSNumber || (os.number && os.number.toLowerCase().includes(filterOSNumber));
             
             let matchSearch = true;
             if (filterSearch) {
@@ -438,7 +456,7 @@ window.OSModule = {
                               searchPlate.includes(filterSearch);
             }
             
-            return matchStatus && matchPayment && matchMonth && matchNfse && matchSearch;
+            return matchStatus && matchPayment && matchStartDate && matchEndDate && matchNfse && matchOSNumber && matchSearch;
         });
 
         // NFS-e Summary calculations
@@ -790,6 +808,34 @@ window.OSModule = {
             input.addEventListener('input', OSModule.calculateTotal);
         });
 
+        // Dynamic Misc Items actions
+        const btnAddMisc = document.getElementById('btn-add-misc');
+        if (btnAddMisc) {
+            btnAddMisc.addEventListener('click', () => {
+                OSModule.addMiscItemRow();
+            });
+        }
+
+        const miscContainer = document.getElementById('misc-items-container');
+        if (miscContainer) {
+            miscContainer.addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('.remove-misc-row');
+                if (removeBtn) {
+                    const row = removeBtn.closest('.misc-item-row');
+                    if (row) {
+                        row.remove();
+                        OSModule.calculateTotal();
+                    }
+                }
+            });
+
+            miscContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('calc-input')) {
+                    OSModule.calculateTotal();
+                }
+            });
+        }
+
         // Partial Payment triggers
         const payStatusSelect = document.getElementById('os-payment-status');
         if (payStatusSelect) {
@@ -811,20 +857,6 @@ window.OSModule = {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 OSModule.saveOS();
-            });
-        }
-
-        // Save and New OS
-        const btnSaveAndNew = document.getElementById('btn-save-and-new-os');
-        if (btnSaveAndNew) {
-            btnSaveAndNew.addEventListener('click', () => {
-                const frm = document.getElementById('os-form');
-                if (frm && frm.checkValidity && !frm.checkValidity()) {
-                    frm.reportValidity();
-                    return;
-                }
-                OSModule.saveOS();
-                OSModule.showForm(false);
             });
         }
 
@@ -880,52 +912,66 @@ window.OSModule = {
         const fSearch = document.getElementById('filter-os-search');
         if (fSearch) fSearch.addEventListener('input', () => OSModule.loadOSList());
 
-        const fMonth = document.getElementById('filter-os-month');
-        if (fMonth) fMonth.addEventListener('change', () => OSModule.loadOSList());
+        const fStartDate = document.getElementById('filter-os-start-date');
+        if (fStartDate) fStartDate.addEventListener('change', () => OSModule.loadOSList());
+
+        const fEndDate = document.getElementById('filter-os-end-date');
+        if (fEndDate) fEndDate.addEventListener('change', () => OSModule.loadOSList());
+
+        const fOSNumber = document.getElementById('filter-os-number');
+        if (fOSNumber) fOSNumber.addEventListener('input', () => OSModule.loadOSList());
 
         const fNfse = document.getElementById('filter-os-nfse');
         if (fNfse) fNfse.addEventListener('change', () => OSModule.loadOSList());
 
         // Ações em massa
-        const btnBulkApplyChanges = document.getElementById('btn-bulk-apply-changes');
-        if (btnBulkApplyChanges) {
-            btnBulkApplyChanges.addEventListener('click', async () => {
+        const btnBulkStatus = document.getElementById('btn-bulk-update-status');
+        if (btnBulkStatus) {
+            btnBulkStatus.addEventListener('click', async () => {
                 const newStatus = document.getElementById('bulk-update-status').value;
-                const newPayment = document.getElementById('bulk-update-payment').value;
-                if (!newStatus && !newPayment) {
-                    alert('Selecione pelo menos uma alteração (Status de Serviço ou Status de Pagamento).');
+                if (!newStatus) {
+                    alert('Selecione um status de serviço para alterar.');
                     return;
                 }
                 const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
                 const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
-                if (ids.length === 0) {
-                    alert('Selecione pelo menos uma OS para alterar.');
+                if (ids.length === 0) return;
+
+                if (confirm(`Deseja alterar o status de serviço de ${ids.length} OS para "${newStatus}"?`)) {
+                    let osRecords = window.StorageApp.get('os_records') || [];
+                    osRecords = osRecords.map(os => {
+                        if (ids.includes(os.id)) os.status = newStatus;
+                        return os;
+                    });
+                    await window.StorageApp.save('os_records', osRecords);
+                    alert('Status de serviço atualizado com sucesso!');
+                    document.getElementById('bulk-update-status').value = '';
+                    OSModule.loadOSList();
+                }
+            });
+        }
+
+        const btnBulkPayment = document.getElementById('btn-bulk-update-payment');
+        if (btnBulkPayment) {
+            btnBulkPayment.addEventListener('click', async () => {
+                const newPayment = document.getElementById('bulk-update-payment').value;
+                if (!newPayment) {
+                    alert('Selecione um status de pagamento para alterar.');
                     return;
                 }
+                const checkedInputs = document.querySelectorAll('.os-checkbox:checked');
+                const ids = Array.from(checkedInputs).map(cb => cb.getAttribute('data-id'));
+                if (ids.length === 0) return;
 
-                let msg = 'Deseja alterar as OSs selecionadas?';
-                if (newStatus && newPayment) {
-                    msg = `Deseja alterar o Status de Serviço para "${newStatus}" e o Status de Pagamento para "${newPayment}" em ${ids.length} OSs?`;
-                } else if (newStatus) {
-                    msg = `Deseja alterar o Status de Serviço para "${newStatus}" em ${ids.length} OSs?`;
-                } else if (newPayment) {
-                    msg = `Deseja alterar o Status de Pagamento para "${newPayment}" em ${ids.length} OSs?`;
-                }
-
-                if (confirm(msg)) {
+                if (confirm(`Deseja alterar o status de pagamento de ${ids.length} OS para "${newPayment}"?`)) {
                     let osRecords = window.StorageApp.get('os_records') || [];
                     osRecords = osRecords.map(os => {
                         if (ids.includes(os.id)) {
-                            if (newStatus) {
-                                os.status = newStatus;
-                            }
-                            if (newPayment) {
-                                os.paymentStatus = newPayment;
-                                if (newPayment === 'Pago') {
-                                    os.valPaid = Number(os.values ? os.values.total : os.totalVal) || 0;
-                                } else if (newPayment === 'Pendente') {
-                                    os.valPaid = 0;
-                                }
+                            os.paymentStatus = newPayment;
+                            if (newPayment === 'Pago') {
+                                os.valPaid = Number(os.values ? os.values.total : os.totalVal) || 0;
+                            } else if (newPayment === 'Pendente') {
+                                os.valPaid = 0;
                             }
                         }
                         return os;
@@ -933,7 +979,7 @@ window.OSModule = {
                     await window.StorageApp.save('os_records', osRecords);
 
                     // Sincroniza com o Financeiro
-                    if (newPayment && window.FinancialModule) {
+                    if (window.FinancialModule) {
                         for (const id of ids) {
                             const updatedOs = osRecords.find(o => o.id === id);
                             if (updatedOs) {
@@ -942,8 +988,7 @@ window.OSModule = {
                         }
                     }
 
-                    alert('Alterações aplicadas com sucesso!');
-                    document.getElementById('bulk-update-status').value = '';
+                    alert('Status de pagamento updated with success!');
                     document.getElementById('bulk-update-payment').value = '';
                     OSModule.loadOSList();
                 }
@@ -997,6 +1042,7 @@ window.OSModule = {
             });
         }
 
+        // Bulk Download PDF Receipts (Separados)
         const btnBulkDownloadPdf = document.getElementById('btn-bulk-download-pdf');
         if (btnBulkDownloadPdf) {
             btnBulkDownloadPdf.addEventListener('click', () => {
@@ -1008,15 +1054,9 @@ window.OSModule = {
                 }
                 const osRecords = window.StorageApp.get('os_records') || [];
                 const selectedOS = osRecords.filter(os => ids.includes(os.id));
-                
-                let index = 0;
-                function downloadNext() {
-                    if (index >= selectedOS.length) return;
-                    OSModule.downloadSingleOSPDF(selectedOS[index]);
-                    index++;
-                    setTimeout(downloadNext, 1200);
-                }
-                downloadNext();
+                selectedOS.forEach(os => {
+                    OSModule.downloadSingleOSPDF(os);
+                });
             });
         }
 
@@ -1040,14 +1080,18 @@ window.OSModule = {
             btnClearFilters.addEventListener('click', () => {
                 const fStatus = document.getElementById('filter-os-status');
                 const fPayment = document.getElementById('filter-os-payment');
-                const fMonth = document.getElementById('filter-os-month');
+                const fStartDate = document.getElementById('filter-os-start-date');
+                const fEndDate = document.getElementById('filter-os-end-date');
                 const fNfse = document.getElementById('filter-os-nfse');
+                const fOSNumber = document.getElementById('filter-os-number');
                 const fSearch = document.getElementById('filter-os-search');
 
                 if (fStatus) fStatus.value = '';
                 if (fPayment) fPayment.value = '';
-                if (fMonth) fMonth.value = '';
+                if (fStartDate) fStartDate.value = '';
+                if (fEndDate) fEndDate.value = '';
                 if (fNfse) fNfse.value = '';
+                if (fOSNumber) fOSNumber.value = '';
                 if (fSearch) fSearch.value = '';
 
                 OSModule.loadOSList();
@@ -1139,11 +1183,66 @@ window.OSModule = {
         }
     },
 
+    renderMiscItems: (items = []) => {
+        const container = document.getElementById('misc-items-container');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        if (items.length === 0) {
+            items.push({ desc: '', value: '' });
+        }
+        
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'misc-item-row';
+            row.style = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 15px; align-items: center; margin-bottom: 5px;';
+            row.innerHTML = `
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="text" class="form-control misc-desc" placeholder="Ex: Taxa de lavagem" value="${item.desc || ''}">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="number" step="0.01" class="form-control calc-input misc-val" placeholder="0.00" value="${item.value || ''}">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <button type="button" class="btn btn-danger btn-sm remove-misc-row" style="height: 38px; display: flex; align-items: center; justify-content: center; padding: 0 12px; margin-top: 0; background-color: #dc3545; border-color: #dc3545;">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    },
+
+    addMiscItemRow: (desc = '', value = '') => {
+        const container = document.getElementById('misc-items-container');
+        if (!container) return;
+        const row = document.createElement('div');
+        row.className = 'misc-item-row';
+        row.style = 'display: grid; grid-template-columns: 2fr 1fr auto; gap: 15px; align-items: center; margin-bottom: 5px;';
+        row.innerHTML = `
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" class="form-control misc-desc" placeholder="Ex: Taxa de lavagem" value="${desc}">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="number" step="0.01" class="form-control calc-input misc-val" placeholder="0.00" value="${value}">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <button type="button" class="btn btn-danger btn-sm remove-misc-row" style="height: 38px; display: flex; align-items: center; justify-content: center; padding: 0 12px; margin-top: 0; background-color: #dc3545; border-color: #dc3545;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
+    },
+
     calculateTotal: () => {
         const parts = parseFloat(document.getElementById('val-parts').value) || 0;
         const machine = parseFloat(document.getElementById('val-machine').value) || 0;
         const labor = parseFloat(document.getElementById('val-labor').value) || 0;
-        const misc = parseFloat(document.getElementById('val-misc').value) || 0;
+        let misc = 0;
+        document.querySelectorAll('.misc-val').forEach(input => {
+            misc += parseFloat(input.value) || 0;
+        });
         const discount = parseFloat(document.getElementById('val-discount').value) || 0;
 
         const total = (parts + machine + labor + misc) - discount;
@@ -1172,7 +1271,10 @@ window.OSModule = {
         const parts = parseFloat(document.getElementById('val-parts').value) || 0;
         const machine = parseFloat(document.getElementById('val-machine').value) || 0;
         const labor = parseFloat(document.getElementById('val-labor').value) || 0;
-        const misc = parseFloat(document.getElementById('val-misc').value) || 0;
+        let misc = 0;
+        document.querySelectorAll('.misc-val').forEach(input => {
+            misc += parseFloat(input.value) || 0;
+        });
         const discount = parseFloat(document.getElementById('val-discount').value) || 0;
         const total = (parts + machine + labor + misc) - discount;
 
@@ -1239,6 +1341,7 @@ window.OSModule = {
             document.getElementById('os-start-time').value = '';
             document.getElementById('os-end-time').value = '';
             document.getElementById('os-total-display').textContent = '0.00';
+            OSModule.renderMiscItems([]);
         }
     },
 
@@ -1397,9 +1500,18 @@ window.OSModule = {
         const valParts = parseFloat(document.getElementById('val-parts').value) || 0;
         const valMachine = parseFloat(document.getElementById('val-machine').value) || 0;
         const valLabor = parseFloat(document.getElementById('val-labor').value) || 0;
-        const valMisc = parseFloat(document.getElementById('val-misc').value) || 0;
+        const miscItems = [];
+        let valMisc = 0;
+        document.querySelectorAll('.misc-item-row').forEach(row => {
+            const desc = row.querySelector('.misc-desc').value.trim();
+            const val = parseFloat(row.querySelector('.misc-val').value) || 0;
+            if (desc || val > 0) {
+                miscItems.push({ desc, value: val });
+                valMisc += val;
+            }
+        });
+        const descMisc = miscItems.map(item => item.desc).filter(Boolean).join(', ');
         const valDiscount = parseFloat(document.getElementById('val-discount').value) || 0;
-        const descMisc = document.getElementById('desc-misc').value;
         const total = OSModule.calculateTotal();
 
         // General
@@ -1423,6 +1535,7 @@ window.OSModule = {
                 misc: valMisc,
                 discount: valDiscount,
                 miscDesc: descMisc,
+                miscItems: miscItems,
                 total: total
             },
             techName,
@@ -1514,9 +1627,14 @@ window.OSModule = {
             document.getElementById('val-parts').value = os.values.parts || '';
             document.getElementById('val-machine').value = os.values.machine || '';
             document.getElementById('val-labor').value = os.values.labor || '';
-            document.getElementById('val-misc').value = os.values.misc || '';
             document.getElementById('val-discount').value = os.values.discount || '';
-            document.getElementById('desc-misc').value = os.values.miscDesc || '';
+            if (os.values.miscItems && os.values.miscItems.length > 0) {
+                OSModule.renderMiscItems(os.values.miscItems);
+            } else if (os.values.misc || os.values.miscDesc) {
+                OSModule.renderMiscItems([{ desc: os.values.miscDesc || '', value: os.values.misc || '' }]);
+            } else {
+                OSModule.renderMiscItems([]);
+            }
 
             document.getElementById('os-tech-select').value = os.techName;
             document.getElementById('os-status').value = os.status || 'Pendente';
@@ -1613,6 +1731,10 @@ window.OSModule = {
                                 <span>OS-${os.number}</span>
                             </div>
                             <div class="field-box">
+                                <label>STATUS</label>
+                                <span>${os.status}</span>
+                            </div>
+                            <div class="field-box">
                                 <label>CLIENTE</label>
                                 <span>${os.clientName}</span>
                             </div>
@@ -1624,8 +1746,13 @@ window.OSModule = {
                         <div class="col">
                             <div class="field-box">
                                  <label>DATA DO SERVIÇO</label>
-                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
                              </div>
+                             ${os.endTime ? `
+                             <div class="field-box">
+                                 <label>PREVISÃO ENTREGA</label>
+                                 <span>${os.endTime}</span>
+                             </div>` : ''}
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
                                 <span>${os.techName || '-'}</span>
@@ -1703,11 +1830,19 @@ window.OSModule = {
                             <span>Valor da Mão de Obra</span>
                             <span class="value">R$ ${labor.toFixed(2)}</span>
                         </div>
-                        ${misc > 0 ? `
-                        <div class="value-row">
-                            <span>Outros (${os.values.miscDesc})</span>
-                            <span class="value">R$ ${misc.toFixed(2)}</span>
-                        </div>` : ''}
+                        ${os.values.miscItems && os.values.miscItems.length > 0 ? 
+                            os.values.miscItems.map(item => `
+                                <div class="value-row">
+                                    <span>${item.desc || 'Outros'}</span>
+                                    <span class="value">R$ ${(Number(item.value) || 0).toFixed(2)}</span>
+                                </div>
+                            `).join('')
+                            : (misc > 0 ? `
+                                <div class="value-row">
+                                    <span>Outros (${os.values.miscDesc || ''})</span>
+                                    <span class="value">R$ ${misc.toFixed(2)}</span>
+                                </div>` : '')
+                        }
                         ${discount > 0 ? `
                         <div class="value-row discount">
                             <span>Desconto</span>
@@ -1746,7 +1881,7 @@ window.OSModule = {
         win.document.write(`
             <html>
             <head>
-                <title>OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}</title>
+                <title>OS-${os.number}</title>
                 <link rel="stylesheet" href="css/print.css">
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
                 <style>
@@ -1765,6 +1900,11 @@ window.OSModule = {
     },
 
     downloadSingleOSPDF: (os) => {
+        if (typeof html2pdf === 'undefined') {
+            alert('Biblioteca html2pdf não carregada. Verifique sua conexão de internet.');
+            return;
+        }
+
         const parts = parseFloat(os.values.parts) || 0;
         const machine = parseFloat(os.values.machine) || 0;
         const labor = parseFloat(os.values.labor) || 0;
@@ -1772,201 +1912,263 @@ window.OSModule = {
         const misc = parseFloat(os.values.misc) || 0;
         const total = parseFloat(os.values.total) || 0;
 
-        const printStyles = `
-            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-            body { font-family: 'Roboto', sans-serif; font-size: 10px; color: #333; background: #fff; padding: 20px; }
-            .print-page { width: 100%; max-width: 210mm; margin: 0 auto; position: relative; z-index: 1; padding: 8mm 10mm; box-sizing: border-box; background: white; }
-            .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; max-width: 500px; z-index: -1; pointer-events: none; opacity: 0.05; display: flex; justify-content: center; align-items: center; }
-            .watermark img { width: 100%; height: auto; border-radius: 50%; background: #000; }
-            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #1a3c6e; padding-bottom: 8px; }
-            .logo-area { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
-            .logo-area img { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #1a3c6e; background: #000; }
-            .header-info { text-align: right; }
-            .header-info h1 { font-size: 18px; color: #1a3c6e; margin: 0; font-weight: 700; text-transform: uppercase; }
-            .header-info .phone { font-size: 11px; color: #555; margin-top: 2px; }
-            .os-title-bar { text-align: center; font-weight: bold; font-size: 13px; color: white; background-color: #1a3c6e; padding: 4px 0; margin-bottom: 10px; border-radius: 4px; }
-            .section { margin-bottom: 10px; }
-            .section-title { font-size: 11px; font-weight: 700; color: #1a3c6e; text-transform: uppercase; border-bottom: 1px solid #ccc; padding-bottom: 2px; margin-bottom: 5px; }
-            .info-grid { display: flex; gap: 20px; }
-            .col { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-            .field-box { display: flex; flex-direction: row; align-items: center; border-bottom: 1px dotted #f0f0f0; padding-bottom: 2px; }
-            .field-box label { font-size: 9px; color: #666; text-transform: uppercase; font-weight: 500; width: 90px; flex-shrink: 0; }
-            .field-box span { font-size: 11px; font-weight: 600; color: #000; }
-            .description-content { border: 1px solid #ddd; padding: 8px; min-height: 60px; max-height: 300px; font-size: 10px; line-height: 1.3; overflow: hidden; }
-            .values-list { display: flex; flex-direction: column; border: 1px solid #eee; }
-            .value-row { display: flex; justify-content: space-between; padding: 3px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
-            .value-row:last-child { border-bottom: none; }
-            .value-row span:first-child { font-weight: 500; color: #444; }
-            .value-row .value { font-weight: bold; color: #000; }
-            .value-row.total { background-color: #f0f4f8; border-top: 2px solid #1a3c6e; padding: 8px; font-size: 14px; }
-            .value-row.total span { color: #1a3c6e; font-weight: 800; }
-            .footer-info-box { border: 1px solid #ccc; padding: 6px 10px; margin-bottom: 15px; color: #555; font-size: 9px; display: flex; justify-content: space-between; background: #f9f9f9; }
-            .signatures { display: flex; justify-content: space-between; margin-top: 25px; margin-bottom: 10px; }
-            .sig-line { width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 4px; font-size: 10px; color: #444; }
-            .terms { margin-top: 10px; font-size: 8.5px; text-align: center; color: #666; font-style: italic; line-height: 1.2; }
+        const element = document.createElement('div');
+        element.style.padding = '20px';
+        element.style.fontFamily = 'sans-serif';
+        element.style.background = '#ffffff';
+        element.style.color = '#333333';
+
+        element.innerHTML = `
+            <div class="print-page" style="position: relative; padding: 10px; box-sizing: border-box; background: white;">
+                <div class="watermark" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; z-index: -1; display: flex; justify-content: center; align-items: center;">
+                     <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Watermark" style="width: 350px; border-radius: 50%; background: #000;">
+                </div>
+
+                <header class="header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 2px solid #1a3c6e; padding-bottom: 10px;">
+                    <div class="logo-area" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Serviços Automotivos" style="max-height: 80px; border-radius: 50%; border: 2px solid #1a3c6e; background: #000;">
+                    </div>
+                    <div class="header-info" style="text-align: right;">
+                        <h1 style="margin:0; font-size: 1.5rem; color: #1a3c6e; font-weight: bold; text-transform: uppercase;">GDN SERVIÇOS AUTOMOTIVOS</h1>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">Tel: (11) 94857-9072</p>
+                    </div>
+                </header>
+
+                <div class="os-title-bar" style="background: #1a3c6e; color: #fff; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 20px; font-size: 1.1rem; border-radius: 4px;">
+                    ORDEM DE SERVIÇO Nº OS-${os.number}
+                </div>
+
+                <section class="section" style="margin-bottom: 20px;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold; color: #1a3c6e;">INFORMAÇÕES DO CLIENTE</h3>
+                    <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
+                        <div>
+                            <p style="margin: 4px 0;"><strong>Número da OS:</strong> OS-${os.number}</p>
+                            <p style="margin: 4px 0;"><strong>Status:</strong> ${os.status}</p>
+                            <p style="margin: 4px 0;"><strong>Cliente:</strong> ${os.clientName}</p>
+                            <p style="margin: 4px 0;"><strong>Endereço:</strong> ${os.clientAddress || '-'}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 4px 0;"><strong>Data do Serviço:</strong> ${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</p>
+                            ${os.endTime ? `<p style="margin: 4px 0;"><strong>Previsão de Entrega:</strong> ${os.endTime}</p>` : ''}
+                            <p style="margin: 4px 0;"><strong>Técnico:</strong> ${os.techName || '-'}</p>
+                            <p style="margin: 4px 0;"><strong>CPF/CNPJ:</strong> ${os.clientDoc || '-'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" style="margin-bottom: 20px;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold; color: #1a3c6e;">INFORMAÇÕES DO VEÍCULO</h3>
+                    <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
+                        <div>
+                            <p style="margin: 4px 0;"><strong>Modelo:</strong> ${os.vehicleModel}</p>
+                            <p style="margin: 4px 0;"><strong>Placa:</strong> ${os.vehiclePlate}</p>
+                            <p style="margin: 4px 0;"><strong>Garantia:</strong> ${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</p>
+                        </div>
+                        <div>
+                            <p style="margin: 4px 0;"><strong>Ano:</strong> ${os.vehicleYear || '-'}</p>
+                            <p style="margin: 4px 0;"><strong>KM:</strong> ${os.vehicleKm || '-'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" style="margin-bottom: 20px;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold; color: #1a3c6e;">DESCRIÇÃO DO SERVIÇO</h3>
+                    <div style="font-size: 0.85rem; line-height: 1.4;">
+                        ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
+                    </div>
+                </section>
+
+                ${os.observations ? `
+                <section class="section" style="margin-bottom: 20px;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold; color: #1a3c6e;">OBSERVAÇÕES</h3>
+                    <div style="font-size: 0.85rem; font-style: italic; color: #555; line-height: 1.4;">
+                        ${os.observations.replace(/\n/g, '<br>')}
+                    </div>
+                </section>
+                ` : ''}
+
+                <section class="section" style="margin-bottom: 20px;">
+                    <h3 class="section-title" style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold; color: #1a3c6e;">VALORES</h3>
+                    <div style="font-size: 0.85rem; max-width: 320px; margin-left: 0;">
+                        <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor das Peças:</span> <span>R$ ${parts.toFixed(2)}</span></p>
+                        <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor da Retífica:</span> <span>R$ ${machine.toFixed(2)}</span></p>
+                        <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor da Mão de Obra:</span> <span>R$ ${labor.toFixed(2)}</span></p>
+                        ${os.values.miscItems && os.values.miscItems.length > 0 ? 
+                            os.values.miscItems.map(item => `
+                                <p style="display:flex; justify-content:space-between; margin:4px 0;">
+                                    <span>${item.desc || 'Outros'}:</span>
+                                    <span>R$ ${(Number(item.value) || 0).toFixed(2)}</span>
+                                </p>
+                            `).join('')
+                            : (misc > 0 ? `<p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Outros (${os.values.miscDesc || ''}):</span> <span>R$ ${misc.toFixed(2)}</span></p>` : '')
+                        }
+                        ${discount > 0 ? `<p style="display:flex; justify-content:space-between; margin:4px 0; color: #dc3545;"><span>Desconto:</span> <span>- R$ ${discount.toFixed(2)}</span></p>` : ''}
+                        <p style="display:flex; justify-content:space-between; margin:8px 0 4px 0; border-top: 1px solid #333; font-weight:bold; font-size: 0.95rem; padding-top:4px;"><span>VALOR TOTAL:</span> <span>R$ ${total.toFixed(2)}</span></p>
+                    </div>
+                </section>
+
+                <div style="margin-top: 30px; font-size:0.8rem; display:flex; justify-content:space-between; border-top: 1px solid #ccc; padding-top: 10px;">
+                    <span><strong>CONTATO:</strong> Tel: (11) 94857-9072</span>
+                    <span><strong>PAGAMENTO:</strong> PIX: 56.306.502/0001-08</span>
+                </div>
+
+                <div style="margin-top: 60px; display:flex; justify-content:space-between; gap: 50px; font-size: 0.85rem;">
+                    <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 5px;">Assinatura do Cliente</div>
+                    <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 5px;">Assinatura do Responsável</div>
+                </div>
+            </div>
         `;
 
+        const opt = {
+            margin:       10,
+            filename:     `OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    },
+
+    downloadSingleOSHTML: (os) => {
+        const parts = parseFloat(os.values.parts) || 0;
+        const machine = parseFloat(os.values.machine) || 0;
+        const labor = parseFloat(os.values.labor) || 0;
+        const discount = parseFloat(os.values.discount) || 0;
+        const misc = parseFloat(os.values.misc) || 0;
+        const total = parseFloat(os.values.total) || 0;
+
         const htmlContent = `
-            <div style="font-family: 'Roboto', sans-serif; background: #fff; color: #333; padding: 10px; width: 750px;">
-                <style>${printStyles}</style>
+            <html>
+            <head>
+                <title>OS-${os.number}</title>
+                <link rel="stylesheet" href="https://gleicysanrocha.github.io/gdn-automotive-system/css/print.css">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                <style>
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 20px; font-family: sans-serif; }
+                </style>
+            </head>
+            <body>
                 <div class="print-page">
                     <!-- Watermark Background -->
-                    <div class="watermark">
-                         <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Watermark">
+                    <div class="watermark" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; z-index: -1;">
+                         <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Watermark" style="width: 350px;">
                     </div>
 
-                    <header class="header">
+                    <header class="header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">
                         <div class="logo-area">
-                            <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Serviços Automotivos">
+                            <img src="https://gleicysanrocha.github.io/gdn-automotive-system/assets/img/logo.png" alt="GDN Serviços Automotivos" style="max-height: 80px;">
                         </div>
-                        <div class="header-info">
-                            <h1>GDN SERVIÇOS AUTOMOTIVOS</h1>
-                            <p class="phone">Tel: (11) 94857-9072</p>
+                        <div class="header-info" style="text-align: right;">
+                            <h1 style="margin:0; font-size: 1.5rem; font-family: 'Exo 2', sans-serif;">GDN SERVIÇOS AUTOMOTIVOS</h1>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Tel: (11) 94857-9072</p>
                         </div>
                     </header>
 
-                    <div class="os-title-bar">
+                    <div class="os-title-bar" style="background: #333; color: #fff; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 20px; font-size: 1.1rem; font-family: 'Exo 2', sans-serif;">
                         ORDEM DE SERVIÇO Nº OS-${os.number}
                     </div>
 
                     <!-- Section: Client Info -->
-                    <section class="section">
-                        <h3 class="section-title">INFORMAÇÕES DO CLIENTE</h3>
-                        <div class="info-grid two-columns">
-                            <div class="col">
-                                <div class="field-box">
-                                    <label>NÚMERO DA OS</label>
-                                    <span>OS-${os.number}</span>
-                                </div>
-                                <div class="field-box">
-                                    <label>CLIENTE</label>
-                                    <span>${os.clientName}</span>
-                                </div>
-                                <div class="field-box">
-                                    <label>ENDEREÇO</label>
-                                    <span>${os.clientAddress || '-'}</span>
-                                </div>
+                    <section class="section" style="margin-bottom: 20px;">
+                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">INFORMAÇÕES DO CLIENTE</h3>
+                        <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
+                            <div>
+                                <p style="margin: 4px 0;"><strong>Número da OS:</strong> OS-${os.number}</p>
+                                <p style="margin: 4px 0;"><strong>Status:</strong> ${os.status}</p>
+                                <p style="margin: 4px 0;"><strong>Cliente:</strong> ${os.clientName}</p>
+                                <p style="margin: 4px 0;"><strong>Endereço:</strong> ${os.clientAddress || '-'}</p>
                             </div>
-                            <div class="col">
-                                <div class="field-box">
-                                     <label>DATA DO SERVIÇO</label>
-                                     <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
-                                 </div>
-                                <div class="field-box">
-                                    <label>TÉCNICO RESPONSÁVEL</label>
-                                    <span>${os.techName || '-'}</span>
-                                </div>
-                                <div class="field-box">
-                                    <label>CPF/CNPJ</label>
-                                    <span>${os.clientDoc || '-'}</span>
-                                </div>
+                            <div>
+                                <p style="margin: 4px 0;"><strong>Data do Serviço:</strong> ${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</p>
+                                ${os.endTime ? `<p style="margin: 4px 0;"><strong>Previsão de Entrega:</strong> ${os.endTime}</p>` : ''}
+                                <p style="margin: 4px 0;"><strong>Técnico:</strong> ${os.techName || '-'}</p>
+                                <p style="margin: 4px 0;"><strong>CPF/CNPJ:</strong> ${os.clientDoc || '-'}</p>
                             </div>
                         </div>
                     </section>
 
                     <!-- Section: Vehicle Info -->
-                    <section class="section">
-                        <h3 class="section-title">INFORMAÇÕES DO VEÍCULO</h3>
-                        <div class="info-grid two-columns vehicle-grid">
-                            <div class="col">
-                                <div class="field-box">
-                                    <label>MODELO</label>
-                                    <span>${os.vehicleModel}</span>
-                                </div>
-                                <div class="field-box">
-                                    <label>PLACA</label>
-                                    <span>${os.vehiclePlate}</span>
-                                </div>
-                                 <div class="field-box">
-                                    <label>GARANTIA</label>
-                                    <span>${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</span>
-                                </div>
+                    <section class="section" style="margin-bottom: 20px;">
+                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">INFORMAÇÕES DO VEÍCULO</h3>
+                        <div class="info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem;">
+                            <div>
+                                <p style="margin: 4px 0;"><strong>Modelo:</strong> ${os.vehicleModel}</p>
+                                <p style="margin: 4px 0;"><strong>Placa:</strong> ${os.vehiclePlate}</p>
+                                <p style="margin: 4px 0;"><strong>Garantia:</strong> ${os.vehicleWarranty ? os.vehicleWarranty + ' meses' : '-'}</p>
                             </div>
-                            <div class="col">
-                                 <div class="field-box">
-                                    <label>ANO</label>
-                                    <span>${os.vehicleYear || '-'}</span>
-                                </div>
-                                <div class="field-box">
-                                    <label>KM</label>
-                                    <span>${os.vehicleKm || '-'}</span>
-                                </div>
+                            <div>
+                                <p style="margin: 4px 0;"><strong>Ano:</strong> ${os.vehicleYear || '-'}</p>
+                                <p style="margin: 4px 0;"><strong>KM:</strong> ${os.vehicleKm || '-'}</p>
                             </div>
                         </div>
                     </section>
 
                     <!-- Section: Description -->
-                    <section class="section">
-                        <h3 class="section-title">DESCRIÇÃO DO SERVIÇO</h3>
-                        <div class="description-content">
+                    <section class="section" style="margin-bottom: 20px;">
+                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">DESCRIÇÃO DO SERVIÇO</h3>
+                        <div style="font-size: 0.85rem; line-height: 1.4;">
                             ${os.description ? os.description.replace(/\n/g, '<br>') : '-'}
                         </div>
                     </section>
 
-                    ${os.observations ? '<!-- Section: Observations --><section class="section"><h3 class="section-title">OBSERVAÇÕES</h3><div class="description-content" style="font-style: italic; color: #555;">' + os.observations.replace(/\n/g, '<br>') + '</div></section>' : ''}
+                    ${os.observations ? `
+                    <!-- Section: Observations -->
+                    <section class="section" style="margin-bottom: 20px;">
+                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">OBSERVAÇÕES</h3>
+                        <div style="font-size: 0.85rem; font-style: italic; color: #555; line-height: 1.4;">
+                            ${os.observations.replace(/\n/g, '<br>')}
+                        </div>
+                    </section>
+                    ` : ''}
 
                     <!-- Section: Values -->
-                    <section class="section">
-                        <h3 class="section-title">VALORES</h3>
-                        <div class="values-list">
-                            <div class="value-row">
-                                <span>Valor das Peças</span>
-                                <span class="value">R$ ${parts.toFixed(2)}</span>
-                            </div>
-                            <div class="value-row">
-                                <span>Valor da Retífica</span>
-                                <span class="value">R$ ${machine.toFixed(2)}</span>
-                            </div>
-                            <div class="value-row">
-                                <span>Valor da Mão de Obra</span>
-                                <span class="value">R$ ${labor.toFixed(2)}</span>
-                            </div>
-                            ${misc > 0 ? '<div class="value-row"><span>Outros (' + (os.values.miscDesc || '') + ')</span><span class="value">R$ ' + misc.toFixed(2) + '</span></div>' : ''}
-                            ${discount > 0 ? '<div class="value-row discount"><span>Desconto</span><span class="value">- R$ ' + discount.toFixed(2) + '</span></div>' : ''}
-                            <div class="value-row total">
-                                <span>VALOR TOTAL</span>
-                                <span class="value">R$ ${total.toFixed(2)}</span>
-                            </div>
+                    <section class="section" style="margin-bottom: 20px;">
+                        <h3 class="section-title" style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-size: 0.95rem; text-transform: uppercase; font-weight: bold;">VALORES</h3>
+                        <div style="font-size: 0.85rem; max-width: 320px; margin-left: 0;">
+                            <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor das Peças:</span> <span>R$ ${parts.toFixed(2)}</span></p>
+                            <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor da Retífica:</span> <span>R$ ${machine.toFixed(2)}</span></p>
+                            <p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Valor da Mão de Obra:</span> <span>R$ ${labor.toFixed(2)}</span></p>
+                            ${os.values.miscItems && os.values.miscItems.length > 0 ? 
+                                os.values.miscItems.map(item => `
+                                    <p style="display:flex; justify-content:space-between; margin:4px 0;">
+                                        <span>${item.desc || 'Outros'}:</span>
+                                        <span>R$ ${(Number(item.value) || 0).toFixed(2)}</span>
+                                    </p>
+                                `).join('')
+                                : (misc > 0 ? `<p style="display:flex; justify-content:space-between; margin:4px 0;"><span>Outros (${os.values.miscDesc || ''}):</span> <span>R$ ${misc.toFixed(2)}</span></p>` : '')
+                            }
+                            ${discount > 0 ? `<p style="display:flex; justify-content:space-between; margin:4px 0; color: #dc3545;"><span>Desconto:</span> <span>- R$ ${discount.toFixed(2)}</span></p>` : ''}
+                            <p style="display:flex; justify-content:space-between; margin:8px 0 4px 0; border-top: 1px solid #333; font-weight:bold; font-size: 0.95rem; padding-top:4px;"><span>VALOR TOTAL:</span> <span>R$ ${total.toFixed(2)}</span></p>
                         </div>
                     </section>
 
-                    <!-- Section: Footer Info -->
-                    <div class="footer-info-box">
-                            <span><strong>CONTATO</strong> Tel: (11) 94857-9072</span>
-                            <span><strong>PAGAMENTO</strong> PIX: 56.306.502/0001-08</span>
+                    <div style="margin-top: 30px; font-size:0.8rem; display:flex; justify-content:space-between; border-top: 1px solid #ccc; padding-top: 10px;">
+                        <span><strong>CONTATO:</strong> Tel: (11) 94857-9072</span>
+                        <span><strong>PAGAMENTO:</strong> PIX: 56.306.502/0001-08</span>
                     </div>
 
-                    <!-- Signatures -->
-                    <div class="signatures">
-                        <div class="sig-line">
-                            Assinatura do Cliente
-                        </div>
-                        <div class="sig-line">
-                            Assinatura do Responsável
-                        </div>
+                    <div style="margin-top: 60px; display:flex; justify-content:space-between; gap: 50px; font-size: 0.85rem;">
+                        <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 5px;">Assinatura do Cliente</div>
+                        <div style="flex:1; border-top: 1px solid #333; text-align:center; padding-top: 5px;">Assinatura do Responsável</div>
                     </div>
-                    
-                     <p class="terms">
-                        Declaro ter conferido o veículo e os serviços realizados. A garantia cobre apenas peças e serviços descritos nesta OS.
-                    </p>
                 </div>
-            </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                </script>
+            </body>
+            </html>
         `;
 
-        if (typeof html2pdf === 'undefined') {
-            alert('Aguarde o carregamento do gerador de PDFs. Tente novamente em 2 segundos.');
-            return;
-        }
-
-        const opt = {
-            margin: 10,
-            filename: `OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().from(htmlContent).set(opt).save();
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `OS_${os.number}_${os.clientName.replace(/[^a-zA-Z0-9]/g, '_')}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     },
 
     printMultipleOS: (ids) => {
@@ -2016,6 +2218,10 @@ window.OSModule = {
                                 <span>OS-${os.number}</span>
                             </div>
                             <div class="field-box">
+                                <label>STATUS</label>
+                                <span>${os.status}</span>
+                            </div>
+                            <div class="field-box">
                                 <label>CLIENTE</label>
                                 <span>${os.clientName}</span>
                             </div>
@@ -2027,8 +2233,13 @@ window.OSModule = {
                         <div class="col">
                             <div class="field-box">
                                  <label>DATA DO SERVIÇO</label>
-                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                                 <span>${new Date(os.date.includes('T') ? os.date : os.date + 'T00:00:00').toLocaleDateString('pt-BR')} ${os.startTime ? ' às ' + os.startTime : ''}</span>
                              </div>
+                             ${os.endTime ? `
+                             <div class="field-box">
+                                 <label>PREVISÃO ENTREGA</label>
+                                 <span>${os.endTime}</span>
+                             </div>` : ''}
                             <div class="field-box">
                                 <label>TÉCNICO RESPONSÁVEL</label>
                                 <span>${os.techName || '-'}</span>
@@ -2106,11 +2317,19 @@ window.OSModule = {
                             <span>Valor da Mão de Obra</span>
                             <span class="value">R$ ${labor.toFixed(2)}</span>
                         </div>
-                        ${misc > 0 ? `
-                        <div class="value-row">
-                            <span>Outros (${os.values.miscDesc || ''})</span>
-                            <span class="value">R$ ${misc.toFixed(2)}</span>
-                        </div>` : ''}
+                        ${os.values.miscItems && os.values.miscItems.length > 0 ? 
+                            os.values.miscItems.map(item => `
+                                <div class="value-row">
+                                    <span>${item.desc || 'Outros'}</span>
+                                    <span class="value">R$ ${(Number(item.value) || 0).toFixed(2)}</span>
+                                </div>
+                            `).join('')
+                            : (misc > 0 ? `
+                                <div class="value-row">
+                                    <span>Outros (${os.values.miscDesc || ''})</span>
+                                    <span class="value">R$ ${misc.toFixed(2)}</span>
+                                </div>` : '')
+                        }
                         ${discount > 0 ? `
                         <div class="value-row discount">
                             <span>Desconto</span>
